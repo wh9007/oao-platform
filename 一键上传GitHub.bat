@@ -1,0 +1,73 @@
+@echo off
+setlocal EnableExtensions
+chcp 65001 >nul
+cd /d "%~dp0"
+
+if /I not "%~1"=="RUN" (
+    cmd /k "%~f0" RUN
+    exit /b 0
+)
+
+set "GITHUB_USER=wh9007"
+set "REPO_NAME=oao-platform"
+set "TOKEN_FILE=%~dp0git-token.txt"
+set "LOG_FILE=%~dp0upload-log.txt"
+
+echo.
+echo  ============================================================
+echo    OAO 一键上传到 GitHub（窗口不会自动关闭）
+echo  ============================================================
+echo.
+
+where git >nul 2>&1
+if errorlevel 1 (
+    echo  [缺少 Git] 请先安装: https://git-scm.com/download/win
+    echo  安装时全部点「下一步」即可。
+    goto :END
+)
+
+if not exist "%TOKEN_FILE%" echo.>"%TOKEN_FILE%"
+
+findstr /R /C:"ghp_" "%TOKEN_FILE%" >nul 2>&1
+if errorlevel 1 (
+    echo  正在打开记事本，请粘贴 Token（ghp_ 开头），保存后关闭。
+    echo.
+    notepad "%TOKEN_FILE%"
+)
+
+findstr /R /C:"ghp_" "%TOKEN_FILE%" >nul 2>&1
+if errorlevel 1 (
+    echo  [错误] 记事本里没有有效的 Token，请重新运行本文件。
+    goto :END
+)
+
+echo  正在上传，请稍候（约 10~60 秒）...
+echo  详细过程会写入: upload-log.txt
+echo.
+
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0do-upload.ps1"
+set "UPLOAD_OK=%ERRORLEVEL%"
+
+echo.
+type "%LOG_FILE%" 2>nul
+echo.
+
+if "%UPLOAD_OK%"=="0" (
+    echo  ============================================================
+    echo   [上传成功]
+    echo   接下来会自动打开 GitHub 网站设置页面。
+    echo   约 2 分钟后访问: https://wh9007.github.io/oao-platform/
+    echo  ============================================================
+    start "" "https://github.com/wh9007/oao-platform/settings/pages"
+) else (
+    echo  ============================================================
+    echo   [上传失败] 请看上方 upload-log.txt 里的说明。
+    echo   可重新生成 Token 后再次双击本文件。
+    echo  ============================================================
+    start "" "https://github.com/settings/tokens/new?scopes=repo"
+)
+
+:END
+echo.
+echo  本窗口会一直保持，看完结果后可直接关闭。
+pause

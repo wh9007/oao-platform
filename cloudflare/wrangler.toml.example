@@ -1,0 +1,22 @@
+name = "oao-ai"
+main = "oao-ai-worker.js"
+compatibility_date = "2024-01-01"
+
+# 复制为 wrangler.toml 后填写 account_id，并执行: npx wrangler deploy
+
+# account_id = "你的 Cloudflare Account ID"
+
+[durable_objects]
+bindings = [
+  { name = "MEETING_ROOM", class_name = "MeetingRoom" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["MeetingRoom"]
+
+[vars]
+# 在 Cloudflare Tunnel 里为以下服务各建一个 Public Hostname 后填入：
+# LLM_ORIGIN = "https://llm.你的域名.com"
+# OLLAMA_ORIGIN = "https://ollama.你的域名.com"
+# ANYTHINGLLM_API_KEY = "你的 AnythingLLM API Key"

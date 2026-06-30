@@ -1,0 +1,14 @@
+# Cloudflare 敏感信息（切勿提交）
+git-token.txt
+cloudflare/tunnel-token.txt
+cloudflare/*.json
+!cloudflare/wrangler.toml.example
+cloudflare/wrangler.toml
+cloudflare/.dev.vars
+
+# 本地与系统
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
