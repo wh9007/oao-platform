@@ -41,8 +41,8 @@ if (-not (Test-Path '.git')) { Invoke-OaoGit init | Out-Null }
 Invoke-OaoGit branch -M main | Out-Null
 
 $origin = "https://github.com/$User/$Repo.git"
-$remotes = Invoke-OaoGit remote 2>&1 | Out-String
-if ($remotes -match '(?m)^origin$') {
+$remotes = @(Invoke-OaoGit remote 2>&1)
+if ($remotes -contains 'origin') {
     Invoke-OaoGit remote set-url origin $origin | Out-Null
 } else {
     Invoke-OaoGit remote add origin $origin | Out-Null
@@ -70,7 +70,10 @@ $uploadList = @(
 )
 
 foreach ($f in $uploadList) {
-    if (Test-Path $f) { Invoke-OaoGit add $f | Out-Null }
+    $full = Join-Path $PSScriptRoot $f
+    if (Test-Path -LiteralPath $full) {
+        Invoke-OaoGit add -- $full | Out-Null
+    }
 }
 
 $pending = Invoke-OaoGit status --porcelain 2>&1 | Out-String
