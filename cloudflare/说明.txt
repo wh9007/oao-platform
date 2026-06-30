@@ -1,0 +1,13 @@
+Cloudflare 云端 AI（一般不用改）
+================================
+
+已部署：
+  Worker  https://oao-ai.wh529007.workers.dev
+  Tunnel  oao-home
+
+外网 AI 需要在本机：
+  1. 填写 cloudflare\tunnel-token.txt（参考 .example 文件）
+  2. 双击上级目录的「启动Tunnel.bat」
+  3. 保持 Ollama(:11434) 与 AnythingLLM(:3001) 运行
+
+如需重新部署 Worker，请联系 Cursor 助手处理。

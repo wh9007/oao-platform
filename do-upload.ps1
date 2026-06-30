@@ -54,18 +54,13 @@ $uploadList = @(
     'oao-meeting-signal.js',
     '.nojekyll',
     '.gitignore',
-    '使用说明.txt',
     'git-token.txt.example',
     'local-config.example.txt',
-    '打开OAO.bat',
-    '启动Tunnel.bat',
-    '一键上传GitHub.bat',
     'do-upload.ps1',
     'cloudflare/oao-ai-worker.js',
     'cloudflare/meeting-room.js',
     'cloudflare/wrangler.toml.example',
     'cloudflare/tunnel-token.txt.example',
-    'cloudflare/说明.txt',
     'ipfs-ens/index.html'
 )
 
@@ -74,6 +69,19 @@ foreach ($f in $uploadList) {
     if (Test-Path -LiteralPath $full) {
         Invoke-OaoGit add -- $full | Out-Null
     }
+}
+
+Get-ChildItem -Path $PSScriptRoot -File | Where-Object {
+    $_.Name -match '\.(bat|txt)$' -and
+    $_.Name -notin @('upload-log.txt', 'git-token.txt')
+} | ForEach-Object {
+    Invoke-OaoGit add -- $_.FullName | Out-Null
+}
+
+Get-ChildItem -Path (Join-Path $PSScriptRoot 'cloudflare') -File -ErrorAction SilentlyContinue | Where-Object {
+    $_.Name -notmatch '^(tunnel-token\.txt|wrangler\.toml)$' -and $_.Extension -ne '.json'
+} | ForEach-Object {
+    Invoke-OaoGit add -- $_.FullName | Out-Null
 }
 
 $pending = Invoke-OaoGit status --porcelain 2>&1 | Out-String
