@@ -67,7 +67,7 @@ $uploadList = @(
 foreach ($f in $uploadList) {
     $full = Join-Path $PSScriptRoot $f
     if (Test-Path -LiteralPath $full) {
-        Invoke-OaoGit add -- $full | Out-Null
+        Invoke-OaoGit add -- $f | Out-Null
     }
 }
 
@@ -75,13 +75,13 @@ Get-ChildItem -Path $PSScriptRoot -File | Where-Object {
     $_.Name -match '\.(bat|txt)$' -and
     $_.Name -notin @('upload-log.txt', 'git-token.txt')
 } | ForEach-Object {
-    Invoke-OaoGit add -- $_.FullName | Out-Null
+    Invoke-OaoGit add -- $_.Name | Out-Null
 }
 
 Get-ChildItem -Path (Join-Path $PSScriptRoot 'cloudflare') -File -ErrorAction SilentlyContinue | Where-Object {
     $_.Name -notmatch '^(tunnel-token\.txt|wrangler\.toml)$' -and $_.Extension -ne '.json'
 } | ForEach-Object {
-    Invoke-OaoGit add -- $_.FullName | Out-Null
+    Invoke-OaoGit add -- ("cloudflare/" + $_.Name) | Out-Null
 }
 
 $pending = Invoke-OaoGit status --porcelain 2>&1 | Out-String
