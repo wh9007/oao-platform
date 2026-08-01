@@ -4117,6 +4117,25 @@
             z-index: 10210;
         }
 
+        .oao-translate-modal .close-btn {
+            top: 10px;
+            right: 15px;
+            z-index: 35;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .oao-translate-modal .oao-translate-fullscreen-btn {
+            z-index: 35;
+        }
+
         .oao-translate-modal .oao-translate-content {
             width: min(1180px, 96vw);
             max-width: 1180px;
@@ -11155,8 +11174,8 @@
                         en: 'Current engine unavailable, switched to backup browser STT'
                     },
                     sttNetworkError: {
-                        zh: '语音识别需联网，请检查网络或切换引擎；推荐 Chrome / Edge',
-                        en: 'Speech recognition requires network. Try Chrome / Edge or switch engine.'
+                        zh: '语音识别需联网，请检查网络或在设置中切换引擎（自动 / 全球通用）；支持 Chrome、Edge、Safari',
+                        en: 'Speech recognition needs network. Switch engine in settings; Chrome, Edge, Safari supported.'
                     }
                 };
                 return dict[key]?.[lang] || key;
@@ -13021,10 +13040,26 @@ ${emptyHint}`;
 
             oaoToolMeetingBtn?.addEventListener('click', openOaoMeetingModal);
 
+            function getOaoSiteBase() {
+                if (window.OAO_SITE_BASE != null) {
+                    return String(window.OAO_SITE_BASE).replace(/\/$/, '');
+                }
+                const path = location.pathname || '/';
+                if (/\/OAO\.html$/i.test(path)) {
+                    return path.replace(/\/OAO\.html$/i, '') || '';
+                }
+                if (path.endsWith('/')) {
+                    return path.slice(0, -1) || '';
+                }
+                const dir = path.replace(/\/[^/]*$/, '');
+                return dir === '/' ? '' : dir;
+            }
+            window.getOaoSiteBase = getOaoSiteBase;
+
             function resolveOaoTranslateUrl() {
                 if (window.OAO_TRANSLATE_URL) return String(window.OAO_TRANSLATE_URL).replace(/\/$/, '');
                 if (location.protocol === 'http:' || location.protocol === 'https:') {
-                    return location.origin + '/oao-translate/embed/index.html';
+                    return location.origin + getOaoSiteBase() + '/oao-translate/embed/index.html';
                 }
                 return 'http://127.0.0.1:8777/oao-translate/embed/index.html';
             }
@@ -13235,15 +13270,34 @@ ${emptyHint}`;
 
                 setOaoTranslateLoadingVisible(true, currentLang === 'zh' ? '正在打开 OAO翻译…' : 'Opening…');
 
-                frame.onload = () => {
-                    setOaoTranslateLoadingVisible(false);
-                    frame.classList.remove('hidden');
+                let loadSettled = false;
+                const settleLoad = (ok) => {
+                    if (loadSettled) return;
+                    loadSettled = true;
+                    clearTimeout(loadWatchdog);
+                    if (ok) {
+                        setOaoTranslateLoadingVisible(false);
+                        frame.classList.remove('hidden');
+                        fallback.classList.add('hidden');
+                    } else {
+                        setOaoTranslateLoadingVisible(false);
+                        frame.classList.add('hidden');
+                        fallback.classList.remove('hidden');
+                    }
                 };
-                frame.onerror = () => {
-                    setOaoTranslateLoadingVisible(false);
-                    frame.classList.add('hidden');
-                    fallback.classList.remove('hidden');
-                };
+
+                frame.onload = () => settleLoad(true);
+                frame.onerror = () => settleLoad(false);
+                const loadWatchdog = setTimeout(() => {
+                    try {
+                        const doc = frame.contentDocument;
+                        if (doc && doc.getElementById('app')) {
+                            settleLoad(true);
+                            return;
+                        }
+                    } catch (_) {}
+                    settleLoad(false);
+                }, 12000);
                 frame.src = embedUrl;
 
                 void prewarmOaoTranslateService();
@@ -13322,24 +13376,37 @@ ${emptyHint}`;
                     doCloseOaoTranslateModal();
                     return;
                 }
+                const finishClose = (recording, hasContent) => {
+                    if (!recording && !hasContent) {
+                        doCloseOaoTranslateModal();
+                        return;
+                    }
+                    void showOaoTranslateCloseConfirm(recording, hasContent).then((allow) => {
+                        if (allow) doCloseOaoTranslateModal();
+                    });
+                };
                 if (frame?.contentWindow && frame.src && frame.src !== 'about:blank') {
-                    const onReply = (ev) => {
-                        if (ev.data?.type !== 'oao-translate-close-state') return;
+                    let settled = false;
+                    const settle = (recording, hasContent) => {
+                        if (settled) return;
+                        settled = true;
                         window.removeEventListener('message', onReply);
                         clearTimeout(replyTimer);
-                        const recording = !!ev.data.recording;
-                        const hasContent = !!ev.data.hasContent;
-                        if (!recording && !hasContent) {
-                            doCloseOaoTranslateModal();
-                            return;
-                        }
-                        void showOaoTranslateCloseConfirm(recording, hasContent).then((allow) => {
-                            if (allow) doCloseOaoTranslateModal();
-                        });
+                        finishClose(recording, hasContent);
                     };
-                    const replyTimer = setTimeout(() => window.removeEventListener('message', onReply), 8000);
+                    const onReply = (ev) => {
+                        if (ev.data?.type !== 'oao-translate-close-state') return;
+                        settle(!!ev.data.recording, !!ev.data.hasContent);
+                    };
+                    const replyTimer = setTimeout(() => {
+                        settle(false, false);
+                    }, 2500);
                     window.addEventListener('message', onReply);
-                    frame.contentWindow.postMessage({ type: 'oao-translate-query-close' }, '*');
+                    try {
+                        frame.contentWindow.postMessage({ type: 'oao-translate-query-close' }, '*');
+                    } catch (_) {
+                        settle(false, false);
+                    }
                     return;
                 }
                 doCloseOaoTranslateModal();
@@ -15589,7 +15656,8 @@ ${emptyHint}`;
                 : "";
             if (!base) {
                 if (location.protocol === "http:" || location.protocol === "https:") {
-                    base = location.origin + "/oao-translate/embed/index.html";
+                    const siteBase = typeof window.getOaoSiteBase === "function" ? window.getOaoSiteBase() : "";
+                    base = location.origin + siteBase + "/oao-translate/embed/index.html";
                 } else {
                     base = "http://127.0.0.1:8777/oao-translate/embed/index.html";
                 }

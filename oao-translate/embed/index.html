@@ -120,7 +120,7 @@
       document.addEventListener("DOMContentLoaded", function () {
         var hint = document.getElementById("emptyHint");
         var detail = document.getElementById("statusDetail");
-        var msg = "脚本加载失败，请通过 http://127.0.0.1:8777/OAO.html 打开并 Ctrl+F5 刷新。";
+        var msg = "脚本加载失败，请刷新页面（Ctrl+F5）。若从 GitHub 打开，请确认链接含 /oao-platform/ 。";
         if (hint) hint.textContent = msg;
         if (detail) detail.textContent = msg;
       });

@@ -337,6 +337,35 @@
     PROVIDERS,
     AUTO_CHAIN,
     detectBrowserBackend,
+    detectBrowserName() {
+      const ua = navigator.userAgent || "";
+      if (/Firefox\//.test(ua)) return "firefox";
+      if (/Edg\//.test(ua)) return "edge";
+      if (/Chrome\//.test(ua)) return "chrome";
+      if (/Safari\//.test(ua) && !/Chrome/.test(ua)) return "safari";
+      return "other";
+    },
+    getUnsupportedMessage(uiLang) {
+      if (typeof global.isSecureContext === "boolean" && !global.isSecureContext) {
+        return uiLang === "zh"
+          ? "语音识别需 HTTPS 或 localhost，请用 https:// 访问，或本地双击「打开OAO.bat」"
+          : "Speech recognition requires HTTPS or localhost.";
+      }
+      const name = this.detectBrowserName();
+      if (name === "firefox") {
+        return uiLang === "zh"
+          ? "Firefox 暂不支持 Web Speech 识别，请改用 Chrome、Edge 或 Safari"
+          : "Firefox lacks Web Speech STT. Use Chrome, Edge, or Safari.";
+      }
+      return uiLang === "zh"
+        ? "当前浏览器不支持语音识别，请使用 Chrome、Edge 或 Safari，并允许麦克风"
+        : "STT unavailable. Use Chrome, Edge, or Safari with mic permission.";
+    },
+    getNetworkErrorMessage(uiLang) {
+      return uiLang === "zh"
+        ? "语音识别需联网，请检查网络或在设置中切换引擎（自动 / 全球通用）"
+        : "STT needs network. Check connection or switch engine in settings.";
+    },
     getProvider,
     getProviderChain,
     resolveProviderLang,

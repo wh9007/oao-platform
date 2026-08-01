@@ -1196,12 +1196,22 @@
     return map[code] || code;
   }
 
+  function sttUnsupportedMessage() {
+    return window.OAOBrowserSTT?.getUnsupportedMessage?.("zh")
+      || "当前浏览器不支持语音识别，请使用 Chrome、Edge 或 Safari";
+  }
+
+  function sttNetworkMessage() {
+    return window.OAOBrowserSTT?.getNetworkErrorMessage?.("zh")
+      || "语音识别需联网，请检查网络或在设置中切换引擎";
+  }
+
   function startRecognition() {
     stopRecognition();
     state.browserSttFails = 0;
     const providerId = state.settings.sttProvider || "auto";
     if (!window.OAOBrowserSTT?.SpeechCtor) {
-      toast("无法启动浏览器语音识别，请使用 Chrome 或 Edge", "error");
+      toast(sttUnsupportedMessage(), "error");
       updateSttProviderLabel("");
       setStatus(state.engineMode, state.status === "recording");
       return;
@@ -1239,21 +1249,21 @@
           return;
         }
         if (error === "unsupported") {
-          toast("无法启动浏览器语音识别，请使用 Chrome 或 Edge", "error");
+          toast(sttUnsupportedMessage(), "error");
           return;
         }
         if (fatal) return;
         state.browserSttFails += 1;
         const blocked = error === "network" || error === "service-not-allowed";
-        if (blocked && providerId !== "auto") {
-          toast("当前引擎需联网，可改为「自动」以切换备用引擎", "error");
+        if (blocked) {
+          toast(sttNetworkMessage(), "error");
         } else if (state.browserSttFails >= 3 && providerId !== "auto") {
           toast(`语音识别异常（${error}），可改为「自动」尝试备用引擎`, "error");
         }
       },
     });
     if (!state.sttSession.start()) {
-      toast("无法启动浏览器语音识别，请使用 Chrome 或 Edge", "error");
+      toast(sttUnsupportedMessage(), "error");
     } else if (!state.sttProviderLabel) {
       updateSttProviderLabel(formatProviderLabel({ id: "native" }, "zh", 0, resolveRecogLang()));
     }
