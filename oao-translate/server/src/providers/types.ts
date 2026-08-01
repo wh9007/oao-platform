@@ -1,4 +1,4 @@
-export type ProviderName = "ollama" | "openai" | "google" | "azure" | "deepl" | "gemini" | "claude";
+export type ProviderName = "ollama" | "openai" | "google" | "azure" | "deepl" | "gemini" | "claude" | "relay";
 
 export interface TranslationLanguages {
   source: string;
@@ -9,6 +9,7 @@ export interface TranslationLanguages {
 export interface TranscriptEvent {
   text: string;
   language?: string;
+  speaker?: string;
   isFinal: boolean;
   timestamp: number;
 }
@@ -38,7 +39,11 @@ export interface TranslationProvider {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
   processAudioChunk(audio: Buffer): void;
-  processTranscriptText?(text: string): void | Promise<void>;
+  processTranscriptText?(
+    text: string,
+    options?: { speaker?: string; dialogueRole?: "self" | "guest" }
+  ): void | Promise<void>;
+  translateText?(text: string, targetLanguage: string): Promise<string>;
   onTranscript(handler: (event: TranscriptEvent) => void): void;
   onTranslation(handler: (event: TranslationEvent) => void): void;
   onTTS(handler: (event: TTSEvent) => void): void;

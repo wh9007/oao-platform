@@ -1,0 +1,338 @@
+/**
+ * OAO Enterprise Layer — Component & Layout Normalization
+ * Additive overrides only. Does not remove or replace inline styles.
+ * Ensures visual consistency across toolbars, modals, buttons, and focus states.
+ */
+
+/* ── Base typography alignment ── */
+body {
+  font-family: var(--oao-font-family);
+  line-height: var(--oao-leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Skip link (a11y) ── */
+.oao-skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--oao-space-4);
+  z-index: calc(var(--oao-z-topbar) + 10);
+  padding: var(--oao-space-2) var(--oao-space-4);
+  background: var(--oao-color-primary);
+  color: var(--oao-color-text-inverse);
+  border-radius: var(--oao-radius-md);
+  font-size: var(--oao-text-sm);
+  font-weight: var(--oao-font-semibold);
+  text-decoration: none;
+  transition: top var(--oao-transition-fast);
+}
+
+.oao-skip-link:focus {
+  top: var(--oao-space-2);
+  outline: none;
+  box-shadow: var(--oao-focus-ring);
+}
+
+/* ── Topbar standardization ── */
+.topbar {
+  height: var(--oao-topbar-height);
+  padding-inline: var(--oao-space-5);
+}
+
+.topbar-left,
+.topbar-center,
+.topbar-right {
+  gap: var(--oao-space-3);
+}
+
+.topbar-logo {
+  font-size: var(--oao-text-xl);
+  letter-spacing: var(--oao-tracking-wide);
+}
+
+.topbar-email {
+  font-size: var(--oao-text-sm);
+}
+
+/* ── Unified toolbar button system ── */
+.toolbar-btn,
+#connectButton,
+.topbar-right button:not(.dropdown-item),
+.oao-meeting-topbar button,
+.oao-translate-topbar button,
+.ai-home-toolbar button,
+.oao-meeting-video-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--oao-space-2);
+  min-height: var(--oao-btn-height);
+  padding: var(--oao-btn-padding-y) var(--oao-btn-padding-x);
+  font-family: var(--oao-font-family);
+  font-size: var(--oao-btn-font-size);
+  font-weight: var(--oao-btn-font-weight);
+  line-height: var(--oao-leading-tight);
+  border-radius: var(--oao-btn-radius);
+  border: 1px solid var(--oao-color-border);
+  background: var(--btn-bg, transparent);
+  color: var(--btn-text, var(--oao-color-text));
+  cursor: pointer;
+  transition:
+    background var(--oao-transition-base),
+    color var(--oao-transition-base),
+    border-color var(--oao-transition-base),
+    box-shadow var(--oao-transition-base),
+    transform var(--oao-transition-base);
+}
+
+.toolbar-btn:hover,
+#connectButton:hover,
+.topbar-right button:not(.dropdown-item):hover:not(:disabled),
+.oao-meeting-topbar button:hover:not(:disabled),
+.oao-translate-topbar button:hover:not(:disabled),
+.ai-home-toolbar button:hover:not(:disabled),
+.oao-meeting-video-toolbar button:hover:not(:disabled) {
+  background: var(--btn-hover-bg);
+  color: var(--btn-hover-text);
+  transform: translateY(-2px);
+  box-shadow: var(--oao-shadow-hover);
+}
+
+.toolbar-btn.active,
+.toolbar-btn[aria-pressed="true"] {
+  background: var(--btn-hover-bg);
+  color: var(--btn-hover-text);
+}
+
+.toolbar-btn:disabled,
+#connectButton:disabled,
+.oao-meeting-topbar button:disabled,
+.oao-translate-topbar button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+#themeToggle {
+  width: var(--oao-btn-height);
+  height: var(--oao-btn-height);
+  min-width: var(--oao-btn-height);
+  padding: 0;
+  border-radius: var(--oao-radius-full);
+  font-size: var(--oao-btn-icon-size);
+}
+
+#connectButton {
+  min-width: 120px;
+}
+
+/* Icon sizing inside toolbar buttons */
+.toolbar-btn svg,
+.topbar-right button svg,
+.ai-home-toolbar button svg {
+  width: var(--oao-btn-icon-size);
+  height: var(--oao-btn-icon-size);
+  flex-shrink: 0;
+}
+
+/* ── Side panel / OAO toolbar apps ── */
+.oao-side-panel-header {
+  font-size: var(--oao-text-base);
+  font-weight: var(--oao-font-semibold);
+  letter-spacing: var(--oao-tracking-wide);
+}
+
+.oao-desktop-app {
+  border-radius: var(--oao-radius-lg);
+  transition: background var(--oao-transition-base), transform var(--oao-transition-fast);
+}
+
+.oao-toolbar-toggle {
+  border-radius: var(--oao-radius-md);
+  transition: background var(--oao-transition-base);
+}
+
+/* ── Modal system normalization ── */
+.modal-overlay,
+.kb-upload-backdrop,
+.oao-meeting-modal .modal-overlay,
+.oao-translate-modal .modal-overlay,
+#submitModalOverlay,
+#walletModal.modal-overlay {
+  background: var(--oao-overlay-bg);
+  backdrop-filter: blur(var(--oao-overlay-blur));
+  -webkit-backdrop-filter: blur(var(--oao-overlay-blur));
+}
+
+.modal-content,
+.login-modal-content,
+.kb-upload-panel,
+.oao-meeting-modal .modal-content,
+.oao-translate-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: var(--oao-modal-max-height);
+  border-radius: var(--oao-radius-2xl);
+  box-shadow: var(--oao-shadow-xl);
+  overflow: hidden;
+}
+
+.kb-upload-header,
+.modal-content > .modal-header,
+.oao-meeting-modal .modal-header,
+.oao-translate-modal .modal-header {
+  flex-shrink: 0;
+  min-height: var(--oao-modal-header-height);
+  padding: var(--oao-space-4) var(--oao-modal-padding);
+  border-bottom: 1px solid var(--oao-color-border);
+}
+
+.kb-upload-body,
+.modal-content > .modal-body,
+.oao-meeting-modal .modal-body,
+.oao-translate-modal .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--oao-space-4) var(--oao-modal-padding);
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-content > .modal-footer,
+.kb-upload-footer {
+  flex-shrink: 0;
+  min-height: var(--oao-modal-footer-height);
+  padding: var(--oao-space-3) var(--oao-modal-padding);
+  border-top: 1px solid var(--oao-color-border);
+}
+
+.kb-upload-close,
+.close-btn,
+#modalClose,
+#oaoMeetingModalClose,
+#oaoTranslateModalClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--oao-btn-height-sm);
+  height: var(--oao-btn-height-sm);
+  min-width: var(--oao-btn-height-sm);
+  padding: 0;
+  border: none;
+  border-radius: var(--oao-radius-md);
+  background: transparent;
+  color: var(--oao-color-text);
+  font-size: var(--oao-text-lg);
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--oao-transition-fast);
+}
+
+.kb-upload-close:hover,
+.close-btn:hover,
+#modalClose:hover,
+#oaoMeetingModalClose:hover,
+#oaoTranslateModalClose:hover {
+  background: var(--oao-color-surface-elevated);
+}
+
+/* ── Shared button components ── */
+.btn,
+.time-primary-btn,
+.nav-submit-btn,
+.nav-search-btn,
+.toggle-btn,
+.dropdown-item {
+  font-family: var(--oao-font-family);
+  border-radius: var(--oao-radius-md);
+  transition:
+    background var(--oao-transition-base),
+    color var(--oao-transition-base),
+    box-shadow var(--oao-transition-base),
+    transform var(--oao-transition-base);
+}
+
+.nav-search-btn,
+.nav-submit-btn {
+  min-height: var(--oao-btn-height-lg);
+  border-radius: var(--oao-radius-md);
+}
+
+/* ── Card & surface ── */
+.data-container,
+.ens-container,
+.dcl-container,
+.site-card {
+  border-radius: var(--oao-radius-lg);
+}
+
+/* ── Focus visible (keyboard a11y) ── */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--oao-focus-ring);
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .toolbar-btn:hover,
+  #connectButton:hover {
+    transform: none;
+  }
+}
+
+/* ── Responsive: prevent horizontal overflow ── */
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.main-content,
+.page-section {
+  max-width: 100%;
+}
+
+/* ── Mobile toolbar consistency ── */
+@media (max-width: 480px) {
+  .toolbar-btn,
+  #connectButton {
+    min-height: var(--oao-btn-height-sm);
+    padding: var(--oao-space-1) var(--oao-space-3);
+    font-size: var(--oao-text-xs);
+  }
+
+  #themeToggle {
+    width: var(--oao-btn-height-sm);
+    height: var(--oao-btn-height-sm);
+    min-width: var(--oao-btn-height-sm);
+  }
+
+  .topbar {
+    padding-inline: var(--oao-space-3);
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-content,
+  .kb-upload-panel {
+    width: min(96vw, var(--oao-modal-width-md));
+    min-width: 0;
+  }
+}

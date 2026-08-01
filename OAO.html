@@ -4,14 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OAO.ETH</title>
+    <title>OAO.ETH — Web3 AI 入口平台</title>
+    <meta name="description" content="OAO.ETH — 开放 Web3 入口平台。连接加密钱包，本地 AI 对话，小O会议，OAO 实时翻译，ENS 身份，Decentraland 世界探索。">
+    <meta name="keywords" content="OAO, Web3, ENS, AI, Ollama, 翻译, 会议, Decentraland, 以太坊">
+    <meta name="author" content="OAO.ETH">
+    <meta name="theme-color" content="#ff5e00">
+    <meta name="color-scheme" content="light dark">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://wh9007.github.io/oao-platform/OAO.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="OAO.ETH">
+    <meta property="og:title" content="OAO.ETH — Web3 AI 入口平台">
+    <meta property="og:description" content="连接加密钱包，本地 AI 对话，小O会议，OAO 实时翻译。">
+    <meta property="og:url" content="https://wh9007.github.io/oao-platform/OAO.html">
+    <meta property="og:locale" content="zh_CN">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="OAO.ETH">
+    <meta name="twitter:description" content="Web3 AI 入口平台 — 钱包 · AI · 会议 · 翻译">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cse.google.com">
+    <link rel="preconnect" href="http://127.0.0.1:3011">
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk@3.0.0/dist/coinbase-wallet-sdk.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/portis@4.0.0/dist/portis.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fortmatic@2.0.6/dist/fortmatic.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/torus-embed@1.12.0/dist/torus.umd.min.js"></script>
     <script async src="https://cse.google.com/cse.js?cx=50e946c8b03534c5d"></script>
     <script>
         // ========== OAO 个人使用说明 ==========
@@ -21,7 +38,7 @@
         // 4. 可选覆盖：复制 local-config.example.txt 为 local-config.js 并填写
         // 5. Tunnel 启动：启动Tunnel.bat（外网 AI 需保持运行）
         // 6. 视频会议信令：window.OAO_MEETING_SIGNAL_URL = 'wss://oao-ai.wh529007.workers.dev/meeting';
-        // 7. OAO翻译应用：window.OAO_TRANSLATE_URL = 'http://127.0.0.1:3000';
+        // 7. OAO翻译（可选覆盖云端地址）：window.OAO_TRANSLATE_URL = 'https://your-translate-host/oao-translate/embed/index.html';
         // 联网搜索（可选）：取消下面注释并填写 Key
         // window.OAO_TAVILY_API_KEY = 'tvly-xxxxxxxx';
         // window.OAO_SERPER_API_KEY = 'xxxxxxxx';
@@ -29,6 +46,7 @@
         // window.OAO_WEB_SEARCH_PROXY = 'https://oao-ai.wh529007.workers.dev/web-search';
     </script>
     <script src="local-config.js" onerror="void 0"></script>
+    <script src="oao-translate/embed/lib/stt-browser.js"></script>
     <style>
         * {
             margin: 0;
@@ -37,6 +55,9 @@
         }
 
         :root {
+            --oao-side-inset: 32px;
+            --oao-side-panel-width: min(580px, calc((100vw - 120px) / 2));
+            --oao-side-toggle-gap: 24px;
             --bg-color: #ffffff;
             --text-color: #121212;
             --border-color: #121212;
@@ -130,15 +151,22 @@
             --scene-flow-d: #39ff14;
         }
 
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-color);
             color: var(--text-color);
-            min-height: 100vh;
+            height: 100dvh;
+            max-height: 100dvh;
             display: flex;
             flex-direction: column;
             transition: background 0.3s, color 0.3s;
             overflow: hidden;
+            max-width: 100vw;
         }
 
         /* 顶部工具栏 */
@@ -436,13 +464,18 @@
 
         /* 主内容区 */
         .main-content {
-            flex: 1;
+            flex: 1 1 auto;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 80px 20px;
-            margin-bottom: 60px;
+            align-items: stretch;
+            justify-content: flex-start;
+            min-height: 0;
+            height: calc(100dvh - 60px - 60px);
+            max-height: calc(100dvh - 60px - 60px);
+            overflow: hidden;
+            padding: 0 16px;
+            margin: 60px 0 0;
+            box-sizing: border-box;
         }
 
         /* 页面容器 */
@@ -450,15 +483,25 @@
             display: none;
             width: 100%;
             height: 100%;
+            max-height: 100%;
+            min-height: 0;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .page-section.active {
+            display: flex;
+            overflow: hidden;
         }
 
         /* 时间席位页面 */
         #pageTimeSlot {
-            height: 100vh;
+            height: 100%;
+            max-height: 100%;
             overflow: hidden;
             position: relative;
             display: none;
@@ -499,9 +542,11 @@
         .time-scroll-container {
             position: relative;
             width: 100%;
-            min-height: calc(100vh - 80px);
-            padding-bottom: 80px; /* 为底部导航栏预留空间 */
+            height: 100%;
+            min-height: 0;
+            padding-bottom: 0;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .page-section.active {
@@ -572,10 +617,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
-            padding: 0 20px;
+            gap: 12px;
+            padding: 0 12px;
             z-index: 100;
             transition: background 0.3s, border-color 0.3s;
+            overflow: hidden;
+            flex-shrink: 0;
         }
 
         .topbar-email {
@@ -605,8 +652,7 @@
         .nav-item:hover {
             background: var(--btn-hover-bg);
             color: var(--btn-hover-text);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
         }
 
         .nav-item.active {
@@ -617,13 +663,15 @@
         /* 时间席位样式 */
         .time-section {
             width: 100%;
-            height: 100vh;
+            height: 100%;
+            min-height: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px;
+            padding: 24px 16px;
             overflow: hidden;
             scroll-snap-align: start;
+            box-sizing: border-box;
         }
 
         .time-content {
@@ -998,14 +1046,17 @@
         .nav-container {
             width: 100%;
             max-width: 1200px;
-            padding: 20px;
-            padding-bottom: 80px; /* 为底部导航栏预留空间 */
+            height: 100%;
+            max-height: 100%;
+            padding: 12px 12px 8px;
             display: flex;
             flex-direction: column;
-            gap: 30px;
-            margin-top: -15px;
+            gap: 16px;
+            margin-top: 0;
             box-sizing: border-box;
-            min-height: calc(100vh - 60px);
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .search-container {
@@ -1145,11 +1196,13 @@
         .data-container {
             background: var(--bg-color);
             border-radius: 12px;
-            padding: 24px;
+            padding: 16px;
             flex: 1;
-            overflow-y: visible;
-            margin-bottom: 80px;
-            max-height: none;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-bottom: 0;
+            max-height: 100%;
+            min-height: 0;
             height: auto;
         }
         
@@ -2373,14 +2426,23 @@
 
         .home-hero-logo {
             margin: 0;
-            font-size: clamp(4.5rem, 18vw, 9.5rem);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.06em;
+            font-size: clamp(5.2rem, 21vw, 11rem);
             font-weight: 900;
-            letter-spacing: 0.32em;
+            letter-spacing: 0;
             line-height: 1;
             color: var(--text-color);
             text-shadow:
                 0 0 18px rgba(255, 255, 255, 0.45),
                 0 0 32px rgba(255, 94, 0, 0.22);
+        }
+
+        .home-hero-logo span {
+            display: inline-block;
+            line-height: 1;
         }
 
         .home-hero-subtitle {
@@ -2409,9 +2471,40 @@
         }
 
         #pageHome.active.home-authed .home-hero-logo {
-            font-size: clamp(5rem, 22vw, 11rem);
-            opacity: 0.16;
-            letter-spacing: 0.36em;
+            opacity: 0.72;
+            color: var(--accent-color);
+            text-shadow:
+                0 0 12px rgba(255, 94, 0, 0.55),
+                0 0 28px rgba(255, 94, 0, 0.42),
+                0 0 56px rgba(255, 94, 0, 0.28),
+                0 0 96px rgba(255, 94, 0, 0.12);
+            animation: oao-hero-glow 3.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes oao-hero-glow {
+            from {
+                opacity: 0.62;
+                text-shadow:
+                    0 0 10px rgba(255, 94, 0, 0.45),
+                    0 0 24px rgba(255, 94, 0, 0.32),
+                    0 0 48px rgba(255, 94, 0, 0.18);
+            }
+            to {
+                opacity: 0.82;
+                text-shadow:
+                    0 0 16px rgba(255, 94, 0, 0.65),
+                    0 0 36px rgba(255, 94, 0, 0.48),
+                    0 0 72px rgba(255, 94, 0, 0.32),
+                    0 0 120px rgba(255, 94, 0, 0.15);
+            }
+        }
+
+        [data-theme="dark"] #pageHome.active.home-authed .home-hero-logo {
+            color: var(--accent-color);
+            text-shadow:
+                0 0 14px rgba(255, 154, 68, 0.6),
+                0 0 32px rgba(255, 154, 68, 0.45),
+                0 0 64px rgba(255, 154, 68, 0.25);
         }
 
         #pageHome.active.home-authed .home-hero-subtitle {
@@ -2655,20 +2748,26 @@
         }
 
         /* 登录后：OAO 工具栏 & AI 交互侧栏 — 半透明玻璃（更透） */
-        #pageHome.active .oao-toolbar-container:not([hidden]) .oao-side-panel-shell,
-        #pageHome.active .ai-home-side-panel:not([hidden]) .oao-side-panel-shell {
-            background: rgba(255, 255, 255, 0.22);
+        #pageHome.active .oao-toolbar-container .oao-side-panel-shell,
+        #pageHome.active .ai-home-side-panel .oao-side-panel-shell {
+            background: rgba(255, 255, 255, 0.22) !important;
             backdrop-filter: blur(12px) saturate(1.15);
             -webkit-backdrop-filter: blur(12px) saturate(1.15);
             border: 1px solid rgba(255, 255, 255, 0.18);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
         }
 
-        [data-theme="dark"] #pageHome.active .oao-toolbar-container:not([hidden]) .oao-side-panel-shell,
-        [data-theme="dark"] #pageHome.active .ai-home-side-panel:not([hidden]) .oao-side-panel-shell {
-            background: rgba(18, 18, 18, 0.28);
+        [data-theme="dark"] #pageHome.active .oao-toolbar-container .oao-side-panel-shell,
+        [data-theme="dark"] #pageHome.active .ai-home-side-panel .oao-side-panel-shell {
+            background: rgba(18, 18, 18, 0.28) !important;
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        #pageHome.active .oao-toolbar-container,
+        #pageHome.active .oao-toolbar-container .oao-side-panel-body,
+        #pageHome.active .oao-toolbar-container .oao-app-toolbar-apps {
+            background: transparent;
         }
 
         /* AI 消息区：无单独气泡底，沿用侧栏玻璃背景 */
@@ -2703,13 +2802,14 @@
             border-color: rgba(255, 255, 255, 0.1);
         }
 
-        #pageHome.active .oao-toolbar-container:not([hidden]) .oao-side-panel-header,
-        #pageHome.active .ai-home-side-panel:not([hidden]) .oao-side-panel-header {
+        #pageHome.active .oao-toolbar-container .oao-side-panel-header,
+        #pageHome.active .ai-home-side-panel .oao-side-panel-header {
+            background: transparent !important;
             border-bottom-color: rgba(255, 94, 0, 0.18);
         }
 
-        [data-theme="dark"] #pageHome.active .oao-toolbar-container:not([hidden]) .oao-side-panel-header,
-        [data-theme="dark"] #pageHome.active .ai-home-side-panel:not([hidden]) .oao-side-panel-header {
+        [data-theme="dark"] #pageHome.active .oao-toolbar-container .oao-side-panel-header,
+        [data-theme="dark"] #pageHome.active .ai-home-side-panel .oao-side-panel-header {
             border-bottom-color: rgba(255, 154, 68, 0.22);
         }
 
@@ -2797,7 +2897,7 @@
             position: fixed;
             top: 80px;
             bottom: 80px;
-            width: 580px;
+            width: var(--oao-side-panel-width);
             z-index: 10;
             box-sizing: border-box;
         }
@@ -2807,11 +2907,11 @@
         }
 
         .oao-toolbar-container {
-            left: 32px;
+            left: var(--oao-side-inset);
         }
 
         .ai-home-side-panel {
-            right: 32px;
+            right: var(--oao-side-inset);
         }
 
         .ai-home-input-area {
@@ -2857,6 +2957,37 @@
             margin-bottom: 12px;
             border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
+        }
+
+        #pageHome.active.home-authed .oao-toolbar-container:not([hidden]) .oao-side-panel-shell,
+        #pageHome.active.home-authed .ai-home-side-panel:not([hidden]) .oao-side-panel-shell {
+            height: calc(100vh - 160px);
+            max-height: calc(100vh - 160px);
+            min-height: calc(100vh - 160px);
+        }
+
+        #pageHome.active .oao-toolbar-container:not([hidden]) .oao-side-panel-header,
+        #pageHome.active .ai-home-side-panel:not([hidden]) .oao-side-panel-header {
+            background: transparent;
+            border-bottom-color: rgba(255, 94, 0, 0.16);
+        }
+
+        #pageHome.active.home-authed .oao-toolbar-container:not([hidden]) .oao-side-panel-header,
+        #pageHome.active.home-authed .ai-home-side-panel:not([hidden]) .oao-side-panel-header,
+        #oaoToolbarTitle,
+        #aiHomeSidePanelTitle {
+            background: transparent !important;
+            box-shadow: none;
+        }
+
+        [data-theme="dark"] #pageHome.active .oao-toolbar-container:not([hidden]) .oao-side-panel-header,
+        [data-theme="dark"] #pageHome.active .ai-home-side-panel:not([hidden]) .oao-side-panel-header {
+            border-bottom-color: rgba(255, 154, 68, 0.2);
+        }
+
+        #pageHome.active.home-authed .home-hero-brand {
+            transition: transform 0.28s ease;
+            will-change: transform;
         }
 
         .oao-side-panel-body {
@@ -2924,9 +3055,74 @@
             overflow: hidden;
         }
 
+        .oao-tool-meeting-icon,
+        .oao-tool-translate-icon {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .oao-tool-meeting-icon .oao-face-svg,
         .oao-tool-translate-icon .oao-face-svg {
             width: 44px;
-            height: 34px;
+            height: 44px;
+        }
+
+        .oao-tool-meeting-icon::after {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 94, 0, 0.35);
+            animation: oao-icon-meeting-pulse 2.4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .oao-tool-translate-icon::before {
+            content: 'A⇄文';
+            position: absolute;
+            right: 4px;
+            bottom: 4px;
+            font-size: 9px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 2px 3px;
+            border-radius: 4px;
+            background: rgba(255, 94, 0, 0.85);
+            color: #fff;
+            animation: oao-icon-translate-badge 2.8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes oao-icon-meeting-pulse {
+            0%, 100% { opacity: 0.35; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.06); }
+        }
+
+        @keyframes oao-icon-translate-badge {
+            0%, 100% { opacity: 0.75; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-2px); }
+        }
+
+        .oao-desktop-app:hover:not(:disabled) .oao-tool-meeting-icon .oao-face-svg {
+            animation: oao-icon-meeting-bob 1.2s ease-in-out infinite;
+        }
+
+        .oao-desktop-app:hover:not(:disabled) .oao-tool-translate-icon .oao-face-svg {
+            animation: oao-icon-translate-spin 3s linear infinite;
+        }
+
+        @keyframes oao-icon-meeting-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        @keyframes oao-icon-translate-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .oao-desktop-label {
@@ -3862,7 +4058,7 @@
             font-size: 14px;
             font-weight: 500;
             color: white;
-            z-index: 9999;
+            z-index: 10350;
             animation: slideIn 0.3s ease-out;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
@@ -3931,6 +4127,7 @@
             flex-direction: column;
             overflow: hidden;
             position: relative;
+            z-index: 2;
         }
 
         .oao-translate-modal.is-fullscreen .oao-translate-content,
@@ -3963,14 +4160,14 @@
 
         .oao-translate-topbar h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             letter-spacing: 0.04em;
         }
 
         .oao-translate-topbar p {
             margin: 2px 0 0;
-            font-size: 12px;
+            font-size: 13px;
             opacity: 0.62;
         }
 
@@ -4047,8 +4244,10 @@
             gap: 10px;
             padding: 28px;
             text-align: center;
-            background: var(--bg-color);
+            background: color-mix(in srgb, var(--bg-color) 88%, transparent);
             color: var(--text-color);
+            z-index: 2;
+            pointer-events: none;
         }
 
         .oao-translate-loading.hidden {
@@ -4083,6 +4282,73 @@
 
         .oao-translate-fallback .oao-meeting-btn {
             margin-top: 8px;
+        }
+
+        .oao-translate-overlay-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 4;
+            width: min(440px, calc(100vw - 48px));
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.55;
+            pointer-events: none;
+        }
+
+        .oao-translate-overlay-hint.hidden {
+            display: none;
+        }
+
+        .oao-translate-close-confirm {
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.45);
+        }
+
+        .oao-translate-close-confirm.hidden {
+            display: none;
+        }
+
+        .oao-translate-close-confirm-panel {
+            width: min(440px, 100%);
+            padding: 20px 22px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+        }
+
+        .oao-translate-close-confirm-panel h3 {
+            margin: 0 0 8px;
+            font-size: 17px;
+        }
+
+        .oao-translate-close-confirm-panel p {
+            margin: 0 0 16px;
+            font-size: 14px;
+            line-height: 1.55;
+            opacity: 0.88;
+        }
+
+        .oao-translate-close-confirm-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
         }
 
         /* ========== 小O会议 ========== */
@@ -4155,7 +4421,7 @@
         }
 
         .oao-meeting-modal.video-layout-border .oao-meeting-content {
-            margin: 72px 88px 72px 88px;
+            margin: 56px 72px;
         }
 
         .oao-meeting-video-border-dock {
@@ -4171,9 +4437,53 @@
 
         .oao-meeting-video-border-dock .oao-meeting-video-tile {
             position: absolute;
-            width: 148px;
-            aspect-ratio: 16 / 10;
+            width: 168px;
+            height: 126px;
+            min-width: 96px;
+            min-height: 72px;
+            max-width: 360px;
+            max-height: 280px;
             pointer-events: auto;
+            cursor: move;
+            touch-action: none;
+            overflow: hidden;
+        }
+
+        .oao-meeting-workspace-video-dock {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 0 4px 8px;
+            min-height: 0;
+        }
+
+        .oao-meeting-workspace-video-dock.hidden {
+            display: none;
+        }
+
+        .oao-meeting-workspace-video-dock .oao-meeting-video-tile {
+            width: min(180px, 42vw);
+            height: min(135px, 32vw);
+            position: relative;
+            overflow: hidden;
+            min-width: 120px;
+            min-height: 90px;
+            max-width: 280px;
+            max-height: 210px;
+        }
+
+        .oao-meeting-video-tile .oao-meeting-video-resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            height: 20px;
+            border-right: 3px solid rgba(255, 255, 255, 0.9);
+            border-bottom: 3px solid rgba(255, 255, 255, 0.9);
+            cursor: nwse-resize;
+            z-index: 10;
+            pointer-events: auto;
+            touch-action: none;
         }
 
         .oao-meeting-video-border-dock .oao-meeting-video-tile[data-edge="top"] {
@@ -4819,9 +5129,20 @@
         .oao-meeting-video-tile video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            object-position: center center;
             background: #000;
             display: block;
+        }
+
+        .oao-meeting-video-border-dock .oao-meeting-video-tile,
+        .oao-meeting-workspace-video-dock .oao-meeting-video-tile {
+            cursor: move;
+        }
+
+        .oao-meeting-video-border-dock .oao-meeting-video-tile .oao-meeting-video-media,
+        .oao-meeting-workspace-video-dock .oao-meeting-video-tile .oao-meeting-video-media {
+            transform: none !important;
         }
 
         .oao-meeting-video-placeholder {
@@ -5516,13 +5837,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 44px;
-            height: 44px;
-        }
-
-        .oao-tool-meeting-icon .oao-face-svg {
-            width: 40px;
-            height: 34px;
         }
 
         .oao-meeting-shell {
@@ -5724,6 +6038,61 @@
             word-break: break-word;
         }
 
+        /* 小O会议 UI 字号与 OAO翻译 embed 对齐（--ui-size 14 / --ui-size-sm 13 / 控制按钮 15） */
+        .oao-meeting-modal {
+            --oao-ui-size: 14px;
+            --oao-ui-sm: 13px;
+            --oao-hint-size: 15px;
+            --oao-control-size: 15px;
+            font-size: var(--oao-ui-size);
+        }
+
+        .oao-meeting-modal .oao-meeting-brand-text h2,
+        .oao-meeting-modal .oao-meeting-header h2 {
+            font-size: 20px;
+            letter-spacing: 0.04em;
+        }
+
+        .oao-meeting-modal .oao-meeting-tagline {
+            font-size: var(--oao-ui-sm);
+        }
+
+        .oao-meeting-modal .oao-meeting-btn {
+            font-size: var(--oao-ui-size);
+        }
+
+        .oao-meeting-modal .oao-meeting-toolbar .oao-meeting-btn,
+        .oao-meeting-modal .oao-meeting-export-row .oao-meeting-btn {
+            font-size: var(--oao-control-size);
+        }
+
+        .oao-meeting-modal .oao-meeting-stt-select-wrap,
+        .oao-meeting-modal .oao-meeting-stt-select-wrap select,
+        .oao-meeting-modal .oao-meeting-settings,
+        .oao-meeting-modal .oao-meeting-settings select {
+            font-size: var(--oao-ui-size);
+        }
+
+        .oao-meeting-modal #oaoMeetingSttStatus,
+        .oao-meeting-modal .oao-meeting-nav-btn small {
+            font-size: var(--oao-ui-sm);
+        }
+
+        .oao-meeting-modal .oao-meeting-nav-btn,
+        .oao-meeting-modal .xo-meeting-panel-head-pro h3,
+        .oao-meeting-modal #oaoMeetingStatusText,
+        .oao-meeting-modal .oao-meeting-timer,
+        .oao-meeting-modal .oao-meeting-video-status,
+        .oao-meeting-modal .oao-meeting-video-desc,
+        .oao-meeting-modal .oao-meeting-video-invite input {
+            font-size: var(--oao-ui-size);
+        }
+
+        .oao-meeting-modal .oao-meeting-transcript,
+        .oao-meeting-modal .oao-meeting-minutes {
+            font-size: var(--oao-hint-size);
+        }
+
         .oao-meeting-transcript .oao-meeting-transcript-line.interim,
         .oao-meeting-transcript-line.interim {
             opacity: 0.62;
@@ -5828,10 +6197,65 @@
         [data-theme="dark"] .oao-desktop-app:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.06);
         }
+
+        .oao-local-setup-content {
+            width: min(520px, calc(100vw - 32px));
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .oao-local-setup-header h2 {
+            margin: 0 0 8px;
+            font-size: 20px;
+        }
+
+        .oao-local-setup-header p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--muted-color);
+        }
+
+        .oao-local-setup-steps {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 13px;
+            line-height: 1.75;
+        }
+
+        .oao-local-setup-status {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: color-mix(in srgb, var(--panel-bg) 80%, transparent);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .oao-local-setup-status.is-ok {
+            border-color: rgba(16, 185, 129, 0.35);
+            color: #059669;
+        }
+
+        .oao-local-setup-status.is-warn {
+            border-color: rgba(255, 94, 0, 0.35);
+            color: var(--accent-color);
+        }
+
+        .oao-local-setup-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
     </style>
+    <link rel="stylesheet" href="assets/css/oao-design-tokens.css">
+    <link rel="stylesheet" href="assets/css/oao-enterprise.css">
 
 </head>
 <body>
+    <a class="oao-skip-link" href="#mainContent">跳到主内容</a>
     <!-- 顶部工具栏 -->
     <div class="topbar">
         <div class="topbar-left">
@@ -5861,15 +6285,15 @@
     </div>
 
     <!-- 主内容区 -->
-    <div class="main-content">
+    <div class="main-content" id="mainContent">
         <!-- 主页 -->
         <div id="pageHome" class="page-section active">
             <div class="section-tag" id="homeTag">开放从这里开始</div>
             
             <!-- 左侧：OAO 工具栏（登录后显示） -->
-            <aside id="oaoToolbarContainer" class="oao-side-panel oao-toolbar-container" hidden aria-label="OAO 工具栏">
+            <aside id="oaoToolbarContainer" class="oao-side-panel oao-toolbar-container" hidden aria-label="OAO 工具">
                 <div class="oao-side-panel-shell">
-                    <div class="oao-side-panel-header" id="oaoToolbarTitle">OAO工具栏</div>
+                    <div class="oao-side-panel-header" id="oaoToolbarTitle">OAO工具</div>
                     <div class="oao-side-panel-body">
                         <div class="oao-app-toolbar-apps">
                             <button type="button" class="oao-desktop-app" id="oaoToolMeeting" data-app="meeting" disabled>
@@ -5888,7 +6312,7 @@
             
             <div class="home-layout">
                 <div class="home-hero-brand" id="homeHeroBrand" aria-hidden="false">
-                    <h1 class="home-hero-logo" id="homeHeroLogo">OAO</h1>
+                    <h1 class="home-hero-logo" id="homeHeroLogo" aria-label="OAO"><span>O</span><span>A</span><span>O</span></h1>
                     <p class="home-hero-subtitle" id="homeHeroSubtitle">Web3 入口 · 连接开放网络</p>
                 </div>
             </div>
@@ -5896,7 +6320,7 @@
             <!-- 右侧：AI 交互区（登录后默认收缩） -->
             <div id="aiHomeSidePanel" class="oao-side-panel ai-home-side-panel">
                     <div class="oao-side-panel-shell">
-                        <div class="oao-side-panel-header" id="aiHomeSidePanelTitle">AI交互信息显示</div>
+                        <div class="oao-side-panel-header" id="aiHomeSidePanelTitle">AI交互</div>
                         <div class="oao-side-panel-body ai-home-chat-body">
                             <div id="aiHomeMessagesContainer" class="ai-home-messages-container">
                                 <div class="ai-home-welcome" id="aiHomeWelcome">
@@ -6342,9 +6766,10 @@
                     <label class="oao-meeting-stt-select-wrap">
                         <span id="oaoMeetingSttModeLabel">转写引擎</span>
                         <select id="oaoMeetingSttMode" aria-label="转写引擎">
-                            <option value="auto" selected>自动（本地 Whisper + 浏览器）</option>
-                            <option value="browser">浏览器实时</option>
-                            <option value="whisper">本地 Whisper</option>
+                            <option value="auto" selected>自动（推荐）</option>
+                            <option value="native">浏览器原生 · Web Speech</option>
+                            <option value="global-en">全球通用 · English STT</option>
+                            <option value="multilang">全球通用 · Multilingual</option>
                         </select>
                     </label>
                     <span id="oaoMeetingSttStatus" title="">—</span>
@@ -6364,10 +6789,6 @@
                     <button type="button" class="oao-meeting-nav-btn" data-meeting-module="video">
                         <span id="oaoMeetingNavVideo">视频会议</span>
                         <small id="oaoMeetingNavVideoHint">远程</small>
-                    </button>
-                    <button type="button" class="oao-meeting-nav-btn" data-meeting-module="settings">
-                        <span id="oaoMeetingNavSettings">字幕设置</span>
-                        <small id="oaoMeetingNavSettingsHint">显示</small>
                     </button>
                 </nav>
 
@@ -6392,8 +6813,10 @@
                             </div>
                         </div>
 
+                        <div id="oaoMeetingWorkspaceVideoDock" class="oao-meeting-workspace-video-dock hidden" aria-label="会议视频预览"></div>
+
                         <div id="oaoMeetingMainBody" class="oao-meeting-main-body">
-                            <div id="oaoMeetingLayout" class="oao-meeting-layout subtitle-pos-right">
+                            <div id="oaoMeetingLayout" class="oao-meeting-layout">
                                 <div class="xo-meeting-split">
                                     <div class="xo-meeting-split-main">
                                         <div class="xo-meeting-panel-head-pro">
@@ -6427,14 +6850,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <aside id="oaoMeetingSubtitleAside" class="oao-meeting-subtitle-aside hidden" aria-live="polite">
-                                    <div class="oao-meeting-subtitle-aside-head">
-                                        <span id="oaoMeetingSubtitleDockTitle">实时字幕</span>
-                                    </div>
-                                    <div id="oaoMeetingSubtitleBar" class="oao-meeting-subtitle-bar theme-dark size-md lines-3">
-                                        <div id="oaoMeetingSubtitleText" class="oao-meeting-subtitle-body"></div>
-                                    </div>
-                                </aside>
                             </div>
                         </div>
                     </div>
@@ -6532,46 +6947,6 @@
                         </section>
                     </div>
 
-                    <div id="oaoMeetingModuleSettings" class="oao-meeting-module hidden" data-module="settings">
-                        <section class="oao-meeting-settings">
-                            <span id="oaoMeetingSubtitleSettingsLabel">字幕设置</span>
-                            <label><span id="oaoMeetingSubtitleEnableLabel">字幕显示</span>
-                                <select id="oaoMeetingSubtitleEnable">
-                                    <option value="on" selected>开启</option>
-                                    <option value="off">关闭</option>
-                                </select>
-                            </label>
-                            <label><span id="oaoMeetingFontLabel">字号</span>
-                                <select id="oaoMeetingFontSize">
-                                    <option value="sm">小</option>
-                                    <option value="md" selected>中</option>
-                                    <option value="lg">大</option>
-                                </select>
-                            </label>
-                            <label><span id="oaoMeetingSubtitleThemeLabel">背景</span>
-                                <select id="oaoMeetingSubtitleTheme">
-                                    <option value="dark">深色</option>
-                                    <option value="light">浅色</option>
-                                </select>
-                            </label>
-                            <label><span id="oaoMeetingSubtitleLinesLabel">显示行数</span>
-                                <select id="oaoMeetingSubtitleLines">
-                                    <option value="2">2 行</option>
-                                    <option value="3" selected>3 行</option>
-                                    <option value="4">4 行</option>
-                                    <option value="5">5 行</option>
-                                    <option value="full">全文本</option>
-                                </select>
-                            </label>
-                            <label><span id="oaoMeetingSubtitlePositionLabel">显示位置</span>
-                                <select id="oaoMeetingSubtitlePosition">
-                                    <option value="right" selected>右侧边栏</option>
-                                    <option value="left">左侧边栏</option>
-                                    <option value="bottom">底部面板</option>
-                                </select>
-                            </label>
-                        </section>
-                    </div>
                 </div>
             </div>
         </div>
@@ -6598,21 +6973,59 @@
             <header class="oao-translate-topbar">
                 <div>
                     <h2 id="oaoTranslateModalTitle">OAO翻译</h2>
-                    <p id="oaoTranslateModalTagline">本地 Ollama · Whisper 转写 + Qwen 翻译 · 零 Token 消耗</p>
+                    <p id="oaoTranslateModalTagline">浏览器模式 · 零安装</p>
                 </div>
             </header>
             <div class="oao-translate-frame-wrap">
-                <iframe id="oaoTranslateFrame" title="OAO Translate" src="about:blank" allow="microphone; autoplay; clipboard-write"></iframe>
+                <iframe id="oaoTranslateFrame" title="OAO Translate" src="about:blank" allow="microphone; autoplay; clipboard-write; fullscreen" allowfullscreen></iframe>
                 <div id="oaoTranslateLoading" class="oao-translate-loading hidden">
                     <div class="oao-translate-loading-spinner" aria-hidden="true"></div>
-                    <p id="oaoTranslateLoadingTitle">正在连接 OAO翻译服务...</p>
-                    <p id="oaoTranslateLoadingHint" class="oao-translate-loading-hint">首次启动可能需要 1~3 分钟，请稍候</p>
+                    <p id="oaoTranslateLoadingTitle">正在打开 OAO翻译…</p>
+                    <p id="oaoTranslateLoadingHint" class="oao-translate-loading-hint">本地服务启动中，通常数秒内可用</p>
                 </div>
                 <div id="oaoTranslateFallback" class="oao-translate-fallback hidden">
                     <p id="oaoTranslateFallbackTitle">无法加载 OAO翻译服务</p>
-                    <p id="oaoTranslateFallbackDesc">请确认「OAO Services」后台窗口仍在运行，并稍候片刻后点击重试。若首次运行，请先完整执行一次「打开OAO.bat」。</p>
-                    <button type="button" id="oaoTranslateRetryBtn" class="oao-meeting-btn oao-meeting-btn-primary">重试</button>
+                    <p id="oaoTranslateFallbackDesc">本地翻译服务未就绪。请点击「查看安装说明」，或确认「OAO Services」窗口仍在运行后重试。</p>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                        <button type="button" id="oaoTranslateSetupBtn" class="oao-meeting-btn">查看安装说明</button>
+                        <button type="button" id="oaoTranslateRetryBtn" class="oao-meeting-btn oao-meeting-btn-primary">重试</button>
+                    </div>
                 </div>
+            </div>
+        </div>
+        <div id="oaoTranslateOverlayHint" class="oao-translate-overlay-hint hidden" role="status" aria-live="polite"></div>
+        <div id="oaoTranslateCloseConfirm" class="oao-translate-close-confirm hidden" role="alertdialog" aria-modal="true" aria-labelledby="oaoTranslateCloseConfirmTitle">
+            <div class="oao-translate-close-confirm-panel">
+                <h3 id="oaoTranslateCloseConfirmTitle">关闭 OAO翻译？</h3>
+                <p id="oaoTranslateCloseConfirmDesc">关闭后当前字幕将被清空。</p>
+                <div class="oao-translate-close-confirm-actions">
+                    <button type="button" class="oao-meeting-btn" id="oaoTranslateCloseCancelBtn">取消</button>
+                    <button type="button" class="oao-meeting-btn oao-meeting-btn-primary" id="oaoTranslateCloseOkBtn">确定关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 本地能力首次使用引导（小O会议 / OAO翻译） -->
+    <div id="oaoLocalSetupModal" class="modal hidden oao-local-setup-modal">
+        <div class="modal-overlay" id="oaoLocalSetupOverlay"></div>
+        <div class="modal-content oao-local-setup-content">
+            <button class="close-btn" id="oaoLocalSetupClose" type="button" aria-label="关闭">×</button>
+            <header class="oao-local-setup-header">
+                <h2 id="oaoLocalSetupTitle">启用本地 AI 功能</h2>
+                <p id="oaoLocalSetupSubtitle">OAO翻译默认同源轻量页即可使用；本地 AI（Whisper+Qwen）需 Node.js + Ollama，一次性启动即可。</p>
+            </header>
+            <div class="oao-local-setup-body">
+                <ol id="oaoLocalSetupSteps" class="oao-local-setup-steps">
+                    <li>双击项目文件夹中的 <strong>打开OAO.bat</strong>（保持「OAO Services」窗口开启）</li>
+                    <li>浏览器访问 <strong>http://127.0.0.1:8777/OAO.html</strong>（不要直接双击 HTML 文件）</li>
+                    <li>首次使用请安装 <strong>Node.js</strong>（LTS 版）；翻译/会议 AI 建议安装 <strong>Ollama</strong></li>
+                </ol>
+                <div id="oaoLocalSetupStatus" class="oao-local-setup-status"></div>
+            </div>
+            <div class="oao-local-setup-actions">
+                <button type="button" id="oaoLocalSetupRecheckBtn" class="oao-meeting-btn">重新检测</button>
+                <button type="button" id="oaoLocalSetupContinueBtn" class="oao-meeting-btn oao-meeting-btn-primary">我知道了</button>
             </div>
         </div>
     </div>
@@ -6672,6 +7085,7 @@
                     aiHomeToggle?.classList.add('visible');
                     oaoToolbarToggle.textContent = isToolbarCollapsed ? '>' : '<';
                     aiHomeToggle.textContent = isAiCollapsed ? '<' : '>';
+                    window.prewarmOaoTranslateService?.();
                 } else {
                     if (oaoToolbarContainer) oaoToolbarContainer.hidden = true;
                     if (oaoToolMeeting) oaoToolMeeting.disabled = true;
@@ -6686,7 +7100,61 @@
                     oaoToolbarToggle?.classList.remove('visible', 'collapsed');
                     aiHomeToggle?.classList.remove('visible', 'collapsed');
                 }
+                syncHomeSidePanelLayout();
             }
+
+            function syncHomeSidePanelLayout() {
+                const homeHeroBrand = document.getElementById('homeHeroBrand');
+                if (!pageHome?.classList.contains('home-authed')) {
+                    if (homeHeroBrand) homeHeroBrand.style.transform = '';
+                    return;
+                }
+
+                const vw = window.innerWidth;
+                const inset = 32;
+                const toggleGap = 24;
+                const collapsedInset = 50;
+
+                const leftPanelEl = oaoToolbarContainer?.querySelector('.oao-side-panel-shell');
+                const rightPanelEl = aiHomeSidePanel?.querySelector('.oao-side-panel-shell');
+                const leftCollapsed = !!oaoToolbarContainer?.classList.contains('collapsed');
+                const rightCollapsed = !!aiHomeSidePanel?.classList.contains('collapsed');
+
+                const leftPanelWidth = leftCollapsed ? 0 : Math.max(320, leftPanelEl?.getBoundingClientRect().width || 580);
+                const rightPanelWidth = rightCollapsed ? 0 : Math.max(320, rightPanelEl?.getBoundingClientRect().width || 580);
+
+                const leftToggleX = leftCollapsed ? collapsedInset : inset + leftPanelWidth + toggleGap;
+                const rightToggleEdgeX = rightCollapsed ? vw - collapsedInset : vw - inset - rightPanelWidth - toggleGap;
+
+                if (oaoToolbarToggle) {
+                    oaoToolbarToggle.style.left = `${leftToggleX}px`;
+                    oaoToolbarToggle.style.right = 'auto';
+                    oaoToolbarToggle.classList.toggle('collapsed', leftCollapsed);
+                }
+                if (aiHomeToggle) {
+                    aiHomeToggle.style.right = `${vw - rightToggleEdgeX}px`;
+                    aiHomeToggle.style.left = 'auto';
+                    aiHomeToggle.classList.toggle('collapsed', rightCollapsed);
+                }
+
+                requestAnimationFrame(() => {
+                    if (!oaoToolbarToggle || !aiHomeToggle || !homeHeroBrand) return;
+                    const logoEl = document.getElementById('homeHeroLogo');
+                    const leftRect = oaoToolbarToggle.getBoundingClientRect();
+                    const rightRect = aiHomeToggle.getBoundingClientRect();
+                    const leftCenter = leftRect.left + leftRect.width / 2;
+                    const rightCenter = rightRect.left + rightRect.width / 2;
+                    const targetCenterX = (leftCenter + rightCenter) / 2;
+                    const measureEl = logoEl || homeHeroBrand;
+                    const measureRect = measureEl.getBoundingClientRect();
+                    const currentCenterX = measureRect.left + measureRect.width / 2;
+                    const offsetX = targetCenterX - currentCenterX;
+                    homeHeroBrand.style.transform = Math.abs(offsetX) > 0.5 ? `translateX(${offsetX}px)` : '';
+                });
+            }
+
+            window.syncHomeSidePanelLayout = syncHomeSidePanelLayout;
+            window.addEventListener('resize', syncHomeSidePanelLayout);
 
             function resetOAOHomeToInitialState() {
                 currentWalletAddress = '';
@@ -6759,6 +7227,7 @@
                     oaoToolbarToggle.classList.add('collapsed');
                     isToolbarCollapsed = true;
                 }
+                syncHomeSidePanelLayout();
             }
             
             // AI对话区收缩功能
@@ -6780,6 +7249,7 @@
                     aiHomeToggle.classList.add('collapsed');
                     isAiCollapsed = true;
                 }
+                syncHomeSidePanelLayout();
             }
             
             // 监听对话区域显示状态
@@ -9106,10 +9576,10 @@
             let meetingRealtimeMinutesActiveRunId = 0;
             const MEETING_REALTIME_MINUTES_DEBOUNCE_MS = 6000;
             const MEETING_REALTIME_MINUTES_MIN_CHARS = 12;
-            const MEETING_RECO_SESSION_REFRESH_MS = 45000;
-            const MEETING_RECO_STALE_MS = 7000;
-            const MEETING_RECO_HEARTBEAT_MS = 5000;
-            const MEETING_RECO_RESUME_DELAY_MS = 60;
+            const MEETING_RECO_SESSION_REFRESH_MS = 55000;
+            const MEETING_RECO_STALE_MS = 4500;
+            const MEETING_RECO_HEARTBEAT_MS = 1800;
+            const MEETING_RECO_RESUME_DELAY_MS = 80;
             const MEETING_TRANSCRIPT_RENDER_DEBOUNCE_MS = 40;
             const MEETING_MINUTES_PROMPT_MAX_CHARS = 16000;
             const MEETING_MINUTES_RECENT_TAIL_CHARS = 8000;
@@ -9125,21 +9595,11 @@
 
             const oaoMeetingSttMode = document.getElementById('oaoMeetingSttMode');
             const oaoMeetingSttStatus = document.getElementById('oaoMeetingSttStatus');
-            const MEETING_WHISPER_MODEL = window.OAO_WHISPER_MODEL || 'whisper';
-            const MEETING_WHISPER_INTERVAL_MS = 2200;
             const MEETING_BROWSER_PROBE_MS = 4500;
-            let meetingActiveSttEngine = 'browser';
-            let meetingWhisperTimer = null;
-            let meetingWhisperChunkCursor = 0;
-            let meetingWhisperBusy = false;
+            let meetingSttChainIndex = 0;
             let meetingBrowserSttGotResult = false;
             let meetingBrowserSttProbeTimer = null;
             let meetingInterimCommitTimer = null;
-            let meetingPcmWhisperCtx = null;
-            let meetingPcmWhisperProcessor = null;
-            let meetingPcmWhisperSource = null;
-            let meetingPcmWhisperBuffers = [];
-            let meetingPcmWhisperSampleRate = 48000;
 
             const OAO_FACE_SVG = `<svg class="oao-face-svg" viewBox="0 0 96 72" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <rect x="1" y="1" width="94" height="70" rx="15" fill="#FFF9F5" stroke="#E5DDD4" stroke-width="1.2"/>
@@ -9245,6 +9705,7 @@
             let meetingLocalVideoEnabled = true;
             let meetingLocalAudioEnabled = true;
             const meetingVideoTileScales = new Map();
+            const meetingVideoTileLayout = new Map();
             const meetingVideoRemoteAudioMuted = new Map();
             const meetingVideoRemoteVideoHidden = new Map();
             const meetingVideoElements = new Map();
@@ -9277,7 +9738,9 @@
             let meetingActiveStageTab = 'transcript';
 
             function getMeetingSttModePreference() {
-                return oaoMeetingSttMode?.value || window.OAO_MEETING_STT_MODE || 'auto';
+                const pref = oaoMeetingSttMode?.value || window.OAO_MEETING_STT_MODE || 'auto';
+                if (['auto', 'native', 'global-en', 'multilang'].includes(pref)) return pref;
+                return 'auto';
             }
 
             function updateMeetingSttStatus(text) {
@@ -9287,153 +9750,39 @@
                 }
             }
 
-            function resolveInitialMeetingSttEngine() {
-                const pref = getMeetingSttModePreference();
-                if (pref === 'whisper') return 'whisper';
-                if (pref === 'browser') return MeetingSpeechCtor ? 'browser' : 'whisper';
-                return 'dual';
+            function getMeetingSttProviderChain() {
+                return window.OAOBrowserSTT?.getProviderChain(getMeetingSttModePreference()) || [];
+            }
+
+            function updateMeetingSttProviderLabel() {
+                const chain = getMeetingSttProviderChain();
+                const provider = chain[meetingSttChainIndex] || chain[0];
+                const uiLang = currentLang === 'zh' ? 'zh' : 'en';
+                const label = window.OAOBrowserSTT?.formatProviderLabel(
+                    provider,
+                    uiLang,
+                    meetingSttChainIndex,
+                    getSpeechRecognitionLang()
+                ) || meetingT('sttBrowserListening');
+                updateMeetingSttStatus(label);
             }
 
             function shouldBrowserCommitTranscriptLines() {
-                const pref = getMeetingSttModePreference();
-                if (pref === 'whisper') return false;
                 return !!MeetingSpeechCtor;
             }
 
-            function shouldUseBrowserInterimOnly() {
+            function tryAdvanceMeetingSttProvider(reasonToast) {
                 const pref = getMeetingSttModePreference();
-                return pref === 'auto' && meetingActiveSttEngine === 'whisper' && !!MeetingSpeechCtor;
-            }
-
-            function stopMeetingWhisperLoop() {
-                if (meetingWhisperTimer) {
-                    clearInterval(meetingWhisperTimer);
-                    meetingWhisperTimer = null;
+                const chain = getMeetingSttProviderChain();
+                if (pref !== 'auto' || meetingSttChainIndex >= chain.length - 1) return false;
+                meetingSttChainIndex += 1;
+                destroyMeetingRecognitionInstance();
+                updateMeetingSttProviderLabel();
+                if (reasonToast) {
+                    showConnectionToast(meetingT('sttFallbackProvider'), 'info');
                 }
-                meetingWhisperBusy = false;
-            }
-
-            async function blobToBase64Raw(blob) {
-                const buffer = await blob.arrayBuffer();
-                const bytes = new Uint8Array(buffer);
-                let binary = '';
-                const chunk = 0x8000;
-                for (let i = 0; i < bytes.length; i += chunk) {
-                    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-                }
-                return btoa(binary);
-            }
-
-            async function transcribeBlobWithWhisper(blob) {
-                if (!blob || blob.size < 600) return '';
-                let wavBlob = blob;
-                try {
-                    if (!blob.type.includes('wav')) {
-                        wavBlob = await convertMeetingAudioToWav(blob);
-                    }
-                } catch (e) {
-                    console.warn('[小O会议] WAV 转换失败:', e);
-                    return '';
-                }
-                const base64 = await blobToBase64Raw(wavBlob);
-                const lang = currentLang === 'zh' ? 'zh' : 'en';
-                const dataUri = `data:audio/wav;base64,${base64}`;
-                const jsonAttempts = [
-                    { url: `${OLLAMA_CONFIG.baseUrl}/api/transcribe`, body: { model: MEETING_WHISPER_MODEL, file: dataUri, language: lang } },
-                    { url: `${OLLAMA_CONFIG.baseUrl}/api/transcribe`, body: { model: MEETING_WHISPER_MODEL, file: base64, language: lang } },
-                    { url: `${OLLAMA_CONFIG.baseUrl}/api/transcribe`, body: { model: MEETING_WHISPER_MODEL, prompt: '', file: dataUri } }
-                ];
-                for (const ep of jsonAttempts) {
-                    try {
-                        const res = await fetch(ep.url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(ep.body)
-                        });
-                        if (!res.ok) continue;
-                        const data = await res.json();
-                        const text = (data.text || data.response || data.transcript || '').trim();
-                        if (text) return text;
-                    } catch (_) {}
-                }
-                try {
-                    const form = new FormData();
-                    form.append('file', wavBlob, 'meeting.wav');
-                    form.append('model', MEETING_WHISPER_MODEL);
-                    form.append('language', lang);
-                    const res = await fetch(`${OLLAMA_CONFIG.baseUrl}/api/transcribe`, {
-                        method: 'POST',
-                        body: form
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        const text = (data.text || data.response || data.transcript || '').trim();
-                        if (text) return text;
-                    }
-                } catch (_) {}
-                return '';
-            }
-
-            let meetingWhisperFailCount = 0;
-
-            async function processMeetingWhisperChunk() {
-                if (meetingState !== 'recording' || meetingWhisperBusy) return;
-
-                const wavBlob = flushMeetingPcmWhisperWav();
-                if (!wavBlob || wavBlob.size < 800) return;
-
-                meetingWhisperBusy = true;
-                updateMeetingSttStatus(meetingT('sttWhisperProcessing'));
-                try {
-                    const text = await transcribeBlobWithWhisper(wavBlob);
-                    if (text && meetingState === 'recording') {
-                        meetingWhisperFailCount = 0;
-                        meetingBrowserSttGotResult = true;
-                        pushMeetingTranscriptLine(text, getMeetingCurrentSpeakerName());
-                        renderMeetingTranscript(true);
-                        scheduleRealtimeMeetingMinutesUpdate();
-                    } else if (meetingState === 'recording') {
-                        meetingWhisperFailCount += 1;
-                        if (meetingWhisperFailCount >= 3 && !MeetingSpeechCtor) {
-                            showConnectionToast(meetingT('sttWhisperNeedModel'), 'error');
-                        }
-                    }
-                } catch (err) {
-                    meetingWhisperFailCount += 1;
-                    console.warn('[小O会议] Whisper 转写失败:', err);
-                    if (meetingWhisperFailCount >= 3) {
-                        showConnectionToast(meetingT('sttWhisperNeedModel'), 'error');
-                    }
-                } finally {
-                    meetingWhisperBusy = false;
-                    if (meetingState === 'recording' && meetingActiveSttEngine === 'whisper') {
-                        updateMeetingSttStatus(meetingT('sttWhisperListening'));
-                    }
-                }
-            }
-
-            function startMeetingWhisperLoop() {
-                stopMeetingWhisperLoop();
-                meetingWhisperChunkCursor = 0;
-                updateMeetingSttStatus(meetingT('sttWhisperListening'));
-                void processMeetingWhisperChunk();
-                meetingWhisperTimer = setInterval(() => {
-                    void processMeetingWhisperChunk();
-                }, MEETING_WHISPER_INTERVAL_MS);
-            }
-
-            function fallbackMeetingSttToWhisper(reason) {
-                if (meetingActiveSttEngine === 'whisper' || meetingState !== 'recording') return;
-                if (getMeetingSttModePreference() === 'browser') return;
-                stopMeetingRecognition();
-                if (meetingBrowserSttProbeTimer) {
-                    clearTimeout(meetingBrowserSttProbeTimer);
-                    meetingBrowserSttProbeTimer = null;
-                }
-                meetingActiveSttEngine = 'whisper';
-                updateMeetingSttStatus(meetingT('sttFallbackWhisper'));
-                if (reason) showConnectionToast(meetingT('sttFallbackWhisper'), 'info');
-                startMeetingWhisperLoop();
+                scheduleMeetingRecognitionResume(320);
+                return true;
             }
 
             function clearMeetingInterimCommitTimer() {
@@ -9445,8 +9794,6 @@
 
             function stopMeetingStt() {
                 stopMeetingRecognition();
-                stopMeetingWhisperLoop();
-                stopMeetingPcmWhisperCapture();
                 clearMeetingInterimCommitTimer();
                 if (meetingBrowserSttProbeTimer) {
                     clearTimeout(meetingBrowserSttProbeTimer);
@@ -9457,34 +9804,15 @@
 
             function startMeetingStt() {
                 meetingBrowserSttGotResult = false;
+                meetingSttChainIndex = 0;
                 clearMeetingInterimCommitTimer();
-                const pref = getMeetingSttModePreference();
-
-                if (pref !== 'browser') {
-                    meetingActiveSttEngine = 'whisper';
-                    updateMeetingSttStatus(meetingT('sttWhisperListening'));
-                    startMeetingWhisperLoop();
-                    void ensureMeetingOllamaReady();
+                if (!MeetingSpeechCtor) {
+                    showConnectionToast(meetingT('noSpeech'), 'error');
+                    updateMeetingSttStatus('—');
+                    return;
                 }
-
-                if (pref !== 'whisper' && MeetingSpeechCtor) {
-                    if (pref === 'browser') {
-                        meetingActiveSttEngine = 'browser';
-                        updateMeetingSttStatus(meetingT('sttBrowserListening'));
-                    }
-                    startMeetingRecognition();
-                } else if (pref === 'browser') {
-                    fallbackMeetingSttToWhisper(false);
-                }
-            }
-
-            async function ensureMeetingOllamaReady() {
-                try {
-                    const res = await fetch(`${OLLAMA_CONFIG.baseUrl}/api/tags`, { signal: AbortSignal.timeout(4000) });
-                    if (!res.ok) throw new Error('bad status');
-                } catch (_) {
-                    showConnectionToast(meetingT('sttWhisperNeedModel'), 'error');
-                }
+                updateMeetingSttProviderLabel();
+                startMeetingRecognition();
             }
 
             function setMeetingModule(module) {
@@ -9502,6 +9830,7 @@
                     btn.classList.toggle('is-active', btn.dataset.meetingModule === meetingActiveModule);
                 });
                 oaoMeetingModal?.classList.remove('notice-mode');
+                if (meetingVideoEnabled) renderMeetingVideoGrid();
             }
 
             function setMeetingStageTab(tab) {
@@ -9538,13 +9867,35 @@
                 return url.toString();
             }
 
+            function getOAOUserDisplayName() {
+                const userEl = document.getElementById('userAddress');
+                if (!userEl) return '';
+                const ens = userEl.dataset.ens?.trim();
+                if (ens) return ens;
+                const displayName = userEl.dataset.displayName?.trim();
+                if (displayName && !displayName.startsWith('0x')) return displayName;
+                const title = (userEl.title || '').trim();
+                if (title && !title.startsWith('0x')) return title.split('\n')[0];
+                return userEl.textContent?.trim() || '';
+            }
+            window.getOAOUserDisplayName = getOAOUserDisplayName;
+
             function getMeetingHostDisplayName() {
                 if (meetingVideoDisplayName) return meetingVideoDisplayName;
                 const form = getMeetingNoticeFormData();
                 if (form.host) return form.host;
-                const addr = document.getElementById('userAddress')?.dataset?.address || '';
+                const userEl = document.getElementById('userAddress');
+                const ens = userEl?.dataset?.ens?.trim();
+                if (ens) return ens;
+                const displayName = userEl?.dataset?.displayName?.trim();
+                if (displayName && !displayName.startsWith('0x')) return displayName;
+                const title = userEl?.title?.trim() || '';
+                if (title && !title.startsWith('0x') && !title.includes('...')) {
+                    return title.split('\n')[0];
+                }
+                const addr = userEl?.dataset?.address || '';
                 if (addr.startsWith('wechat_')) {
-                    return document.getElementById('userAddress')?.title || '主持人';
+                    return title || '主持人';
                 }
                 if (addr) return addr.slice(0, 6) + '...' + addr.slice(-4);
                 return currentLang === 'zh' ? '主持人' : 'Host';
@@ -9829,6 +10180,7 @@
                 meetingVideoSpotlightPeerId = null;
                 meetingVideoLayoutMode = 'grid';
                 meetingVideoTileScales.clear();
+                meetingVideoTileLayout.clear();
                 applyMeetingVideoLayoutClasses();
                 renderMeetingVideoGrid();
             }
@@ -9867,6 +10219,142 @@
                 const next = !meetingVideoRemoteVideoHidden.get(peerId);
                 meetingVideoRemoteVideoHidden.set(peerId, next);
                 renderMeetingVideoGrid();
+            }
+
+            function applyMeetingVideoTileLayout(peerId, tile) {
+                const layout = meetingVideoTileLayout.get(peerId);
+                if (!layout) return;
+                tile.style.right = 'auto';
+                tile.style.bottom = 'auto';
+                if (typeof layout.left === 'number') tile.style.left = `${layout.left}px`;
+                if (typeof layout.top === 'number') tile.style.top = `${layout.top}px`;
+                if (typeof layout.width === 'number') tile.style.width = `${layout.width}px`;
+                if (typeof layout.height === 'number') {
+                    tile.style.height = `${layout.height}px`;
+                }
+                tile.dataset.edge = 'custom';
+            }
+
+            function attachMeetingVideoTileDrag(tile, peerId, container) {
+                if (!tile || !container) return;
+                const resizeHandle = document.createElement('span');
+                resizeHandle.className = 'oao-meeting-video-resize-handle';
+                resizeHandle.title = '拖拽右下角调整大小';
+                tile.appendChild(resizeHandle);
+
+                let interaction = null;
+                let movedDuringDrag = false;
+
+                const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+                const readTileBox = () => {
+                    const rect = tile.getBoundingClientRect();
+                    const parentRect = container.getBoundingClientRect();
+                    return {
+                        left: rect.left - parentRect.left,
+                        top: rect.top - parentRect.top,
+                        width: rect.width,
+                        height: rect.height,
+                    };
+                };
+
+                const saveLayout = () => {
+                    const box = readTileBox();
+                    meetingVideoTileLayout.set(peerId, box);
+                    tile.dataset.edge = 'custom';
+                };
+
+                const applyPosition = (left, top) => {
+                    tile.style.left = `${left}px`;
+                    tile.style.top = `${top}px`;
+                    tile.style.right = 'auto';
+                    tile.style.bottom = 'auto';
+                };
+
+                const applySize = (width, height) => {
+                    tile.style.width = `${width}px`;
+                    tile.style.height = `${height}px`;
+                };
+
+                tile.addEventListener('pointerdown', (event) => {
+                    if (event.target.closest('.oao-meeting-video-tile-controls')) return;
+                    if (event.target === resizeHandle || event.target.closest('.oao-meeting-video-resize-handle')) return;
+                    const box = readTileBox();
+                    movedDuringDrag = false;
+                    interaction = {
+                        mode: 'drag',
+                        pointerId: event.pointerId,
+                        startX: event.clientX,
+                        startY: event.clientY,
+                        baseLeft: box.left,
+                        baseTop: box.top,
+                    };
+                    tile.setPointerCapture(event.pointerId);
+                    event.preventDefault();
+                });
+
+                resizeHandle.addEventListener('pointerdown', (event) => {
+                    const box = readTileBox();
+                    movedDuringDrag = false;
+                    interaction = {
+                        mode: 'resize',
+                        pointerId: event.pointerId,
+                        startX: event.clientX,
+                        startY: event.clientY,
+                        baseWidth: box.width,
+                        baseHeight: box.height,
+                        aspect: box.width / Math.max(box.height, 1),
+                    };
+                    resizeHandle.setPointerCapture(event.pointerId);
+                    event.stopPropagation();
+                    event.preventDefault();
+                });
+
+                const onPointerMove = (event) => {
+                    if (!interaction || interaction.pointerId !== event.pointerId) return;
+                    const dx = event.clientX - interaction.startX;
+                    const dy = event.clientY - interaction.startY;
+                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) movedDuringDrag = true;
+
+                    if (interaction.mode === 'drag') {
+                        const parentRect = container.getBoundingClientRect();
+                        const nextLeft = interaction.baseLeft + dx;
+                        const nextTop = interaction.baseTop + dy;
+                        const maxLeft = Math.max(0, parentRect.width - tile.offsetWidth);
+                        const maxTop = Math.max(0, parentRect.height - tile.offsetHeight);
+                        applyPosition(clamp(nextLeft, 0, maxLeft), clamp(nextTop, 0, maxTop));
+                        return;
+                    }
+
+                    const delta = Math.max(dx, dy);
+                    const width = clamp(interaction.baseWidth + delta, 96, 360);
+                    const height = clamp(width / interaction.aspect, 72, 280);
+                    applySize(width, height);
+                };
+
+                const onPointerEnd = (event) => {
+                    if (!interaction || interaction.pointerId !== event.pointerId) return;
+                    interaction = null;
+                    saveLayout();
+                    try {
+                        (event.currentTarget === resizeHandle ? resizeHandle : tile).releasePointerCapture(event.pointerId);
+                    } catch (_) {}
+                };
+
+                tile.addEventListener('pointermove', onPointerMove);
+                tile.addEventListener('pointerup', onPointerEnd);
+                tile.addEventListener('pointercancel', onPointerEnd);
+                resizeHandle.addEventListener('pointermove', onPointerMove);
+                resizeHandle.addEventListener('pointerup', onPointerEnd);
+                resizeHandle.addEventListener('pointercancel', onPointerEnd);
+
+                tile.addEventListener('click', (event) => {
+                    if (movedDuringDrag) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        movedDuringDrag = false;
+                    }
+                }, true);
             }
 
             function createMeetingVideoTile(peerId, stream, displayName, { isLocal = false } = {}) {
@@ -9955,6 +10443,8 @@
                 const edges = ['top', 'right', 'bottom', 'left'];
                 const counts = { top: 0, right: 0, bottom: 0, left: 0 };
                 tiles.forEach((tile, index) => {
+                    const peerId = tile.dataset.peerId || '';
+                    if (meetingVideoTileLayout.has(peerId)) return;
                     const edge = edges[index % edges.length];
                     tile.dataset.edge = edge;
                     const slot = counts[edge]++;
@@ -9984,6 +10474,8 @@
                 meetingVideoElements.clear();
                 if (oaoMeetingVideoGrid) oaoMeetingVideoGrid.innerHTML = '';
                 if (oaoMeetingVideoBorderDock) oaoMeetingVideoBorderDock.innerHTML = '';
+                const workspaceDock = document.getElementById('oaoMeetingWorkspaceVideoDock');
+                if (workspaceDock) workspaceDock.innerHTML = '';
 
                 const entries = [];
                 const localPeerId = getMeetingVideoLocalPeerId();
@@ -10005,7 +10497,10 @@
                     });
                 });
 
-                if (!entries.length) return;
+                if (!entries.length) {
+                    workspaceDock?.classList.add('hidden');
+                    return;
+                }
 
                 const tiles = entries.map((entry) =>
                     createMeetingVideoTile(entry.peerId, entry.stream, entry.name, { isLocal: entry.isLocal })
@@ -10013,8 +10508,25 @@
 
                 if (meetingVideoLayoutMode === 'border') {
                     positionBorderVideoTiles(oaoMeetingVideoBorderDock, tiles);
+                    tiles.forEach((tile) => {
+                        applyMeetingVideoTileLayout(tile.dataset.peerId || '', tile);
+                        attachMeetingVideoTileDrag(tile, tile.dataset.peerId || '', oaoMeetingVideoBorderDock);
+                    });
+                    workspaceDock?.classList.add('hidden');
                     return;
                 }
+
+                const showWorkspaceDock = meetingVideoEnabled && meetingActiveModule === 'workspace' && workspaceDock;
+                if (showWorkspaceDock) {
+                    workspaceDock.classList.remove('hidden');
+                    tiles.forEach((tile) => {
+                        workspaceDock.appendChild(tile);
+                        attachMeetingVideoTileDrag(tile, tile.dataset.peerId || '', workspaceDock);
+                    });
+                    return;
+                }
+
+                workspaceDock?.classList.add('hidden');
 
                 if (meetingVideoLayoutMode === 'spotlight' && meetingVideoSpotlightPeerId) {
                     const main = tiles.find((tile) => tile.dataset.peerId === meetingVideoSpotlightPeerId) || tiles[0];
@@ -10638,15 +11150,13 @@
                     },
                     sttBrowserListening: { zh: '浏览器实时转写', en: 'Browser live STT' },
                     sttBrowserActive: { zh: '正在识别语音…', en: 'Recognizing speech…' },
-                    sttWhisperListening: { zh: 'Whisper 本地转写', en: 'Whisper local STT' },
-                    sttWhisperProcessing: { zh: 'Whisper 转写中…', en: 'Whisper transcribing…' },
-                    sttFallbackWhisper: {
-                        zh: '浏览器转写不可用，已切换本地 Whisper（需 Ollama + whisper 模型）',
-                        en: 'Browser STT unavailable, switched to local Whisper (Ollama + whisper model required)'
+                    sttFallbackProvider: {
+                        zh: '当前引擎不可用，已切换备用浏览器语音识别',
+                        en: 'Current engine unavailable, switched to backup browser STT'
                     },
-                    sttWhisperNeedModel: {
-                        zh: '请在本机运行: ollama pull whisper',
-                        en: 'Run locally: ollama pull whisper'
+                    sttNetworkError: {
+                        zh: '语音识别需联网，请检查网络或切换引擎；推荐 Chrome / Edge',
+                        en: 'Speech recognition requires network. Try Chrome / Edge or switch engine.'
                     }
                 };
                 return dict[key]?.[lang] || key;
@@ -11107,131 +11617,9 @@
                 updateMeetingSubtitle();
             }
 
-            function isMeetingSubtitleEnabled() {
-                return oaoMeetingSubtitleEnable?.value !== 'off';
-            }
-
-            function getMeetingSubtitleLineLimit() {
-                const value = oaoMeetingSubtitleLines?.value || '3';
-                if (value === 'full') return Infinity;
-                const parsed = parseInt(value, 10);
-                return Number.isFinite(parsed) && parsed >= 2 ? parsed : 3;
-            }
-
-            function getMeetingSubtitlePosition() {
-                const value = oaoMeetingSubtitlePosition?.value || 'right';
-                return ['left', 'right', 'bottom'].includes(value) ? value : 'right';
-            }
-
-            function shouldShowMeetingSubtitleAside() {
-                if (!isMeetingSubtitleEnabled()) return false;
-                if (meetingState === 'recording' || meetingState === 'paused') return true;
-                return getMeetingSubtitleDisplayEntries().length > 0;
-            }
-
-            function getMeetingSubtitleDisplayEntries() {
-                const entries = meetingTranscriptLines.map((text) => ({ text, interim: false }));
-                const pending = getMeetingPendingDisplayText();
-                if (pending) entries.push({ text: pending, interim: true });
-                const limit = getMeetingSubtitleLineLimit();
-                if (limit === Infinity) {
-                    if (entries.length <= MEETING_SUBTITLE_FULL_MAX_ENTRIES) return entries;
-                    return entries.slice(-MEETING_SUBTITLE_FULL_MAX_ENTRIES);
-                }
-                if (entries.length <= limit) return entries;
-                return entries.slice(-limit);
-            }
-
-            function updateMeetingSubtitle() {
-                if (!oaoMeetingSubtitleText || !oaoMeetingSubtitleBar) return;
-                if (!isMeetingSubtitleEnabled()) {
-                    oaoMeetingSubtitleBar.classList.add('hidden');
-                    oaoMeetingSubtitleAside?.classList.add('hidden');
-                    oaoMeetingSubtitleText.replaceChildren();
-                    return;
-                }
-                if (!shouldShowMeetingSubtitleAside()) {
-                    oaoMeetingSubtitleBar.classList.add('hidden');
-                    oaoMeetingSubtitleAside?.classList.add('hidden');
-                    oaoMeetingSubtitleText.replaceChildren();
-                    return;
-                }
-
-                oaoMeetingSubtitleAside?.classList.remove('hidden');
-                oaoMeetingSubtitleBar.classList.remove('hidden');
-                oaoMeetingSubtitleText.replaceChildren();
-
-                const entries = getMeetingSubtitleDisplayEntries();
-                if (!entries.length) {
-                    const waiting = document.createElement('div');
-                    waiting.className = 'oao-meeting-subtitle-line is-current is-interim';
-                    waiting.style.opacity = '0.55';
-                    waiting.textContent = meetingT('subtitleWaiting');
-                    oaoMeetingSubtitleText.appendChild(waiting);
-                    return;
-                }
-
-                entries.forEach((entry, index) => {
-                    const lineEl = document.createElement('div');
-                    const isCurrent = index === entries.length - 1;
-                    lineEl.className = 'oao-meeting-subtitle-line'
-                        + (isCurrent ? ' is-current' : '')
-                        + (entry.interim ? ' is-interim' : '');
-                    lineEl.innerHTML = formatOaoRichText(entry.text, { singleLine: true, asBlock: false });
-                    oaoMeetingSubtitleText.appendChild(lineEl);
-                });
-                oaoMeetingSubtitleText.scrollTop = oaoMeetingSubtitleText.scrollHeight;
-            }
-
-            function applySubtitleSettings() {
-                if (!oaoMeetingSubtitleBar) return;
-                const size = oaoMeetingFontSize?.value || 'md';
-                const theme = oaoMeetingSubtitleTheme?.value || 'dark';
-                const linesMode = oaoMeetingSubtitleLines?.value || '3';
-                const position = getMeetingSubtitlePosition();
-                oaoMeetingSubtitleBar.classList.remove(
-                    'size-sm', 'size-md', 'size-lg',
-                    'theme-dark', 'theme-light',
-                    'lines-2', 'lines-3', 'lines-4', 'lines-5', 'lines-full'
-                );
-                oaoMeetingSubtitleBar.classList.add(
-                    `size-${size}`,
-                    `theme-${theme}`,
-                    `lines-${linesMode}`
-                );
-                if (oaoMeetingLayout) {
-                    oaoMeetingLayout.classList.remove('subtitle-pos-left', 'subtitle-pos-right', 'subtitle-pos-bottom');
-                    oaoMeetingLayout.classList.add(`subtitle-pos-${position}`);
-                }
-                oaoMeetingModal?.classList.toggle(
-                    'subtitle-sidebar-active',
-                    isMeetingSubtitleEnabled() && position !== 'bottom'
-                );
-                try {
-                    localStorage.setItem('oao-meeting-subtitle-enabled', isMeetingSubtitleEnabled() ? 'on' : 'off');
-                    localStorage.setItem('oao-meeting-subtitle-lines', linesMode);
-                    localStorage.setItem('oao-meeting-subtitle-position', position);
-                } catch (_) {}
-                updateMeetingSubtitle();
-            }
-
-            function initMeetingSubtitleSettings() {
-                try {
-                    const saved = localStorage.getItem('oao-meeting-subtitle-enabled');
-                    if (saved && oaoMeetingSubtitleEnable) {
-                        oaoMeetingSubtitleEnable.value = saved === 'off' ? 'off' : 'on';
-                    }
-                    const savedLines = localStorage.getItem('oao-meeting-subtitle-lines');
-                    if (savedLines && oaoMeetingSubtitleLines && ['2', '3', '4', '5', 'full'].includes(savedLines)) {
-                        oaoMeetingSubtitleLines.value = savedLines;
-                    }
-                    const savedPosition = localStorage.getItem('oao-meeting-subtitle-position');
-                    if (savedPosition && oaoMeetingSubtitlePosition && ['left', 'right', 'bottom'].includes(savedPosition)) {
-                        oaoMeetingSubtitlePosition.value = savedPosition;
-                    }
-                } catch (_) {}
-                applySubtitleSettings();
-            }
+            function updateMeetingSubtitle() { /* 字幕功能已移除 */ }
+            function applySubtitleSettings() { /* 字幕功能已移除 */ }
+            function initMeetingSubtitleSettings() { /* 字幕功能已移除 */ }
 
             function isMeetingRealtimeMinutesEnabled() {
                 return oaoMeetingRealtimeMinutes?.value === 'on';
@@ -11492,11 +11880,17 @@
 
             function createMeetingRecognition() {
                 if (!MeetingSpeechCtor) return null;
+                const chain = getMeetingSttProviderChain();
+                const provider = chain[meetingSttChainIndex] || chain[0];
                 const rec = new MeetingSpeechCtor();
                 rec.continuous = true;
                 rec.interimResults = true;
-                rec.lang = getSpeechRecognitionLang();
-                rec.maxAlternatives = 8;
+                rec.lang = window.OAOBrowserSTT?.resolveProviderLang(
+                    provider,
+                    getSpeechRecognitionLang(),
+                    meetingSttChainIndex
+                ) || getSpeechRecognitionLang();
+                rec.maxAlternatives = provider?.maxAlternatives || 8;
                 applyMeetingSpeechGrammar(rec);
 
                 rec.onstart = () => {
@@ -11513,7 +11907,7 @@
                     }
                     renderMeetingTranscript(true);
                     updateMeetingSubtitle();
-                    updateMeetingSttStatus(meetingT('sttBrowserActive'));
+                    updateMeetingSttProviderLabel();
                     const pending = getMeetingPendingDisplayText();
                     if (pending && shouldBrowserCommitTranscriptLines()) {
                         clearMeetingInterimCommitTimer();
@@ -11534,19 +11928,27 @@
                 rec.onerror = (event) => {
                     if (event.error === 'aborted') return;
                     if (meetingState !== 'recording') return;
-                    if (event.error === 'network' || event.error === 'service-not-allowed' || event.error === 'not-allowed') {
-                        fallbackMeetingSttToWhisper(true);
+                    if (event.error === 'not-allowed') {
+                        showConnectionToast(meetingT('noMic'), 'error');
                         return;
                     }
                     if (event.error === 'no-speech') {
                         scheduleMeetingRecognitionResume(120);
                         return;
                     }
+                    if (event.error === 'network' || event.error === 'service-not-allowed') {
+                        if (tryAdvanceMeetingSttProvider(true)) return;
+                        showConnectionToast(meetingT('sttNetworkError'), 'error');
+                        scheduleMeetingRecognitionResume(200);
+                        return;
+                    }
+                    if (tryAdvanceMeetingSttProvider(false)) return;
                     scheduleMeetingRecognitionResume(280);
                 };
 
                 rec.onend = () => {
                     if (meetingState === 'recording') {
+                        meetingRecognition = null;
                         scheduleMeetingRecognitionResume(MEETING_RECO_RESUME_DELAY_MS);
                     }
                 };
@@ -11641,9 +12043,6 @@
                 startMeetingTimerTick();
 
                 meetingMediaRecorder.start(250);
-                meetingWhisperChunkCursor = 0;
-                meetingWhisperFailCount = 0;
-                startMeetingPcmWhisperCapture(meetingAudioStream);
                 setMeetingUIState('recording');
                 startMeetingStt();
                 void setupMeetingAudioAnalyser(meetingAudioStream);
@@ -11782,69 +12181,6 @@
                 } finally {
                     await audioCtx.close().catch(() => {});
                 }
-            }
-
-            function stopMeetingPcmWhisperCapture() {
-                if (meetingPcmWhisperProcessor) {
-                    try { meetingPcmWhisperProcessor.disconnect(); } catch (_) {}
-                    meetingPcmWhisperProcessor.onaudioprocess = null;
-                    meetingPcmWhisperProcessor = null;
-                }
-                if (meetingPcmWhisperSource) {
-                    try { meetingPcmWhisperSource.disconnect(); } catch (_) {}
-                    meetingPcmWhisperSource = null;
-                }
-                if (meetingPcmWhisperCtx) {
-                    const ctx = meetingPcmWhisperCtx;
-                    meetingPcmWhisperCtx = null;
-                    ctx.close().catch(() => {});
-                }
-                meetingPcmWhisperBuffers = [];
-            }
-
-            function startMeetingPcmWhisperCapture(stream) {
-                stopMeetingPcmWhisperCapture();
-                if (!stream?.getAudioTracks?.().length) return;
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtx) return;
-                try {
-                    meetingPcmWhisperCtx = new AudioCtx();
-                    meetingPcmWhisperSampleRate = meetingPcmWhisperCtx.sampleRate;
-                    meetingPcmWhisperSource = meetingPcmWhisperCtx.createMediaStreamSource(stream);
-                    meetingPcmWhisperProcessor = meetingPcmWhisperCtx.createScriptProcessor(4096, 1, 1);
-                    meetingPcmWhisperBuffers = [];
-                    meetingPcmWhisperProcessor.onaudioprocess = (event) => {
-                        if (meetingState !== 'recording') return;
-                        meetingPcmWhisperBuffers.push(new Float32Array(event.inputBuffer.getChannelData(0)));
-                    };
-                    const mute = meetingPcmWhisperCtx.createGain();
-                    mute.gain.value = 0;
-                    meetingPcmWhisperSource.connect(meetingPcmWhisperProcessor);
-                    meetingPcmWhisperProcessor.connect(mute);
-                    mute.connect(meetingPcmWhisperCtx.destination);
-                    void meetingPcmWhisperCtx.resume();
-                } catch (error) {
-                    console.warn('[小O会议] PCM 采集失败:', error);
-                    stopMeetingPcmWhisperCapture();
-                }
-            }
-
-            function flushMeetingPcmWhisperWav() {
-                if (!meetingPcmWhisperBuffers.length) return null;
-                const totalLength = meetingPcmWhisperBuffers.reduce((sum, chunk) => sum + chunk.length, 0);
-                const minSamples = Math.floor(meetingPcmWhisperSampleRate * 0.5);
-                if (totalLength < minSamples) return null;
-                const merged = new Float32Array(totalLength);
-                let offset = 0;
-                for (const chunk of meetingPcmWhisperBuffers) {
-                    merged.set(chunk, offset);
-                    offset += chunk.length;
-                }
-                meetingPcmWhisperBuffers = [];
-                const offline = new OfflineAudioContext(1, merged.length, meetingPcmWhisperSampleRate);
-                const audioBuffer = offline.createBuffer(1, merged.length, meetingPcmWhisperSampleRate);
-                audioBuffer.copyToChannel(merged, 0);
-                return encodeAudioBufferToWav(audioBuffer);
             }
 
             async function getMeetingAudioBlobByFormat(format = 'wav') {
@@ -12663,9 +12999,21 @@ ${emptyHint}`;
                     window.openLoginModal?.('admin');
                     return;
                 }
+                if (window.location.protocol === 'file:') {
+                    showOaoLocalSetupGuide('meeting');
+                    return;
+                }
+                let setupAck = false;
+                try { setupAck = localStorage.getItem('oao_local_setup_ack') === '1'; } catch (_) {}
+                if (!setupAck && !skipLoginCheck) {
+                    void checkOaoLocalRuntimeStatus().then((status) => {
+                        if (!status.translateReady && !status.ollamaReady) {
+                            showOaoLocalSetupGuide('meeting');
+                        }
+                    });
+                }
                 const wasHidden = oaoMeetingModal?.classList.contains('hidden');
                 if (wasHidden && !meetingVideoEnabled) resetMeetingSession();
-                applySubtitleSettings();
                 hideMeetingCloseConfirm();
                 setMeetingModule('workspace');
                 oaoMeetingModal?.classList.remove('hidden');
@@ -12674,19 +13022,60 @@ ${emptyHint}`;
             oaoToolMeetingBtn?.addEventListener('click', openOaoMeetingModal);
 
             function resolveOaoTranslateUrl() {
-                if (window.OAO_TRANSLATE_URL) return String(window.OAO_TRANSLATE_URL);
-                const hostname = window.location.hostname;
-                if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {
-                    return 'http://127.0.0.1:3000';
+                if (window.OAO_TRANSLATE_URL) return String(window.OAO_TRANSLATE_URL).replace(/\/$/, '');
+                if (location.protocol === 'http:' || location.protocol === 'https:') {
+                    return location.origin + '/oao-translate/embed/index.html';
                 }
-                return `${location.protocol}//${location.hostname}:3000`;
+                return 'http://127.0.0.1:8777/oao-translate/embed/index.html';
             }
 
-            async function checkOaoTranslateHealth(base) {
+            function buildOaoTranslateEmbedUrl(base) {
+                const url = new URL(base, location.href);
+                url.pathname = url.pathname.replace(/\/index\.html\/+/gi, "/index.html");
+                if (!/\/index\.html$/i.test(url.pathname)) {
+                    url.pathname = url.pathname.replace(/\/?$/, "/") + "index.html";
+                }
+                const qs = new URLSearchParams(url.search);
+                qs.set("embed", "1");
+                const theme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+                qs.set("theme", theme);
+                const uid = typeof window.getOAOUserId === "function" ? window.getOAOUserId() : "";
+                if (uid) qs.set("uid", uid);
+                const display = document.getElementById("userAddress")?.textContent?.trim();
+                if (display && display.length < 48) qs.set("user", display);
+                url.search = qs.toString();
+                return url.toString();
+            }
+
+            async function checkOaoTranslateWeb(base) {
+                const url = base.includes('/oao-translate/embed')
+                    ? base
+                    : base.replace(/\/$/, '') + '/oao-translate/embed/index.html';
                 const controller = new AbortController();
-                const timer = setTimeout(() => controller.abort(), 4000);
+                const timer = setTimeout(() => controller.abort(), 2500);
                 try {
-                    const res = await fetch(base + '/api/health', {
+                    const res = await fetch(url, { method: 'HEAD', cache: 'no-store', signal: controller.signal });
+                    clearTimeout(timer);
+                    return res.ok;
+                } catch (_) {
+                    clearTimeout(timer);
+                    try {
+                        const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(2500) });
+                        return res.ok;
+                    } catch (e) {
+                        return false;
+                    }
+                }
+            }
+
+            async function checkOaoTranslateServer(base) {
+                const serverUrl = base.includes(':3000')
+                    ? base.replace(':3000', ':3011')
+                    : 'http://127.0.0.1:3011';
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 2000);
+                try {
+                    const res = await fetch(serverUrl + '/health', {
                         cache: 'no-store',
                         signal: controller.signal
                     });
@@ -12698,6 +13087,100 @@ ${emptyHint}`;
                 }
             }
 
+            async function checkOaoTranslateHealth(base) {
+                return checkOaoTranslateWeb(base);
+            }
+
+            async function checkOaoLocalRuntimeStatus() {
+                const usingBat = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+                    && window.location.port === '8777';
+                const isFile = window.location.protocol === 'file:';
+                const base = resolveOaoTranslateUrl().replace(/\/$/, '');
+                const translateReady = await checkOaoTranslateHealth(base);
+                let ollamaReady = false;
+                try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 1500);
+                    const res = await fetch('http://127.0.0.1:11434/api/tags', { signal: controller.signal });
+                    clearTimeout(timer);
+                    ollamaReady = res.ok;
+                } catch (_) {}
+                return { usingBat, isFile, translateReady, ollamaReady };
+            }
+
+            function closeOaoLocalSetupModal() {
+                document.getElementById('oaoLocalSetupModal')?.classList.add('hidden');
+            }
+
+            async function refreshOaoLocalSetupStatus() {
+                const statusEl = document.getElementById('oaoLocalSetupStatus');
+                if (!statusEl) return;
+                const status = await checkOaoLocalRuntimeStatus();
+                const lines = [];
+                if (status.isFile) {
+                    lines.push('⚠ 当前为 file:// 打开，本地功能不可用。请通过 打开OAO.bat 访问。');
+                } else if (!status.usingBat) {
+                    lines.push('⚠ 建议通过 http://127.0.0.1:8777/OAO.html 访问以启用本地服务。');
+                }
+                lines.push(status.translateReady ? '✓ OAO翻译界面已就绪' : '○ OAO翻译界面启动中（浏览器模式可先使用）');
+                lines.push(status.ollamaReady ? '✓ Ollama 已运行（可升级本地 AI 转写/翻译）' : '○ Ollama 未检测到（可选；浏览器模式无需 Ollama）');
+                statusEl.textContent = lines.join('\n');
+                statusEl.className = 'oao-local-setup-status ' + (status.translateReady ? 'is-ok' : 'is-warn');
+                statusEl.style.whiteSpace = 'pre-line';
+                return status;
+            }
+
+            function showOaoLocalSetupGuide(feature) {
+                const modal = document.getElementById('oaoLocalSetupModal');
+                if (!modal) return;
+                const title = document.getElementById('oaoLocalSetupTitle');
+                if (title) {
+                    title.textContent = feature === 'translate'
+                        ? (currentLang === 'zh' ? '启用 OAO翻译' : 'Enable OAO Translate')
+                        : (currentLang === 'zh' ? '启用小O会议 AI' : 'Enable OAO Meeting AI');
+                }
+                modal.classList.remove('hidden');
+                void refreshOaoLocalSetupStatus();
+            }
+
+            window.showOaoLocalSetupGuide = showOaoLocalSetupGuide;
+
+            document.getElementById('oaoLocalSetupClose')?.addEventListener('click', closeOaoLocalSetupModal);
+            document.getElementById('oaoLocalSetupOverlay')?.addEventListener('click', closeOaoLocalSetupModal);
+            document.getElementById('oaoLocalSetupContinueBtn')?.addEventListener('click', () => {
+                try { localStorage.setItem('oao_local_setup_ack', '1'); } catch (_) {}
+                closeOaoLocalSetupModal();
+            });
+            document.getElementById('oaoLocalSetupRecheckBtn')?.addEventListener('click', () => {
+                void refreshOaoLocalSetupStatus().then((status) => {
+                    if (status.translateReady) {
+                        window.__oaoTranslateReady = true;
+                        showConnectionToast?.(currentLang === 'zh' ? '本地服务已就绪' : 'Local services ready', 'success');
+                    }
+                });
+            });
+
+            let oaoTranslatePrewarmPromise = null;
+
+            function prewarmOaoTranslateService() {
+                if (window.__oaoTranslateReady) return oaoTranslatePrewarmPromise;
+                if (oaoTranslatePrewarmPromise) return oaoTranslatePrewarmPromise;
+                const base = resolveOaoTranslateUrl().replace(/\/$/, '');
+                oaoTranslatePrewarmPromise = (async () => {
+                    for (let attempt = 0; attempt < 40; attempt += 1) {
+                        if (await checkOaoTranslateWeb(base)) {
+                            window.__oaoTranslateReady = true;
+                            return true;
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, attempt < 12 ? 400 : 800));
+                    }
+                    return false;
+                })();
+                return oaoTranslatePrewarmPromise;
+            }
+
+            window.prewarmOaoTranslateService = prewarmOaoTranslateService;
+
             function setOaoTranslateLoadingVisible(visible, message) {
                 const loading = document.getElementById('oaoTranslateLoading');
                 const fallback = document.getElementById('oaoTranslateFallback');
@@ -12705,16 +13188,19 @@ ${emptyHint}`;
                 const title = document.getElementById('oaoTranslateLoadingTitle');
                 if (visible) {
                     fallback?.classList.add('hidden');
-                    frame?.classList.add('hidden');
                     loading?.classList.remove('hidden');
                     if (title && message) title.textContent = message;
                 } else {
                     loading?.classList.add('hidden');
+                    frame?.classList.remove('hidden');
                 }
             }
 
             function openOaoTranslateModal() {
-                if (!isLoggedIn) {
+                const authed = typeof window.isOAOAuthenticated === 'function'
+                    ? window.isOAOAuthenticated()
+                    : isLoggedIn;
+                if (!authed) {
                     showConnectionToast?.(
                         currentLang === 'zh'
                             ? '请先登录（钱包、微信或管理员）后再使用 OAO翻译'
@@ -12725,48 +13211,138 @@ ${emptyHint}`;
                     return;
                 }
 
+                if (window.location.protocol === 'file:') {
+                    showOaoLocalSetupGuide('translate');
+                    return;
+                }
+
                 const modal = document.getElementById('oaoTranslateModal');
                 const frame = document.getElementById('oaoTranslateFrame');
                 const fallback = document.getElementById('oaoTranslateFallback');
                 if (!modal || !frame || !fallback) return;
 
                 modal.classList.remove('hidden', 'is-fullscreen');
-                setOaoTranslateLoadingVisible(true, currentLang === 'zh' ? '正在连接 OAO翻译服务...' : 'Connecting to OAO Translate...');
+                fallback.classList.add('hidden');
+                frame.classList.remove('hidden');
 
-                const base = resolveOaoTranslateUrl().replace(/\/$/, '');
-                const embedUrl = buildOaoTranslateEmbedUrl(base);
+                const embedUrl = buildOaoTranslateEmbedUrl(resolveOaoTranslateUrl());
+                const loadingHint = document.getElementById('oaoTranslateLoadingHint');
+                if (loadingHint) {
+                    loadingHint.textContent = currentLang === 'zh'
+                        ? '轻量浏览器模式，与主页同源加载，无需等待 Node 编译'
+                        : 'Lightweight embed loads from the same origin';
+                }
 
-                void (async () => {
-                    const maxAttempts = 45;
-                    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                        if (await checkOaoTranslateHealth(base)) {
-                            setOaoTranslateLoadingVisible(false);
-                            fallback.classList.add('hidden');
-                            frame.classList.remove('hidden');
-                            frame.src = embedUrl;
-                            return;
-                        }
-                        const msg = currentLang === 'zh'
-                            ? `正在连接 OAO翻译服务... (${attempt}/${maxAttempts})`
-                            : `Connecting... (${attempt}/${maxAttempts})`;
-                        setOaoTranslateLoadingVisible(true, msg);
-                        await new Promise((resolve) => setTimeout(resolve, 2000));
-                    }
+                setOaoTranslateLoadingVisible(true, currentLang === 'zh' ? '正在打开 OAO翻译…' : 'Opening…');
 
+                frame.onload = () => {
                     setOaoTranslateLoadingVisible(false);
-                    frame.src = 'about:blank';
+                    frame.classList.remove('hidden');
+                };
+                frame.onerror = () => {
+                    setOaoTranslateLoadingVisible(false);
                     frame.classList.add('hidden');
                     fallback.classList.remove('hidden');
-                })();
+                };
+                frame.src = embedUrl;
+
+                void prewarmOaoTranslateService();
             }
 
-            function closeOaoTranslateModal() {
+            function doCloseOaoTranslateModal() {
                 const modal = document.getElementById('oaoTranslateModal');
                 const frame = document.getElementById('oaoTranslateFrame');
                 document.getElementById('oaoTranslateLoading')?.classList.add('hidden');
+                document.getElementById('oaoTranslateCloseConfirm')?.classList.add('hidden');
+                document.getElementById('oaoTranslateOverlayHint')?.classList.add('hidden');
                 modal?.classList.add('hidden');
                 modal?.classList.remove('is-fullscreen');
                 if (frame) frame.src = 'about:blank';
+            }
+
+            let oaoTranslateCloseConfirmResolver = null;
+            let oaoTranslateOverlayHintTimer = 0;
+
+            function hideOaoTranslateCloseConfirm() {
+                document.getElementById('oaoTranslateCloseConfirm')?.classList.add('hidden');
+            }
+
+            function showOaoTranslateCloseConfirm(recording, hasContent) {
+                const panel = document.getElementById('oaoTranslateCloseConfirm');
+                const title = document.getElementById('oaoTranslateCloseConfirmTitle');
+                const desc = document.getElementById('oaoTranslateCloseConfirmDesc');
+                const okBtn = document.getElementById('oaoTranslateCloseOkBtn');
+                const cancelBtn = document.getElementById('oaoTranslateCloseCancelBtn');
+                if (!panel || !title || !desc || !okBtn || !cancelBtn) return Promise.resolve(true);
+                if (currentLang === 'zh') {
+                    title.textContent = '关闭 OAO翻译？';
+                    desc.textContent = recording
+                        ? '正在录音/翻译中，关闭将结束会话并可能丢失未保存内容。'
+                        : (hasContent ? '关闭后当前字幕将被清空。' : '确定要关闭 OAO翻译吗？');
+                    okBtn.textContent = '确定关闭';
+                    cancelBtn.textContent = '取消';
+                } else {
+                    title.textContent = 'Close OAO Translate?';
+                    desc.textContent = recording
+                        ? 'Recording or translation is in progress. Closing may discard unsaved content.'
+                        : (hasContent ? 'Current subtitles will be cleared when you close.' : 'Close OAO Translate?');
+                    okBtn.textContent = 'Close';
+                    cancelBtn.textContent = 'Cancel';
+                }
+                panel.classList.remove('hidden');
+                return new Promise((resolve) => {
+                    oaoTranslateCloseConfirmResolver = resolve;
+                });
+            }
+
+            function resolveOaoTranslateCloseConfirm(allow) {
+                hideOaoTranslateCloseConfirm();
+                if (oaoTranslateCloseConfirmResolver) {
+                    oaoTranslateCloseConfirmResolver(allow);
+                    oaoTranslateCloseConfirmResolver = null;
+                }
+            }
+
+            function showOaoTranslateOverlayHint() {
+                const hint = document.getElementById('oaoTranslateOverlayHint');
+                if (!hint) return;
+                hint.textContent = currentLang === 'zh'
+                    ? '为避免误触丢失数据，请点击右上角 × 关闭 OAO翻译'
+                    : 'Click × in the top-right corner to close and avoid losing data';
+                hint.classList.remove('hidden');
+                clearTimeout(oaoTranslateOverlayHintTimer);
+                oaoTranslateOverlayHintTimer = setTimeout(() => hint.classList.add('hidden'), 3200);
+            }
+
+            function closeOaoTranslateModal(force) {
+                const frame = document.getElementById('oaoTranslateFrame');
+                const modal = document.getElementById('oaoTranslateModal');
+                if (!modal || modal.classList.contains('hidden')) return;
+                if (force) {
+                    doCloseOaoTranslateModal();
+                    return;
+                }
+                if (frame?.contentWindow && frame.src && frame.src !== 'about:blank') {
+                    const onReply = (ev) => {
+                        if (ev.data?.type !== 'oao-translate-close-state') return;
+                        window.removeEventListener('message', onReply);
+                        clearTimeout(replyTimer);
+                        const recording = !!ev.data.recording;
+                        const hasContent = !!ev.data.hasContent;
+                        if (!recording && !hasContent) {
+                            doCloseOaoTranslateModal();
+                            return;
+                        }
+                        void showOaoTranslateCloseConfirm(recording, hasContent).then((allow) => {
+                            if (allow) doCloseOaoTranslateModal();
+                        });
+                    };
+                    const replyTimer = setTimeout(() => window.removeEventListener('message', onReply), 8000);
+                    window.addEventListener('message', onReply);
+                    frame.contentWindow.postMessage({ type: 'oao-translate-query-close' }, '*');
+                    return;
+                }
+                doCloseOaoTranslateModal();
             }
 
             function toggleOaoTranslateFullscreen() {
@@ -12774,10 +13350,16 @@ ${emptyHint}`;
             }
 
             document.getElementById('oaoToolTranslate')?.addEventListener('click', openOaoTranslateModal);
-            document.getElementById('oaoTranslateModalClose')?.addEventListener('click', closeOaoTranslateModal);
-            document.getElementById('oaoTranslateModalOverlay')?.addEventListener('click', closeOaoTranslateModal);
+            document.getElementById('oaoTranslateModalClose')?.addEventListener('click', () => closeOaoTranslateModal(false));
+            document.getElementById('oaoTranslateModalOverlay')?.addEventListener('click', showOaoTranslateOverlayHint);
+            document.getElementById('oaoTranslateCloseOkBtn')?.addEventListener('click', () => resolveOaoTranslateCloseConfirm(true));
+            document.getElementById('oaoTranslateCloseCancelBtn')?.addEventListener('click', () => resolveOaoTranslateCloseConfirm(false));
+            document.getElementById('oaoTranslateCloseConfirm')?.addEventListener('click', (ev) => {
+                if (ev.target.id === 'oaoTranslateCloseConfirm') resolveOaoTranslateCloseConfirm(false);
+            });
             document.getElementById('oaoTranslateFullscreenBtn')?.addEventListener('click', toggleOaoTranslateFullscreen);
             document.getElementById('oaoTranslateRetryBtn')?.addEventListener('click', openOaoTranslateModal);
+            document.getElementById('oaoTranslateSetupBtn')?.addEventListener('click', () => showOaoLocalSetupGuide('translate'));
             oaoMeetingModalClose?.addEventListener('click', closeOaoMeetingModal);
             oaoMeetingCloseSaveBtn?.addEventListener('click', () => resolveMeetingCloseConfirm('save'));
             oaoMeetingCloseDiscardBtn?.addEventListener('click', () => resolveMeetingCloseConfirm('discard'));
@@ -12799,13 +13381,7 @@ ${emptyHint}`;
                 }
             } catch (_) {}
             oaoMeetingGenerateBtn?.addEventListener('click', generateMeetingMinutes);
-            oaoMeetingFontSize?.addEventListener('change', applySubtitleSettings);
-            oaoMeetingSubtitleTheme?.addEventListener('change', applySubtitleSettings);
-            oaoMeetingSubtitleEnable?.addEventListener('change', applySubtitleSettings);
-            oaoMeetingSubtitleLines?.addEventListener('change', applySubtitleSettings);
-            oaoMeetingSubtitlePosition?.addEventListener('change', applySubtitleSettings);
             oaoMeetingRealtimeMinutes?.addEventListener('change', applyMeetingRealtimeMinutesSettings);
-            initMeetingSubtitleSettings();
             initMeetingRealtimeMinutesSettings();
             initMeetingAudioWave();
 
@@ -12813,11 +13389,17 @@ ${emptyHint}`;
                 try {
                     localStorage.setItem('oao-meeting-stt-mode', oaoMeetingSttMode.value);
                 } catch (_) {}
+                if (meetingState === 'recording') {
+                    stopMeetingStt();
+                    startMeetingStt();
+                }
             });
             try {
                 const savedStt = localStorage.getItem('oao-meeting-stt-mode');
-                if (savedStt && oaoMeetingSttMode && ['auto', 'browser', 'whisper'].includes(savedStt)) {
+                if (savedStt && oaoMeetingSttMode && ['auto', 'native', 'global-en', 'multilang'].includes(savedStt)) {
                     oaoMeetingSttMode.value = savedStt;
+                } else if (savedStt && oaoMeetingSttMode) {
+                    oaoMeetingSttMode.value = savedStt === 'browser' ? 'native' : 'auto';
                 }
             } catch (_) {}
 
@@ -12933,7 +13515,7 @@ ${emptyHint}`;
             }
             
             // 初始化检查
-            setTimeout(checkLoginStatus, 500);
+            checkLoginStatus();
             
             // 暴露API供外部调用
             window.OAOAI = {
@@ -13007,25 +13589,26 @@ ${emptyHint}`;
                 aiHomeSendTitle: '发送',
                 aiHomeClearTitle: '清空对话',
                 aiHomeClearConfirm: '确定清空当前对话记录？',
-                oaoToolbarTitle: 'OAO工具栏',
-                aiHomeSidePanelTitle: 'AI交互信息显示',
+                oaoToolbarTitle: 'OAO工具',
+                aiHomeSidePanelTitle: 'AI交互',
                 aiHomeLoginHint: '请点击右上角「登录」后使用 AI 功能',
                 oaoToolMeeting: '小O会议',
                 oaoToolTranslate: 'OAO翻译',
                 oaoTranslateModalTitle: 'OAO翻译',
-                oaoTranslateModalTagline: '本地 Ollama · Whisper 转写 + Qwen 翻译 · 零 Token 消耗',
+                oaoTranslateModalTagline: '浏览器模式 · 零安装',
                 oaoTranslateFallbackTitle: '无法加载 OAO翻译服务',
-                oaoTranslateFallbackDesc: '请确认「OAO Services」后台窗口仍在运行，并稍候后点击重试。若首次运行，请先完整执行一次「打开OAO.bat」。',
+                oaoTranslateFallbackDesc: '翻译界面（端口 3000）仍在启动，请稍候后重试，或完整执行一次「打开OAO.bat」。界面加载后即可使用浏览器模式，无需 Ollama。',
                 oaoTranslateRetry: '重试',
                 oaoTranslateFullscreen: '全屏',
                 oaoMeetingModalTitle: '小O会议',
                 oaoMeetingModalTagline: '企业级会议 · 实时转写 · AI 智能纪要',
                 oaoMeetingNavWorkspace: '会议中心',
                 oaoMeetingNavWorkspaceHint: '转写·纪要',
-                oaoMeetingSttModeLabel: '转写引擎',
-                oaoMeetingSttModeAuto: '自动（全球）',
-                oaoMeetingSttModeBrowser: '浏览器实时',
-                oaoMeetingSttModeWhisper: '本地 Whisper',
+                oaoMeetingSttModeLabel: '语音识别',
+                oaoMeetingSttModeAuto: '自动（推荐）',
+                oaoMeetingSttModeNative: '浏览器原生 · Web Speech',
+                oaoMeetingSttModeGlobalEn: '全球通用 · English STT',
+                oaoMeetingSttModeMultilang: '全球通用 · Multilingual',
                 oaoMeetingNavNotice: '会议通知',
                 oaoMeetingNavNoticeHint: '发布',
                 oaoMeetingNavVideo: '视频会议',
@@ -13198,25 +13781,26 @@ ${emptyHint}`;
                 aiHomeSendTitle: 'Send',
                 aiHomeClearTitle: 'Clear chat',
                 aiHomeClearConfirm: 'Clear all messages in this conversation?',
-                oaoToolbarTitle: 'OAO Toolbar',
-                aiHomeSidePanelTitle: 'AI Interaction',
+                oaoToolbarTitle: 'OAO Tools',
+                aiHomeSidePanelTitle: 'AI Chat',
                 aiHomeLoginHint: 'Click「Login」at top-right to use AI features',
                 oaoToolMeeting: 'Xiao O Meeting',
                 oaoToolTranslate: 'OAO Translate',
                 oaoTranslateModalTitle: 'OAO Translate',
-                oaoTranslateModalTagline: 'Local Ollama · Whisper STT + Qwen translate · Zero OpenAI tokens',
+                oaoTranslateModalTagline: 'Browser mode · zero install',
                 oaoTranslateFallbackTitle: 'Unable to load OAO Translate',
-                oaoTranslateFallbackDesc: 'Ensure the「OAO Services」window is running, wait a moment, then Retry. On first run, execute「打开OAO.bat」fully once.',
+                oaoTranslateFallbackDesc: 'The translate UI (port 3000) is still starting. Retry in a few seconds, or run「打开OAO.bat」once. Browser mode works without Ollama once the page loads.',
                 oaoTranslateRetry: 'Retry',
                 oaoTranslateFullscreen: 'Fullscreen',
                 oaoMeetingModalTitle: 'Xiao O Meeting',
                 oaoMeetingModalTagline: 'Enterprise meeting · Live transcript · AI minutes',
                 oaoMeetingNavWorkspace: 'Meeting Hub',
                 oaoMeetingNavWorkspaceHint: 'Transcript',
-                oaoMeetingSttModeLabel: 'STT Engine',
-                oaoMeetingSttModeAuto: 'Auto (Global)',
-                oaoMeetingSttModeBrowser: 'Browser Live',
-                oaoMeetingSttModeWhisper: 'Local Whisper',
+                oaoMeetingSttModeLabel: 'Speech Recognition',
+                oaoMeetingSttModeAuto: 'Auto (Recommended)',
+                oaoMeetingSttModeNative: 'Native · Web Speech API',
+                oaoMeetingSttModeGlobalEn: 'Global · English STT',
+                oaoMeetingSttModeMultilang: 'Global · Multilingual',
                 oaoMeetingNavNotice: 'Notice',
                 oaoMeetingNavNoticeHint: 'Publish',
                 oaoMeetingNavVideo: 'Video',
@@ -13537,7 +14121,12 @@ ${emptyHint}`;
             const sttModeSelect = document.getElementById('oaoMeetingSttMode');
             if (sttModeSelect) {
                 [...sttModeSelect.options].forEach((opt) => {
-                    const keyMap = { auto: 'oaoMeetingSttModeAuto', browser: 'oaoMeetingSttModeBrowser', whisper: 'oaoMeetingSttModeWhisper' };
+                    const keyMap = {
+                        auto: 'oaoMeetingSttModeAuto',
+                        native: 'oaoMeetingSttModeNative',
+                        'global-en': 'oaoMeetingSttModeGlobalEn',
+                        multilang: 'oaoMeetingSttModeMultilang'
+                    };
                     const k = keyMap[opt.value];
                     if (k && translations[lang][k]) opt.textContent = translations[lang][k];
                 });
@@ -14504,6 +15093,138 @@ ${emptyHint}`;
             }, 3000);
         }
 
+        function getCachedEnsName(address) {
+            if (!address) return null;
+            const normalized = String(address).toLowerCase();
+            try {
+                const cacheRaw = localStorage.getItem('oao_ens_reverse_v2');
+                const cache = cacheRaw ? JSON.parse(cacheRaw) : {};
+                const cached = cache[normalized];
+                if (cached?.name && cached.expiresAt > Date.now()) {
+                    return cached.name;
+                }
+            } catch (_) {}
+            return null;
+        }
+
+        function applyWalletTopbarUI(address, ensName) {
+            const userAddressEl = document.getElementById('userAddress');
+            if (!userAddressEl || !address) return;
+            const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+            userAddressEl.textContent = ensName || shortAddress;
+            userAddressEl.dataset.address = address;
+            userAddressEl.dataset.ens = ensName || '';
+            userAddressEl.dataset.displayName = ensName || address;
+            userAddressEl.title = ensName ? `${ensName}\n${address}` : address;
+            document.getElementById('userMenuContainer')?.classList.add('visible');
+            document.getElementById('connectButton').style.display = 'none';
+            if (typeof window.updateAILoginStatus === 'function') {
+                window.updateAILoginStatus();
+            }
+            window.prewarmOaoTranslateService?.();
+        }
+
+        async function resolveEnsForAddress(address) {
+            if (!address || !window.ethers) return null;
+            const normalized = String(address).toLowerCase();
+            const checksum = ethers.utils.getAddress(normalized);
+
+            const cacheKey = 'oao_ens_reverse_v2';
+            try {
+                const cacheRaw = localStorage.getItem(cacheKey);
+                const cache = cacheRaw ? JSON.parse(cacheRaw) : {};
+                const cached = cache[normalized];
+                if (cached?.name && cached.expiresAt > Date.now()) {
+                    return cached.name;
+                }
+            } catch (_) {}
+
+            const saveCache = (name) => {
+                if (!name) return;
+                try {
+                    const cacheRaw = localStorage.getItem(cacheKey);
+                    const cache = cacheRaw ? JSON.parse(cacheRaw) : {};
+                    cache[normalized] = { name, expiresAt: Date.now() + 6 * 60 * 60 * 1000 };
+                    localStorage.setItem(cacheKey, JSON.stringify(cache));
+                } catch (_) {}
+            };
+
+            const normalizeEnsName = (name) => {
+                const trimmed = String(name || '').trim().toLowerCase();
+                if (!trimmed || !trimmed.includes('.')) return null;
+                return trimmed;
+            };
+
+            const deadline = Date.now() + 2800;
+            const withTimeout = (promise) => {
+                const remaining = Math.max(0, deadline - Date.now());
+                if (!remaining) return Promise.resolve(null);
+                return Promise.race([
+                    promise,
+                    new Promise((resolve) => setTimeout(() => resolve(null), remaining))
+                ]);
+            };
+
+            const tasks = [];
+
+            if (provider?.lookupAddress) {
+                tasks.push(
+                    withTimeout(
+                        provider.lookupAddress(checksum).then((name) => normalizeEnsName(name)).catch(() => null)
+                    )
+                );
+            }
+
+            const rpcUrls = [
+                'https://eth.llamarpc.com',
+                'https://cloudflare-eth.com',
+                'https://ethereum.publicnode.com'
+            ];
+            for (const rpcUrl of rpcUrls) {
+                tasks.push(
+                    withTimeout((async () => {
+                        const mainnet = new ethers.providers.JsonRpcProvider(rpcUrl);
+                        const name = await mainnet.lookupAddress(checksum);
+                        return normalizeEnsName(name);
+                    })().catch(() => null))
+                );
+            }
+
+            const apiEndpoints = [
+                `https://metadata.ens.domains/mainnet/profile/${checksum}`,
+                `https://ens-api.xyz/address/${checksum}`
+            ];
+            for (const url of apiEndpoints) {
+                tasks.push(
+                    withTimeout((async () => {
+                        const controller = new AbortController();
+                        const timer = setTimeout(() => controller.abort(), 1800);
+                        try {
+                            const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+                            if (!res.ok) return null;
+                            const data = await res.json();
+                            return normalizeEnsName(
+                                data?.name || data?.data?.name || data?.reverseRecord?.name || data?.primaryName
+                            );
+                        } finally {
+                            clearTimeout(timer);
+                        }
+                    })().catch(() => null))
+                );
+            }
+
+            const results = await Promise.all(tasks);
+            for (const ens of results) {
+                if (ens) {
+                    saveCache(ens);
+                    return ens;
+                }
+            }
+            return null;
+        }
+
+        window.resolveEnsForAddress = resolveEnsForAddress;
+
         async function refreshStatus() {
             if (isLoggingOut) {
                 resetAuthTopbarUI();
@@ -14518,22 +15239,13 @@ ${emptyHint}`;
                 try {
                     const address = await signer.getAddress();
                     currentAddress = address;
+                    const cachedEns = getCachedEnsName(address);
+                    applyWalletTopbarUI(address, cachedEns);
 
-                    const ens = await provider.lookupAddress(address).catch(() => null);
-                    const display = ens || address;
-                    const truncated = display.length > 12
-                        ? display.slice(0, 6) + '...' + display.slice(-4)
-                        : display;
-                    userAddressEl.textContent = truncated;
-                    userAddressEl.dataset.address = address;
-                    userAddressEl.title = address;
-
-                    document.getElementById('userMenuContainer').classList.add('visible');
-                    document.getElementById('connectButton').style.display = 'none';
-
-                    if (typeof window.updateAILoginStatus === 'function') {
-                        window.updateAILoginStatus();
-                    }
+                    void resolveEnsForAddress(address).then((ens) => {
+                        if (!ens || isLoggingOut) return;
+                        applyWalletTopbarUI(address, ens);
+                    });
                 } catch (error) {
                     console.error('刷新状态失败:', error);
                     handleDisconnect();
@@ -14605,8 +15317,10 @@ ${emptyHint}`;
 
                 await requireWalletSignature(signer, address);
                 bindProviderEvents(instance);
-                await refreshStatus();
+                walletAuthVerified = true;
+                currentAddress = address;
                 closeLoginModal();
+                await refreshStatus();
                 showConnectionToast(currentLang === 'zh' ? '钱包登录成功' : 'Wallet login successful', 'success');
             } catch (error) {
                 console.error('连接失败:', error);
@@ -14849,19 +15563,37 @@ ${emptyHint}`;
         }
 
         function buildOaoTranslateEmbedUrl(base) {
-            return `${base}/?embed=1&theme=${getOaoPageTheme()}`;
+            const url = new URL(base, location.href);
+            url.pathname = url.pathname.replace(/\/index\.html\/+/gi, "/index.html");
+            if (!/\/index\.html$/i.test(url.pathname)) {
+                url.pathname = url.pathname.replace(/\/?$/, "/") + "index.html";
+            }
+            const qs = new URLSearchParams(url.search);
+            qs.set("embed", "1");
+            qs.set("theme", getOaoPageTheme());
+            const wallet = window.getOAOWalletAddress?.() || window.getOAOUserId?.() || "";
+            const uid = wallet || "guest";
+            qs.set("uid", uid);
+            const displayName = typeof getOAOUserDisplayName === "function" ? getOAOUserDisplayName() : "";
+            if (displayName && displayName.length < 48) qs.set("user", displayName);
+            url.search = qs.toString();
+            return url.toString();
         }
 
         function syncOaoTranslateIframeTheme() {
-            const modal = document.getElementById('oaoTranslateModal');
-            const frame = document.getElementById('oaoTranslateFrame');
-            if (!modal || modal.classList.contains('hidden') || !frame || frame.classList.contains('hidden')) return;
-            const hostname = window.location.hostname;
-            const base = (window.OAO_TRANSLATE_URL
-                ? String(window.OAO_TRANSLATE_URL)
-                : (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === ''
-                    ? 'http://127.0.0.1:3000'
-                    : `${location.protocol}//${location.hostname}:3000`)).replace(/\/$/, '');
+            const modal = document.getElementById("oaoTranslateModal");
+            const frame = document.getElementById("oaoTranslateFrame");
+            if (!modal || modal.classList.contains("hidden") || !frame || frame.classList.contains("hidden")) return;
+            let base = window.OAO_TRANSLATE_URL
+                ? String(window.OAO_TRANSLATE_URL).replace(/\/$/, "")
+                : "";
+            if (!base) {
+                if (location.protocol === "http:" || location.protocol === "https:") {
+                    base = location.origin + "/oao-translate/embed/index.html";
+                } else {
+                    base = "http://127.0.0.1:8777/oao-translate/embed/index.html";
+                }
+            }
             frame.src = buildOaoTranslateEmbedUrl(base);
         }
 
@@ -15838,6 +16570,10 @@ Generated by OAO ENS Identity Lab
                 if (!tryRestoreAdminSession()) {
                     await tryRestoreWalletSession();
                 }
+            }
+            const host = window.location.hostname;
+            if (host === '127.0.0.1' || host === 'localhost' || host === '') {
+                setTimeout(() => window.prewarmOaoTranslateService?.(), 600);
             }
         });
 

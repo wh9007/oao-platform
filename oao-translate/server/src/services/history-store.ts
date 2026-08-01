@@ -8,6 +8,7 @@ export interface HistoryEntry {
   kind: HistoryKind;
   text: string;
   language?: string;
+  sourceText?: string;
   isFinal: boolean;
   timestamp: number;
 }

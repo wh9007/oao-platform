@@ -27,6 +27,21 @@ interface ViewerJoinPayload {
   sessionId: string;
 }
 
+interface ShareOpenPayload {
+  sessionId: string;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+  targetLanguages?: string[];
+}
+
+interface SharePushPayload {
+  sessionId: string;
+  kind: "transcript" | "translation";
+  text?: string;
+  language?: string;
+  sourceText?: string;
+}
+
 type Acknowledge = (response: { ok: boolean; error?: string; data?: unknown }) => void;
 
 const PROVIDERS = new Set<ProviderName>(["ollama", "openai", "google", "azure", "deepl", "gemini", "claude"]);
@@ -46,7 +61,7 @@ export function registerSocketHandlers(io: Server, sessions: SessionManager): vo
           provider,
           languages: {
             source: payload.sourceLanguage?.trim() || "auto",
-            target: targetLanguages[0] || "en",
+            target: targetLanguages[0] || "",
             targets: targetLanguages
           }
         });
@@ -90,7 +105,10 @@ export function registerSocketHandlers(io: Server, sessions: SessionManager): vo
 
     socket.on(
       "text:transcript",
-      async (payload: SessionPayload & { text?: string }, acknowledge?: Acknowledge) => {
+      async (
+        payload: SessionPayload & { text?: string; speaker?: string; dialogueRole?: "self" | "guest" },
+        acknowledge?: Acknowledge
+      ) => {
         try {
           const session = requireSession(sessions, payload.sessionId, user.id);
           if (session.state !== "active") throw new Error("Session is not active");
@@ -98,7 +116,10 @@ export function registerSocketHandlers(io: Server, sessions: SessionManager): vo
           if (!text) throw new Error("Transcript text is required");
           const handler = session.providerInstance.processTranscriptText;
           if (!handler) throw new Error("Current provider does not support text transcript");
-          await handler.call(session.providerInstance, text);
+          await handler.call(session.providerInstance, text, {
+            speaker: payload.speaker,
+            dialogueRole: payload.dialogueRole,
+          });
           acknowledge?.({ ok: true });
         } catch (error) {
           acknowledge?.({ ok: false, error: messageOf(error) });
@@ -142,14 +163,109 @@ export function registerSocketHandlers(io: Server, sessions: SessionManager): vo
 
     socket.on("viewer:join", async (payload: ViewerJoinPayload, acknowledge?: Acknowledge) => {
       try {
-        const session = sessions.get(payload.sessionId, user.id);
-        if (!session) throw new Error("Session not found");
+        const session = sessions.getPublic(payload.sessionId);
+        if (!session || session.state === "stopped") throw new Error("Session not found or ended");
         await socket.join(session.id);
-        acknowledge?.({ ok: true, data: { sessionId: session.id, history: session.history.slice(-80) } });
+        acknowledge?.({
+          ok: true,
+          data: {
+            sessionId: session.id,
+            sourceLanguage: session.sourceLanguage,
+            targetLanguages: session.targetLanguages ?? [session.targetLanguage].filter(Boolean),
+            history: session.history.slice(-120),
+          },
+        });
       } catch (error) {
         acknowledge?.({ ok: false, error: messageOf(error) });
       }
     });
+
+    socket.on("share:open", async (payload: ShareOpenPayload, acknowledge?: Acknowledge) => {
+      try {
+        const sessionId = payload.sessionId?.trim();
+        if (!sessionId) throw new Error("Session id is required");
+        const targetLanguages = normalizeTargetLanguages(payload);
+        const session = await sessions.startRelay({
+          userId: user.id,
+          sessionId,
+          languages: {
+            source: payload.sourceLanguage?.trim() || "auto",
+            target: targetLanguages[0] || "en",
+            targets: targetLanguages,
+          },
+        });
+        await socket.join(session.id);
+        acknowledge?.({ ok: true, data: serializeSession(session) });
+      } catch (error) {
+        acknowledge?.({ ok: false, error: messageOf(error) });
+      }
+    });
+
+    socket.on("share:push", async (payload: SharePushPayload, acknowledge?: Acknowledge) => {
+      try {
+        const session = requireSession(sessions, payload.sessionId, user.id);
+        if (session.state === "stopped") throw new Error("Session has ended");
+        const text = payload.text?.trim();
+        if (!text) throw new Error("Text is required");
+        if (payload.kind !== "transcript" && payload.kind !== "translation") {
+          throw new Error("Unsupported share event");
+        }
+        const entry: HistoryEntry = {
+          id: await createUuid(),
+          kind: payload.kind,
+          text,
+          language: payload.language?.trim() || undefined,
+          sourceText: payload.sourceText?.trim() || undefined,
+          isFinal: true,
+          timestamp: Date.now(),
+        };
+        await sessions.appendHistory(session, entry);
+        if (payload.kind === "transcript") {
+          io.to(session.id).emit("transcript", {
+            text: entry.text,
+            isFinal: true,
+            timestamp: entry.timestamp,
+          });
+        } else {
+          io.to(session.id).emit("translation", {
+            text: entry.text,
+            language: entry.language,
+            sourceText: entry.sourceText,
+            isFinal: true,
+            timestamp: entry.timestamp,
+          });
+        }
+        acknowledge?.({ ok: true });
+      } catch (error) {
+        acknowledge?.({ ok: false, error: messageOf(error) });
+      }
+    });
+
+    socket.on(
+      "viewer:translate",
+      async (
+        payload: { sessionId: string; text: string; targetLanguage: string },
+        acknowledge?: Acknowledge
+      ) => {
+        try {
+          const session = sessions.getPublic(payload.sessionId);
+          if (!session || session.state === "stopped") throw new Error("Session not found or ended");
+          const text = payload.text?.trim();
+          const target = payload.targetLanguage?.trim();
+          if (!text || !target) throw new Error("Text and target language are required");
+          const handler = session.providerInstance.processTranscriptText;
+          if (!handler) throw new Error("Provider does not support translation");
+          const translateOnly = (
+            session.providerInstance as { translateText?: (text: string, target: string) => Promise<string> }
+          ).translateText;
+          if (!translateOnly) throw new Error("On-demand translation unavailable");
+          const translated = await translateOnly.call(session.providerInstance, text, target);
+          acknowledge?.({ ok: true, data: { text: translated, language: target } });
+        } catch (error) {
+          acknowledge?.({ ok: false, error: messageOf(error) });
+        }
+      }
+    );
 
     socket.on("ping", (payload?: unknown) => socket.emit("pong", { payload, timestamp: Date.now() }));
   });
@@ -237,7 +353,7 @@ function normalizeTargetLanguages(payload: StartPayload): string[] {
   const fromList = payload.targetLanguages?.map((item) => item.trim()).filter(Boolean) ?? [];
   if (fromList.length > 0) return [...new Set(fromList)];
   const single = payload.targetLanguage?.trim();
-  return single ? [single] : ["en"];
+  return single ? [single] : [];
 }
 
 async function createUuid(): Promise<string> {

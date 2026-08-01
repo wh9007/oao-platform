@@ -19,6 +19,12 @@ export interface SessionStartOptions {
   languages: TranslationLanguages;
 }
 
+export interface RelayStartOptions {
+  userId: string;
+  sessionId: string;
+  languages: TranslationLanguages;
+}
+
 export class SessionManager {
   private readonly sessions = new Map<string, TranslationSession>();
 
@@ -53,6 +59,47 @@ export class SessionManager {
     return session?.userId === userId ? session : undefined;
   }
 
+  getPublic(id: string): TranslationSession | undefined {
+    const session = this.sessions.get(id);
+    if (!session || session.state === "stopped") return undefined;
+    return session;
+  }
+
+  async startRelay(options: RelayStartOptions): Promise<TranslationSession> {
+    const existing = this.sessions.get(options.sessionId);
+    if (existing) {
+      if (existing.userId !== options.userId) {
+        throw new Error("Session already owned by another user");
+      }
+      if (existing.state === "stopped") {
+        throw new Error("Session has ended");
+      }
+      await this.updateSettings(existing, options.languages);
+      return existing;
+    }
+    const providerInstance = createProvider("relay");
+    const targets =
+      options.languages.targets?.filter(Boolean) ??
+      [options.languages.target].filter(Boolean);
+    const session: TranslationSession = {
+      id: options.sessionId,
+      userId: options.userId,
+      startedAt: Date.now(),
+      sourceLanguage: options.languages.source,
+      targetLanguage: options.languages.target,
+      targetLanguages: targets,
+      provider: "relay",
+      history: [],
+      state: "active",
+      providerInstance,
+    };
+    await providerInstance.setLanguages(options.languages);
+    await providerInstance.connect();
+    this.sessions.set(session.id, session);
+    await this.persist(session);
+    return session;
+  }
+
   async pause(session: TranslationSession): Promise<void> {
     this.assertState(session, "active");
     session.state = "paused";
@@ -83,12 +130,11 @@ export class SessionManager {
   ): Promise<void> {
     const targets =
       languages.targets ??
-      session.targetLanguages ??
-      [languages.target ?? session.targetLanguage].filter(Boolean);
+      (languages.target ? [languages.target] : session.targetLanguages ?? []).filter(Boolean);
     const updated: TranslationLanguages = {
       source: languages.source ?? session.sourceLanguage,
-      target: languages.target ?? targets[0] ?? session.targetLanguage,
-      targets
+      target: targets[0] || "",
+      targets,
     };
     session.sourceLanguage = updated.source;
     session.targetLanguage = updated.target;

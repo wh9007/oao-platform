@@ -7,36 +7,71 @@ cd /d "%~dp0"
 set "ROOT=%~dp0"
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 set "TD=%ROOT%\oao-translate"
+set "LOG=%ROOT%\oao-services.log"
 
 where python >nul 2>&1 && set "PY=python" || set "PY=py -3"
 
+echo ========================================>> "%LOG%"
+echo  OAO 后台服务 %DATE% %TIME%>> "%LOG%"
+echo ========================================>> "%LOG%"
+
 echo ========================================
 echo  OAO 后台服务
-echo  关闭本窗口将停止所有服务
+echo  关闭本窗口将停止全部服务
 echo ========================================
 echo.
 echo  主页  http://127.0.0.1:8777/OAO.html
-echo  翻译  http://127.0.0.1:3000
+echo  翻译  同源 embed + 可选 AI :3011
 echo.
 
-echo [运行中] 主页服务 :8777
-start /B "" %PY% -m http.server 8777 --bind 127.0.0.1
+netstat -ano | findstr ":8777" | findstr /I "LISTENING" >nul 2>&1
+if not errorlevel 1 (
+    echo [跳过] 主页 :8777 已由启动器运行
+) else (
+    echo [运行中] 主页服务 :8777
+    start /B "" %PY% -m http.server 8777 --bind 127.0.0.1
+)
+
+where node >nul 2>&1
+if errorlevel 1 (
+    echo [提示] 未检测到 Node.js — OAO翻译仍可用浏览器模式
+    echo        安装 Node.js 后可启用本地 AI ^(分享中继 + Qwen 润色^)
+    echo [提示] 未检测到 Node.js>> "%LOG%"
+    goto :AfterTranslate
+)
+
+echo [OK] Node.js 已安装
+
+if exist "%TD%\server\package.json" if not exist "%TD%\server\node_modules" (
+    echo [后台] 首次安装 OAO翻译 AI 服务依赖...
+    start /B "" cmd /c "cd /d ""%TD%\server"" && npm install >> ""%LOG%"" 2>&1"
+)
 
 where ollama >nul 2>&1
 if not errorlevel 1 (
     echo [运行中] Ollama :11434
     start /B "" ollama serve >nul 2>&1
+) else (
+    echo [提示] 未检测到 Ollama（可选，用于本地 AI 翻译润色）
 )
 
 if exist "%TD%\server\package.json" (
-    echo [运行中] OAO翻译 Server :3011
-    start /B "" cmd /c "cd /d ""%TD%\server"" && npm run dev"
-    echo [运行中] OAO翻译 Web :3000
-    start /B "" cmd /c "cd /d ""%TD%\web"" && npm run dev"
+    if exist "%TD%\server\dist\index.js" (
+        echo [运行中] OAO翻译 AI :3011 ^(生产模式^)
+        start /B "" cmd /c "cd /d ""%TD%\server"" && npm run start >> ""%LOG%"" 2>&1"
+    ) else (
+        echo [运行中] OAO翻译 AI :3011 ^(开发模式^)
+        start /B "" cmd /c "cd /d ""%TD%\server"" && npm run dev >> ""%LOG%"" 2>&1"
+    )
+) else (
+    echo [警告] 未找到 oao-translate/server，仅浏览器模式可用
+    echo [警告] 未找到 server>> "%LOG%"
 )
 
+:AfterTranslate
 echo.
 echo  全部服务已启动。请保持本窗口开启。
+echo  分享观看需 :3011 中继；若不可用请查看: %LOG%
 echo.
 
 :hold

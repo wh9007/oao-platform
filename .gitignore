@@ -13,12 +13,25 @@ Thumbs.db
 upload-log.txt
 git-inv-output.txt
 .env
-.env.*
+.env.local
+.env.development
+.env.production
+!.env.example
+!**/.env.example
 local-config.js
+
+# Cursor / 临时目录
+oao-association-platform/
 
 # OAO翻译 / Node 构建产物（勿提交）
 **/node_modules/
 **/.next/
 oao-translate/server/dist/
-oao-translate/web/.env.local
 oao-translate/server/.env
+
+# 已废弃的 Next.js 前端（若本地残留）
+oao-translate/web/
+
+# 临时脚本
+_delete_*.py
+_refactor_*.py

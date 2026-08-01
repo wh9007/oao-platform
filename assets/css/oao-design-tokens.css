@@ -1,0 +1,139 @@
+/**
+ * OAO Design System — Design Tokens
+ * Enterprise-grade CSS variables. Extends existing :root without breaking legacy vars.
+ * Load after inline styles in OAO.html.
+ */
+:root {
+  /* ── Color: Semantic ── */
+  --oao-color-primary: var(--accent-color, #ff5e00);
+  --oao-color-secondary: var(--primary-color, #333333);
+  --oao-color-success: #059669;
+  --oao-color-warning: #d97706;
+  --oao-color-error: #ef4444;
+  --oao-color-info: #2563eb;
+
+  --oao-color-bg: var(--bg-color, #ffffff);
+  --oao-color-surface: var(--panel-bg, #ffffff);
+  --oao-color-surface-elevated: var(--card-bg, #f5f5f5);
+  --oao-color-border: var(--border-color, #121212);
+  --oao-color-text: var(--text-color, #121212);
+  --oao-color-text-muted: var(--ai-muted-text, #666666);
+  --oao-color-text-inverse: var(--btn-hover-text, #ffffff);
+
+  /* ── Typography ── */
+  --oao-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --oao-font-family-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+
+  --oao-text-xs: 0.6875rem;   /* 11px */
+  --oao-text-sm: 0.8125rem;   /* 13px */
+  --oao-text-base: 0.875rem;  /* 14px */
+  --oao-text-md: 1rem;        /* 16px */
+  --oao-text-lg: 1.125rem;    /* 18px */
+  --oao-text-xl: 1.25rem;     /* 20px */
+  --oao-text-2xl: 1.5rem;     /* 24px */
+  --oao-text-3xl: 1.75rem;    /* 28px */
+
+  --oao-font-normal: 400;
+  --oao-font-medium: 500;
+  --oao-font-semibold: 600;
+  --oao-font-bold: 700;
+
+  --oao-leading-tight: 1.25;
+  --oao-leading-normal: 1.5;
+  --oao-leading-relaxed: 1.625;
+
+  --oao-tracking-tight: -0.01em;
+  --oao-tracking-normal: 0;
+  --oao-tracking-wide: 0.04em;
+  --oao-tracking-wider: 0.08em;
+
+  /* ── Spacing Scale (4px base) ── */
+  --oao-space-0: 0;
+  --oao-space-1: 4px;
+  --oao-space-2: 8px;
+  --oao-space-3: 12px;
+  --oao-space-4: 16px;
+  --oao-space-5: 20px;
+  --oao-space-6: 24px;
+  --oao-space-8: 32px;
+  --oao-space-10: 40px;
+  --oao-space-12: 48px;
+  --oao-space-16: 64px;
+
+  /* ── Layout ── */
+  --oao-topbar-height: 60px;
+  --oao-bottomnav-height: 64px;
+  --oao-container-max: 1280px;
+  --oao-sidebar-width: 280px;
+  --oao-z-topbar: 10002;
+  --oao-z-modal: 10050;
+  --oao-z-toast: 10100;
+
+  /* ── Radius ── */
+  --oao-radius-xs: 4px;
+  --oao-radius-sm: 6px;
+  --oao-radius-md: 8px;
+  --oao-radius-lg: 12px;
+  --oao-radius-xl: 16px;
+  --oao-radius-2xl: 18px;
+  --oao-radius-full: 9999px;
+
+  /* ── Shadow ── */
+  --oao-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --oao-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --oao-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --oao-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+  --oao-shadow-xl: 0 24px 80px rgba(0, 0, 0, 0.35);
+  --oao-shadow-float: 0 6px 16px rgba(0, 0, 0, 0.2);
+  --oao-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* ── Motion ── */
+  --oao-duration-fast: 150ms;
+  --oao-duration-normal: 250ms;
+  --oao-duration-slow: 350ms;
+  --oao-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --oao-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --oao-ease-in-out: cubic-bezier(0.4, 0, 0.6, 1);
+  --oao-transition-base: var(--oao-duration-normal) var(--oao-ease-default);
+  --oao-transition-fast: var(--oao-duration-fast) var(--oao-ease-default);
+
+  /* ── Component Tokens ── */
+  --oao-btn-height: 40px;
+  --oao-btn-height-sm: 32px;
+  --oao-btn-height-lg: 48px;
+  --oao-btn-padding-x: var(--oao-space-4);
+  --oao-btn-padding-y: var(--oao-space-2);
+  --oao-btn-font-size: var(--oao-text-base);
+  --oao-btn-font-weight: var(--oao-font-medium);
+  --oao-btn-radius: var(--oao-radius-md);
+  --oao-btn-icon-size: 18px;
+
+  --oao-input-height: 44px;
+  --oao-input-padding-x: var(--oao-space-4);
+  --oao-input-radius: var(--oao-radius-md);
+  --oao-input-border: 1px solid var(--oao-color-border);
+
+  --oao-modal-width-sm: min(420px, 96vw);
+  --oao-modal-width-md: min(680px, 96vw);
+  --oao-modal-width-lg: min(920px, 96vw);
+  --oao-modal-max-height: min(82vh, 720px);
+  --oao-modal-header-height: 56px;
+  --oao-modal-footer-height: 64px;
+  --oao-modal-padding: var(--oao-space-5);
+
+  --oao-overlay-bg: rgba(0, 0, 0, 0.55);
+  --oao-overlay-blur: 6px;
+
+  --oao-focus-ring: 0 0 0 2px var(--oao-color-bg), 0 0 0 4px var(--oao-color-primary);
+}
+
+[data-theme="dark"] {
+  --oao-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --oao-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --oao-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --oao-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --oao-shadow-xl: 0 24px 80px rgba(0, 0, 0, 0.55);
+  --oao-shadow-float: 0 6px 16px rgba(0, 0, 0, 0.4);
+  --oao-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --oao-overlay-bg: rgba(0, 0, 0, 0.65);
+}

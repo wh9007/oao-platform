@@ -1,1 +1,0 @@
-export function Logo(){return <div className="flex items-center gap-2.5"><div className="grid h-9 w-9 place-items-center rounded-xl bg-oao font-black text-white shadow-glow">O</div><div><div className="text-base font-semibold tracking-tight text-white">OAO Translate</div><div className="text-[10px] font-medium tracking-[.18em] text-oao">REALTIME INTERPRETER</div></div></div>}

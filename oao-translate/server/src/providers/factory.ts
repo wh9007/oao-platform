@@ -1,5 +1,6 @@
 import { OllamaLocalProvider } from "./ollama-local";
 import { OpenAIRealtimeProvider } from "./openai-realtime";
+import { RelayProvider } from "./relay-provider";
 import {
   AzureProvider,
   ClaudeProvider,
@@ -25,5 +26,7 @@ export function createProvider(name: ProviderName): TranslationProvider {
       return new GeminiProvider();
     case "claude":
       return new ClaudeProvider();
+    case "relay":
+      return new RelayProvider();
   }
 }

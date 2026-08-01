@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAO翻译 · 观看</title>
+  <base href="./">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="embed-mode viewer-mode">
+  <div class="app viewer-app">
+    <header class="topbar viewer-topbar">
+      <div class="viewer-topbar-main">
+        <span id="viewerStatus" class="status-text"><strong>观看模式</strong> · 实时字幕</span>
+        <span id="viewerLang" class="viewer-lang"></span>
+      </div>
+      <div id="viewerDetail" class="status-detail">正在连接会话…</div>
+    </header>
+    <main class="main">
+      <div id="viewerLines" class="subtitles">
+        <p class="empty-hint" id="viewerHint">正在连接会话…</p>
+      </div>
+    </main>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script src="./lib/translate.js"></script>
+  <script src="./view.js"></script>
+</body>
+</html>

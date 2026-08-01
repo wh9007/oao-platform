@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAO翻译</title>
+  <base href="./">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="embed-mode">
+  <div id="app" class="app text-scale-large">
+    <header class="topbar">
+      <div class="topbar-row topbar-row-main">
+        <span id="statusDot" class="status-dot ok"></span>
+        <span id="statusMode" class="status-mode"><strong>初始化…</strong></span>
+        <span id="statusRecBadge" class="rec-badge hidden">● 监听中</span>
+        <div class="lang-row">
+        <button type="button" class="btn btn-swap" id="btnSwapLang" title="交换识别与翻译语言">⇄</button>
+        <div class="lang-field">
+          <span class="lang-label">识别</span>
+          <div class="oao-select" id="sourceLangSelect" data-key="source"></div>
+        </div>
+        <div class="lang-field">
+          <span class="lang-label">翻译</span>
+          <div class="oao-select" id="targetLangSelect" data-key="target"></div>
+        </div>
+        <div class="lang-field">
+          <span class="lang-label">辅译</span>
+          <div class="oao-select" id="targetLang2Select" data-key="target2" data-optional="1"></div>
+        </div>
+        </div>
+        <div class="top-actions">
+          <button type="button" class="btn" id="btnShare" disabled>分享</button>
+          <button type="button" class="btn" id="btnSettings">设置</button>
+        </div>
+      </div>
+      <div id="statusDetail" class="status-detail">准备就绪</div>
+    </header>
+
+    <main class="main" id="mainPanel">
+      <div id="subtitles" class="subtitles">
+        <p class="empty-hint" id="emptyHint">选择语言后点击「开始」，即可语音识别与翻译。<br>零安装浏览器语音识别，支持自动切换全球备用引擎；当前引擎名称见顶部状态栏。</p>
+      </div>
+      <div id="interim" class="interim" aria-live="polite"></div>
+    </main>
+
+    <footer class="footer">
+      <div id="wave" class="wave" style="--level:0" aria-hidden="true"></div>
+      <div class="controls">
+        <button type="button" class="btn btn-record primary" id="btnStart">开始</button>
+        <button type="button" class="btn" id="btnPause" disabled>暂停</button>
+        <button type="button" class="btn" id="btnResume" disabled>继续</button>
+        <button type="button" class="btn" id="btnStop" disabled>停止</button>
+        <button type="button" class="btn" id="btnSpeak" disabled>朗读</button>
+        <button type="button" class="btn" id="btnExport" disabled>导出</button>
+      </div>
+    </footer>
+  </div>
+
+  <div id="langMenuPortal" class="menu-portal lang-menu-portal hidden" role="listbox"></div>
+  <div id="settingMenuPortal" class="menu-portal setting-menu-portal hidden" role="listbox"></div>
+
+  <div id="overlay" class="overlay hidden" aria-hidden="true"></div>
+  <aside id="sidebar" class="sidebar hidden" aria-label="设置面板">
+    <div class="sidebar-head">
+      <div class="sidebar-tabs">
+        <button type="button" class="tab active" data-tab="settings">设置</button>
+        <button type="button" class="tab" data-tab="history">历史</button>
+      </div>
+      <button type="button" class="btn icon-btn" id="btnCloseSidebar" aria-label="关闭">×</button>
+    </div>
+    <div class="sidebar-body">
+      <div id="panelSettings" class="panel active">
+        <div id="settingsList"></div>
+        <h3 class="section-title">语音朗读</h3>
+        <div class="voice-grid">
+          <label>语气
+            <div class="oao-select" id="voiceStyleSelect"></div>
+          </label>
+          <label>语速 <span id="rateVal">1.0</span>
+            <input type="range" id="voiceRate" min="0.5" max="1.5" step="0.05" value="1">
+          </label>
+          <label>音调 <span id="pitchVal">1.0</span>
+            <input type="range" id="voicePitch" min="0.5" max="1.5" step="0.05" value="1">
+          </label>
+          <label>音量 <span id="volVal">100%</span>
+            <input type="range" id="voiceVolume" min="0.2" max="1" step="0.05" value="1">
+          </label>
+          <button type="button" class="btn" id="btnVoiceTest">试听语音</button>
+        </div>
+      </div>
+      <div id="panelHistory" class="panel hidden">
+        <div id="historyToolbar" class="history-toolbar hidden"></div>
+        <div id="historyList" class="history-list"></div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="sharePopover" class="share-popover hidden" role="dialog" aria-label="分享">
+    <h3>分享会话</h3>
+    <p class="share-hint" id="shareHint">扫码或复制链接，他人可实时查看字幕。</p>
+    <input id="shareLink" class="share-link" readonly aria-label="分享链接">
+    <div id="qrBox"></div>
+    <div class="share-actions">
+      <button type="button" class="btn primary" id="btnCopyShare">复制链接</button>
+      <button type="button" class="btn" id="btnCloseShare">关闭</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="lib/voice-personas.js"></script>
+  <script src="lib/stt-browser.js"></script>
+  <script src="lib/translate.js"></script>
+  <script>
+    (function () {
+      if (window.OAOTranslate && window.OAOVoice && window.OAOBrowserSTT) return;
+      document.addEventListener("DOMContentLoaded", function () {
+        var hint = document.getElementById("emptyHint");
+        var detail = document.getElementById("statusDetail");
+        var msg = "脚本加载失败，请通过 http://127.0.0.1:8777/OAO.html 打开并 Ctrl+F5 刷新。";
+        if (hint) hint.textContent = msg;
+        if (detail) detail.textContent = msg;
+      });
+    })();
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
