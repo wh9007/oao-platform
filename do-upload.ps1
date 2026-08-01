@@ -47,19 +47,20 @@ if ($status) {
     Log 'No local changes; syncing remote only'
 }
 
+$authUrl = $RepoUrl -replace 'https://', "https://${token}@"
+
 Log 'git fetch / pull --rebase'
-git fetch origin 2>&1 | ForEach-Object { Log $_ }
-git pull --rebase origin main 2>&1 | ForEach-Object { Log $_ }
+git fetch $authUrl 2>&1 | ForEach-Object { Log $_ }
+git pull --rebase $authUrl main 2>&1 | ForEach-Object { Log $_ }
 if ($LASTEXITCODE -ne 0) {
-    git pull origin main --allow-unrelated-histories --no-edit 2>&1 | ForEach-Object { Log $_ }
+    git pull $authUrl main --allow-unrelated-histories --no-edit 2>&1 | ForEach-Object { Log $_ }
     if ($LASTEXITCODE -eq 0) {
-        git pull --rebase origin main 2>&1 | ForEach-Object { Log $_ }
+        git pull --rebase $authUrl main 2>&1 | ForEach-Object { Log $_ }
     }
 }
 
-$pushUrl = $RepoUrl -replace 'https://', "https://${token}@"
 Log 'git push'
-git push $pushUrl main 2>&1 | ForEach-Object { Log $_ }
+git push $authUrl main 2>&1 | ForEach-Object { Log $_ }
 if ($LASTEXITCODE -ne 0) { exit 1 }
 Log 'SUCCESS'
 exit 0
