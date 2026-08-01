@@ -10,6 +10,15 @@ cloudflare/.dev.vars
 .DS_Store
 Thumbs.db
 *.log
+upload-log.txt
+git-inv-output.txt
 .env
 .env.*
 local-config.js
+
+# OAO翻译 / Node 构建产物（勿提交）
+**/node_modules/
+**/.next/
+oao-translate/server/dist/
+oao-translate/web/.env.local
+oao-translate/server/.env

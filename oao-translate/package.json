@@ -1,0 +1,15 @@
+{
+  "name": "oao-translate-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "OAO AI real-time multilingual simultaneous interpretation platform",
+  "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "dev:web": "npm run dev --prefix web",
+    "build:server": "npm run build --prefix server",
+    "build:web": "npm run build --prefix web",
+    "build": "npm run build:server && npm run build:web",
+    "start:server": "npm run start --prefix server",
+    "start:web": "npm run start --prefix web"
+  }
+}

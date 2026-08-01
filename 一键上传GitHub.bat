@@ -23,20 +23,29 @@ if errorlevel 1 (
     goto :END
 )
 
-if not exist "%TOKEN_FILE%" echo.>"%TOKEN_FILE%"
-
-findstr /R /C:"ghp_" "%TOKEN_FILE%" >nul 2>&1
-if errorlevel 1 (
-    echo  正在打开记事本，请粘贴 Token（ghp_ 开头），保存后关闭。
-    echo  获取地址: https://github.com/settings/tokens/new?scopes=repo
-    echo.
-    notepad "%TOKEN_FILE%"
+if not exist "%TOKEN_FILE%" (
+    echo.>"%TOKEN_FILE%"
 )
 
-findstr /R /C:"ghp_" "%TOKEN_FILE%" >nul 2>&1
+findstr /R /C:"^ghp_" "%TOKEN_FILE%" >nul 2>&1
 if errorlevel 1 (
-    echo  [错误] 记事本里没有有效的 Token，请重新运行本文件。
-    goto :END
+    findstr /R /C:"^github_pat_" "%TOKEN_FILE%" >nul 2>&1
+    if errorlevel 1 (
+        echo  正在打开记事本，请粘贴 Token（一行，ghp_ 或 github_pat_ 开头），保存后关闭。
+        echo  获取地址: https://github.com/settings/tokens/new?scopes=repo
+        echo  请勾选 repo 权限（Classic Token 推荐）
+        echo.
+        notepad "%TOKEN_FILE%"
+    )
+)
+
+findstr /R /C:"^ghp_" "%TOKEN_FILE%" >nul 2>&1
+if errorlevel 1 (
+    findstr /R /C:"^github_pat_" "%TOKEN_FILE%" >nul 2>&1
+    if errorlevel 1 (
+        echo  [错误] 记事本里没有有效的 Token，请重新运行本文件。
+        goto :END
+    )
 )
 
 echo  正在上传，请稍候（约 10~60 秒）...
@@ -60,7 +69,8 @@ if "%UPLOAD_OK%"=="0" (
 ) else (
     echo  ============================================================
     echo   [上传失败] 请看上方 upload-log.txt
-    echo   可重新生成 Token 后再次双击本文件
+    echo   若提示 Token 无效，请重新生成 Classic Token（勾选 repo）
+    echo   地址: https://github.com/settings/tokens/new?scopes=repo
     echo  ============================================================
     start "" "https://github.com/settings/tokens/new?scopes=repo"
 )

@@ -1,0 +1,4 @@
+import { Settings } from "@/types/session";
+export const LANGUAGES = ["Auto Detect","中文","English","日本語","한국어","Français","Deutsch","Español","Italiano","Português","Русский","العربية","ไทย","Tiếng Việt","Bahasa Indonesia","Hindi"];
+export const DEFAULT_SETTINGS: Settings = { autoDetect:true,autoTranslate:true,autoPlay:false,bilingual:true,multiLang:false,autoScroll:true,aiPolish:true,noiseReduction:true,vad:true,speakerDetection:false,timestamp:true,fullscreenSubtitle:false,presentationMode:false,dialogueMode:false,autoReconnect:true,autoRecover:true,autoSave:true };
+export const SETTINGS_LABELS: Record<keyof Settings,string> = { autoDetect:"自动识别语言",autoTranslate:"自动翻译",autoPlay:"自动播放译文",bilingual:"双语字幕",multiLang:"多语言字幕",autoScroll:"自动滚动",aiPolish:"AI 润色",noiseReduction:"降噪",vad:"语音活动检测",speakerDetection:"说话人识别",timestamp:"显示时间戳",fullscreenSubtitle:"全屏字幕",presentationMode:"演示模式",dialogueMode:"对话模式",autoReconnect:"自动重连",autoRecover:"自动恢复",autoSave:"自动保存" };

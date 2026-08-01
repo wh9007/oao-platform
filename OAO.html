@@ -13,7 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/fortmatic@2.0.6/dist/fortmatic.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/torus-embed@1.12.0/dist/torus.umd.min.js"></script>
     <script async src="https://cse.google.com/cse.js?cx=50e946c8b03534c5d"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         // ========== OAO 个人使用说明 ==========
         // 1. 本地：双击同目录「打开OAO.bat」
@@ -22,6 +21,7 @@
         // 4. 可选覆盖：复制 local-config.example.txt 为 local-config.js 并填写
         // 5. Tunnel 启动：启动Tunnel.bat（外网 AI 需保持运行）
         // 6. 视频会议信令：window.OAO_MEETING_SIGNAL_URL = 'wss://oao-ai.wh529007.workers.dev/meeting';
+        // 7. OAO翻译应用：window.OAO_TRANSLATE_URL = 'http://127.0.0.1:3000';
         // 联网搜索（可选）：取消下面注释并填写 Key
         // window.OAO_TAVILY_API_KEY = 'tvly-xxxxxxxx';
         // window.OAO_SERPER_API_KEY = 'xxxxxxxx';
@@ -128,47 +128,6 @@
             --scene-flow-b: #ff6b9d;
             --scene-flow-c: #c77dff;
             --scene-flow-d: #39ff14;
-        }
-
-        #oaoBackgroundCanvas {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            background: var(--scene-aurora-a);
-        }
-
-        body.oao-home-active #oaoBackgroundCanvas {
-            pointer-events: auto;
-            cursor: grab;
-            transform: translateY(5vh);
-        }
-
-        body.oao-home-active.oao-scene-dragging #oaoBackgroundCanvas {
-            cursor: grabbing;
-        }
-
-        body.oao-home-active .main-content,
-        body.oao-home-active #pageHome {
-            pointer-events: none;
-        }
-
-        body.oao-home-active .topbar,
-        body.oao-home-active .nav-menu,
-        body.oao-home-active .wallet-env-banner,
-        body.oao-home-active #pageHome .home-center-content,
-        body.oao-home-active #pageHome .oao-side-panel,
-        body.oao-home-active .oao-toolbar-toggle,
-        body.oao-home-active .ai-home-toggle,
-        body.oao-home-active .section-tag {
-            pointer-events: auto;
-        }
-
-        body.oao-scene-dragging,
-        body.oao-scene-dragging * {
-            user-select: none !important;
         }
 
         body {
@@ -2382,6 +2341,143 @@
                 max-width: 180px;
             }
         }
+
+        /* 主页：未登录居中 OAO Logo + 右侧 AI 侧栏 */
+        .home-layout {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: min(920px, calc(100vw - 720px));
+            min-height: min(68vh, 720px);
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        #pageHome.active .home-layout {
+            flex: 1 1 auto;
+        }
+
+        .home-hero-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            text-align: center;
+            padding: 24px 16px;
+        }
+
+        .home-hero-logo {
+            margin: 0;
+            font-size: clamp(4.5rem, 18vw, 9.5rem);
+            font-weight: 900;
+            letter-spacing: 0.32em;
+            line-height: 1;
+            color: var(--text-color);
+            text-shadow:
+                0 0 18px rgba(255, 255, 255, 0.45),
+                0 0 32px rgba(255, 94, 0, 0.22);
+        }
+
+        .home-hero-subtitle {
+            margin: 0;
+            font-size: clamp(14px, 2vw, 18px);
+            letter-spacing: 0.18em;
+            opacity: 0.72;
+        }
+
+        #pageHome.active.home-authed .home-layout {
+            display: flex;
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            max-width: none;
+            min-height: 0;
+            margin: 0;
+            pointer-events: none;
+            z-index: 0;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #pageHome.active.home-authed .home-hero-brand {
+            opacity: 1;
+        }
+
+        #pageHome.active.home-authed .home-hero-logo {
+            font-size: clamp(5rem, 22vw, 11rem);
+            opacity: 0.16;
+            letter-spacing: 0.36em;
+        }
+
+        #pageHome.active.home-authed .home-hero-subtitle {
+            display: none;
+        }
+
+        #pageHome.active.home-authed .oao-toolbar-container,
+        #pageHome.active.home-authed .ai-home-side-panel,
+        #pageHome.active.home-authed .oao-toolbar-toggle,
+        #pageHome.active.home-authed .ai-home-toggle {
+            z-index: 10;
+        }
+
+        #pageHome.active .ai-home-side-panel .oao-side-panel-shell {
+            height: 100%;
+            min-height: 0;
+        }
+
+        #pageHome.active:not(.home-authed) .ai-home-side-panel .oao-side-panel-shell {
+            min-height: min(56vh, 560px);
+        }
+
+        #pageHome.active:not(.home-authed) .ai-home-toggle {
+            display: none !important;
+        }
+
+        .ai-home-chat-body {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+            gap: 0;
+        }
+
+        .ai-home-welcome {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 24px 16px 96px;
+            text-align: center;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .ai-home-welcome.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .ai-home-messages-container.has-messages .ai-home-welcome {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #pageHome.active .ai-home-input-area {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 12px 0 0;
+        }
         
         /* 主页布局 - 居中 Logo/输入 + 左右侧栏（登录后显示） */
         #pageHome {
@@ -2418,15 +2514,6 @@
 
         #pageHome.active .main-subtitle {
             margin-top: 0;
-        }
-
-        /* 下方留给 3D OAO Logo 展示，避免与中部 UI 重叠 */
-        #pageHome.active::after {
-            content: '';
-            flex: 1 1 auto;
-            min-height: min(46vh, 520px);
-            width: 100%;
-            pointer-events: none;
         }
 
         #pageHome .main-title {
@@ -2830,6 +2917,16 @@
             justify-content: center;
             font-size: 26px;
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .oao-tool-translate-icon {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .oao-tool-translate-icon .oao-face-svg {
+            width: 44px;
+            height: 34px;
         }
 
         .oao-desktop-label {
@@ -3817,6 +3914,175 @@
                 padding: 12px 20px;
                 font-size: 13px;
             }
+        }
+
+        /* ========== OAO翻译（模态窗口，参考小O会议） ========== */
+        .oao-translate-modal {
+            z-index: 10210;
+        }
+
+        .oao-translate-modal .oao-translate-content {
+            width: min(1180px, 96vw);
+            max-width: 1180px;
+            height: min(90vh, 920px);
+            max-height: 94vh;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .oao-translate-modal.is-fullscreen .oao-translate-content,
+        .oao-translate-modal.is-fullscreen .modal-content {
+            width: 100vw;
+            height: 100vh;
+            max-width: 100vw;
+            max-height: 100vh;
+            border-radius: 0;
+            border: none;
+            top: 0;
+            left: 0;
+            transform: none;
+        }
+
+        .oao-translate-modal.is-fullscreen {
+            padding: 0;
+        }
+
+        .oao-translate-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 88px 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            background: var(--bg-color);
+        }
+
+        .oao-translate-topbar h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .oao-translate-topbar p {
+            margin: 2px 0 0;
+            font-size: 12px;
+            opacity: 0.62;
+        }
+
+        .oao-translate-frame-wrap {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            background: var(--bg-color);
+        }
+
+        .oao-translate-frame-wrap iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: var(--bg-color);
+            pointer-events: auto;
+        }
+
+        .oao-translate-frame-wrap iframe.hidden {
+            display: none;
+        }
+
+        .oao-translate-fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 48px;
+            z-index: 3;
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .oao-translate-fullscreen-btn:hover {
+            background: var(--btn-bg);
+            border-color: var(--accent-color);
+        }
+
+        .oao-translate-fallback {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 28px;
+            text-align: center;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .oao-translate-fallback.hidden {
+            display: none;
+        }
+
+        .oao-translate-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 28px;
+            text-align: center;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .oao-translate-loading.hidden {
+            display: none;
+        }
+
+        .oao-translate-loading-hint {
+            margin: 0;
+            font-size: 13px;
+            opacity: 0.72;
+            line-height: 1.6;
+        }
+
+        .oao-translate-loading-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255, 94, 0, 0.2);
+            border-top-color: #ff5e00;
+            border-radius: 50%;
+            animation: oao-translate-spin 0.8s linear infinite;
+        }
+
+        @keyframes oao-translate-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .oao-translate-fallback p {
+            margin: 0;
+            line-height: 1.6;
+            opacity: 0.85;
+        }
+
+        .oao-translate-fallback .oao-meeting-btn {
+            margin-top: 8px;
         }
 
         /* ========== 小O会议 ========== */
@@ -5168,14 +5434,23 @@
         }
 
         .oao-meeting-logo .oao-face-svg,
-        .oao-tool-meeting-icon .oao-face-svg {
+        .oao-tool-meeting-icon .oao-face-svg,
+        .oao-tool-translate-icon .oao-face-svg {
             width: 100%;
             height: 100%;
             display: block;
         }
 
-        .oao-meeting-logo .oao-logo-pupil {
+        .oao-meeting-logo .oao-logo-pupil,
+        .oao-tool-meeting-icon .oao-logo-pupil,
+        .oao-tool-translate-icon .oao-logo-pupil {
             transition: transform 0.07s ease-out;
+        }
+
+        .oao-logo-mouth {
+            transform-box: fill-box;
+            transform-origin: center bottom;
+            transition: transform 0.09s ease-out;
         }
 
         .oao-meeting-brand-text h2 {
@@ -5557,9 +5832,6 @@
 
 </head>
 <body>
-    <!-- OAO页面背景canvas -->
-    <canvas id="oaoBackgroundCanvas"></canvas>
-    
     <!-- 顶部工具栏 -->
     <div class="topbar">
         <div class="topbar-left">
@@ -5604,71 +5876,74 @@
                                 <span class="oao-desktop-icon oao-tool-meeting-icon" id="oaoToolMeetingIcon" aria-hidden="true"></span>
                                 <span class="oao-desktop-label" id="oaoToolMeetingLabel">小O会议</span>
                             </button>
+                            <button type="button" class="oao-desktop-app" id="oaoToolTranslate" data-app="translate" disabled>
+                                <span class="oao-desktop-icon oao-tool-translate-icon" id="oaoToolTranslateIcon" aria-hidden="true"></span>
+                                <span class="oao-desktop-label" id="oaoToolTranslateLabel">OAO翻译</span>
+                            </button>
                         </div>
                     </div>
                 </div>
             </aside>
             <button id="oaoToolbarToggle" class="oao-toolbar-toggle" title="切换 OAO 工具栏">&lt;</button>
             
-            <!-- 中间：Logo + 文本对话区（始终显示） -->
-            <div class="home-center-content">
-                <div class="home-left-panel">
-                    <h1 class="main-title">OAO</h1>
-                    <p class="main-subtitle" id="mainSubtitle">Web3 入口 · 连接开放网络</p>
-                </div>
-
-                <div class="ai-home-input-area">
-                    <div class="ai-home-header">
-                        <span id="aiHomeHeaderText">准备好了，随时开始</span>
-                    </div>
-                    
-                    <div class="ai-home-input-wrapper">
-                        <button id="aiHomePlus" class="ai-home-plus" disabled title="上传文件">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 5v14M5 12h14" stroke="#999999" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </button>
-                        <textarea
-                            id="aiHomeInput"
-                            rows="1"
-                            placeholder="请连接钱包使用"
-                            disabled
-                        ></textarea>
-                        <button id="aiHomeVoice" class="ai-home-voice" disabled title="语音输入">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 19.93a8 8 0 0 1-7-7h3a5 5 0 0 0 10 0h3a8 8 0 0 1-7 7v.03Z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                        <button id="aiHomeSend" class="ai-home-send" disabled title="发送">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5 12h14M13 6l6 6-6 6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="ai-home-toolbar">
-                        <label id="aiWebSearchLabel" class="ai-home-web-toggle disabled">
-                            <input type="checkbox" id="aiWebSearchToggle" disabled>
-                            <span id="aiWebSearchText">联网搜索（勾选：网络优先 + 知识库双回复）</span>
-                        </label>
-                        <span id="aiHomeStatus" class="ai-home-status">本地知识库 · AnythingLLM</span>
-                    </div>
+            <div class="home-layout">
+                <div class="home-hero-brand" id="homeHeroBrand" aria-hidden="false">
+                    <h1 class="home-hero-logo" id="homeHeroLogo">OAO</h1>
+                    <p class="home-hero-subtitle" id="homeHeroSubtitle">Web3 入口 · 连接开放网络</p>
                 </div>
             </div>
-            
-            <!-- 右侧：AI 消息区（登录后显示） -->
-            <div id="aiHomeSidePanel" class="oao-side-panel ai-home-side-panel" hidden>
-                <div class="oao-side-panel-shell">
-                    <div class="oao-side-panel-header" id="aiHomeSidePanelTitle">AI交互信息显示</div>
-                    <div class="oao-side-panel-body">
-                        <div id="aiHomeMessagesContainer" class="ai-home-messages-container">
-                            <div id="aiHomeMessages" class="ai-home-messages"></div>
-                            <button type="button" id="aiHomeClearBtn" class="ai-home-clear-btn" title="清空对话">清空</button>
+
+            <!-- 右侧：AI 交互区（登录后默认收缩） -->
+            <div id="aiHomeSidePanel" class="oao-side-panel ai-home-side-panel">
+                    <div class="oao-side-panel-shell">
+                        <div class="oao-side-panel-header" id="aiHomeSidePanelTitle">AI交互信息显示</div>
+                        <div class="oao-side-panel-body ai-home-chat-body">
+                            <div id="aiHomeMessagesContainer" class="ai-home-messages-container">
+                                <div class="ai-home-welcome" id="aiHomeWelcome">
+                                    <p class="main-subtitle ai-home-welcome-tag" id="mainSubtitle">Web3 入口 · 连接开放网络</p>
+                                    <div class="ai-home-header">
+                                        <span id="aiHomeHeaderText">准备好了，随时开始</span>
+                                    </div>
+                                </div>
+                                <div id="aiHomeMessages" class="ai-home-messages"></div>
+                                <button type="button" id="aiHomeClearBtn" class="ai-home-clear-btn" title="清空对话">清空</button>
+                            </div>
+                            <div class="ai-home-input-area">
+                                <div class="ai-home-input-wrapper">
+                                    <button id="aiHomePlus" class="ai-home-plus" disabled title="上传文件">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 5v14M5 12h14" stroke="#999999" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                    <textarea
+                                        id="aiHomeInput"
+                                        rows="1"
+                                        placeholder="请连接钱包使用"
+                                        disabled
+                                    ></textarea>
+                                    <button id="aiHomeVoice" class="ai-home-voice" disabled title="语音输入">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M12 19.93a8 8 0 0 1-7-7h3a5 5 0 0 0 10 0h3a8 8 0 0 1-7 7v.03Z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                    <button id="aiHomeSend" class="ai-home-send" disabled title="发送">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M5 12h14M13 6l6 6-6 6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="ai-home-toolbar">
+                                    <label id="aiWebSearchLabel" class="ai-home-web-toggle disabled">
+                                        <input type="checkbox" id="aiWebSearchToggle" disabled>
+                                        <span id="aiWebSearchText">联网搜索（勾选：网络优先 + 知识库双回复）</span>
+                                    </label>
+                                    <span id="aiHomeStatus" class="ai-home-status">本地知识库 · AnythingLLM</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             <button id="aiHomeToggle" class="ai-home-toggle" title="切换 AI 对话区">&gt;</button>
         </div>
 
@@ -6067,7 +6342,7 @@
                     <label class="oao-meeting-stt-select-wrap">
                         <span id="oaoMeetingSttModeLabel">转写引擎</span>
                         <select id="oaoMeetingSttMode" aria-label="转写引擎">
-                            <option value="auto" selected>自动（全球）</option>
+                            <option value="auto" selected>自动（本地 Whisper + 浏览器）</option>
                             <option value="browser">浏览器实时</option>
                             <option value="whisper">本地 Whisper</option>
                         </select>
@@ -6314,6 +6589,34 @@
         </div>
     </div>
 
+    <!-- OAO翻译（模态窗口，参考小O会议） -->
+    <div id="oaoTranslateModal" class="modal hidden oao-translate-modal">
+        <div class="modal-overlay" id="oaoTranslateModalOverlay"></div>
+        <div class="modal-content oao-translate-content">
+            <button class="close-btn" id="oaoTranslateModalClose" type="button" aria-label="关闭">×</button>
+            <button type="button" class="oao-translate-fullscreen-btn" id="oaoTranslateFullscreenBtn" title="全屏" aria-label="全屏">⛶</button>
+            <header class="oao-translate-topbar">
+                <div>
+                    <h2 id="oaoTranslateModalTitle">OAO翻译</h2>
+                    <p id="oaoTranslateModalTagline">本地 Ollama · Whisper 转写 + Qwen 翻译 · 零 Token 消耗</p>
+                </div>
+            </header>
+            <div class="oao-translate-frame-wrap">
+                <iframe id="oaoTranslateFrame" title="OAO Translate" src="about:blank" allow="microphone; autoplay; clipboard-write"></iframe>
+                <div id="oaoTranslateLoading" class="oao-translate-loading hidden">
+                    <div class="oao-translate-loading-spinner" aria-hidden="true"></div>
+                    <p id="oaoTranslateLoadingTitle">正在连接 OAO翻译服务...</p>
+                    <p id="oaoTranslateLoadingHint" class="oao-translate-loading-hint">首次启动可能需要 1~3 分钟，请稍候</p>
+                </div>
+                <div id="oaoTranslateFallback" class="oao-translate-fallback hidden">
+                    <p id="oaoTranslateFallbackTitle">无法加载 OAO翻译服务</p>
+                    <p id="oaoTranslateFallbackDesc">请确认「OAO Services」后台窗口仍在运行，并稍候片刻后点击重试。若首次运行，请先完整执行一次「打开OAO.bat」。</p>
+                    <button type="button" id="oaoTranslateRetryBtn" class="oao-meeting-btn oao-meeting-btn-primary">重试</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // 主页AI对话功能（支持对话记忆和预留API接口）
         document.addEventListener('DOMContentLoaded', function() {
@@ -6328,6 +6631,7 @@
             const oaoToolbarContainer = document.getElementById('oaoToolbarContainer');
             const oaoToolbarToggle = document.getElementById('oaoToolbarToggle');
             const oaoToolMeeting = document.getElementById('oaoToolMeeting');
+            const oaoToolTranslate = document.getElementById('oaoToolTranslate');
             const pageHome = document.getElementById('pageHome');
             const aiHomeClearBtn = document.getElementById('aiHomeClearBtn');
             const aiHomeToggle = document.getElementById('aiHomeToggle');
@@ -6353,27 +6657,30 @@
                     : isLoggedIn;
                 isLoggedIn = authed;
 
+                pageHome?.classList.toggle('home-authed', authed);
+
+                if (aiHomeSidePanel) aiHomeSidePanel.hidden = false;
+                if (aiHomeMessages) aiHomeMessages.style.display = 'flex';
+                aiHomeMessagesContainer?.classList.add('visible');
+                updateAiWelcomeVisibility();
+
                 if (authed) {
                     if (oaoToolbarContainer) oaoToolbarContainer.hidden = false;
-                    if (aiHomeSidePanel) aiHomeSidePanel.hidden = false;
                     if (oaoToolMeeting) oaoToolMeeting.disabled = false;
-                    if (aiHomeMessages) aiHomeMessages.style.display = 'flex';
-                    aiHomeMessagesContainer?.classList.add('visible');
+                    if (oaoToolTranslate) oaoToolTranslate.disabled = false;
                     oaoToolbarToggle?.classList.add('visible');
                     aiHomeToggle?.classList.add('visible');
                     oaoToolbarToggle.textContent = isToolbarCollapsed ? '>' : '<';
                     aiHomeToggle.textContent = isAiCollapsed ? '<' : '>';
                 } else {
                     if (oaoToolbarContainer) oaoToolbarContainer.hidden = true;
-                    if (aiHomeSidePanel) aiHomeSidePanel.hidden = true;
                     if (oaoToolMeeting) oaoToolMeeting.disabled = true;
-                    if (aiHomeMessages) {
-                        aiHomeMessages.innerHTML = '';
-                        aiHomeMessages.style.display = '';
-                    }
-                    aiHomeMessagesContainer?.classList.remove('visible', 'has-messages', 'collapsed');
+                    if (oaoToolTranslate) oaoToolTranslate.disabled = true;
+                    if (aiHomeMessages) aiHomeMessages.innerHTML = '';
+                    aiHomeMessagesContainer?.classList.remove('has-messages', 'collapsed');
                     oaoToolbarContainer?.classList.remove('collapsed');
                     aiHomeSidePanel?.classList.remove('collapsed');
+                    delete aiHomeSidePanel?.dataset.userToggled;
                     isToolbarCollapsed = false;
                     isAiCollapsed = false;
                     oaoToolbarToggle?.classList.remove('visible', 'collapsed');
@@ -6399,6 +6706,12 @@
             function updateAiMessagesClearState() {
                 const hasItems = !!aiHomeMessages?.querySelector('.ai-message-item');
                 aiHomeMessagesContainer?.classList.toggle('has-messages', hasItems);
+            }
+
+            function updateAiWelcomeVisibility() {
+                const hasItems = !!aiHomeMessages?.querySelector('.ai-message-item');
+                aiHomeMessagesContainer?.classList.toggle('has-messages', hasItems);
+                document.getElementById('aiHomeWelcome')?.classList.toggle('hidden', hasItems);
             }
 
             function showAiMessagesPanel() {
@@ -6453,6 +6766,8 @@
                 if (!isAiMessagesPanelVisible()) {
                     return;
                 }
+
+                aiHomeSidePanel.dataset.userToggled = '1';
                 
                 if (isAiCollapsed) {
                     aiHomeSidePanel?.classList.remove('collapsed');
@@ -6935,6 +7250,7 @@
                 
                 aiHomeMessages.scrollTop = aiHomeMessages.scrollHeight;
                 updateAiMessagesClearState();
+                updateAiWelcomeVisibility();
             }
             
             // 添加加载指示器
@@ -8590,6 +8906,9 @@
                 }
             }
 
+            window.OAOAI = window.OAOAI || {};
+            window.OAOAI.stopVoiceInput = stopVoiceInput;
+
             function toggleVoiceInput() {
                 if (!isWalletAuthenticated()) {
                     showConnectionToast?.(
@@ -8807,16 +9126,22 @@
             const oaoMeetingSttMode = document.getElementById('oaoMeetingSttMode');
             const oaoMeetingSttStatus = document.getElementById('oaoMeetingSttStatus');
             const MEETING_WHISPER_MODEL = window.OAO_WHISPER_MODEL || 'whisper';
-            const MEETING_WHISPER_INTERVAL_MS = 3200;
-            const MEETING_BROWSER_PROBE_MS = 1800;
+            const MEETING_WHISPER_INTERVAL_MS = 2200;
+            const MEETING_BROWSER_PROBE_MS = 4500;
             let meetingActiveSttEngine = 'browser';
             let meetingWhisperTimer = null;
             let meetingWhisperChunkCursor = 0;
             let meetingWhisperBusy = false;
             let meetingBrowserSttGotResult = false;
             let meetingBrowserSttProbeTimer = null;
+            let meetingInterimCommitTimer = null;
+            let meetingPcmWhisperCtx = null;
+            let meetingPcmWhisperProcessor = null;
+            let meetingPcmWhisperSource = null;
+            let meetingPcmWhisperBuffers = [];
+            let meetingPcmWhisperSampleRate = 48000;
 
-            const XIAO_O_FACE_SVG = `<svg class="oao-face-svg" viewBox="0 0 96 72" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            const OAO_FACE_SVG = `<svg class="oao-face-svg" viewBox="0 0 96 72" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <rect x="1" y="1" width="94" height="70" rx="15" fill="#FFF9F5" stroke="#E5DDD4" stroke-width="1.2"/>
                 <g class="oao-logo-eye" data-eye="left">
                     <circle class="oao-logo-eye-ring" cx="27" cy="28" r="14" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.6"/>
@@ -8828,15 +9153,63 @@
                     <circle class="oao-logo-pupil" cx="69" cy="28" r="6.5" fill="#1F2937"/>
                     <circle cx="71" cy="26" r="2.2" fill="#FFFFFF"/>
                 </g>
-                <text x="48" y="57" text-anchor="middle" font-family="Arial Black, Helvetica Neue, sans-serif" font-size="30" font-weight="900" fill="#FF5E00">A</text>
-                <path d="M40 59 Q48 63 56 59" fill="none" stroke="#1F2937" stroke-width="1.6" stroke-linecap="round" opacity="0.25"/>
+                <g class="oao-logo-mouth">
+                    <text x="48" y="57" text-anchor="middle" font-family="Arial Black, Helvetica Neue, sans-serif" font-size="30" font-weight="900" fill="#FF5E00">A</text>
+                    <path class="oao-logo-mouth-curve" d="M40 59 Q48 63 56 59" fill="none" stroke="#1F2937" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+                </g>
             </svg>`;
 
-            function mountXiaoOFace(rootEl) {
-                if (rootEl) rootEl.innerHTML = XIAO_O_FACE_SVG;
+            function mountOaoFace(rootEl) {
+                if (rootEl) rootEl.innerHTML = OAO_FACE_SVG;
             }
-            mountXiaoOFace(oaoMeetingLogo);
-            mountXiaoOFace(oaoToolMeetingIcon);
+
+            function initOaoFaceInteraction(rootEl) {
+                if (!rootEl) return;
+
+                const eyes = [...rootEl.querySelectorAll('.oao-logo-eye')].map((eye) => {
+                    const ring = eye.querySelector('.oao-logo-eye-ring');
+                    const pupil = eye.querySelector('.oao-logo-pupil');
+                    return ring && pupil ? { ring, pupil } : null;
+                }).filter(Boolean);
+
+                const mouth = rootEl.querySelector('.oao-logo-mouth');
+
+                const interact = (clientX, clientY) => {
+                    eyes.forEach(({ ring, pupil }) => {
+                        const rect = ring.getBoundingClientRect();
+                        const cx = rect.left + rect.width / 2;
+                        const cy = rect.top + rect.height / 2;
+                        const dx = clientX - cx;
+                        const dy = clientY - cy;
+                        const angle = Math.atan2(dy, dx);
+                        const maxOffset = Math.min(7, rect.width * 0.18);
+                        const dist = Math.min(maxOffset, Math.hypot(dx, dy) / 12);
+                        pupil.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`;
+                    });
+
+                    if (mouth) {
+                        const faceRect = rootEl.getBoundingClientRect();
+                        const faceCx = faceRect.left + faceRect.width / 2;
+                        const faceCy = faceRect.top + faceRect.height * 0.78;
+                        const dx = clientX - faceCx;
+                        const dy = clientY - faceCy;
+                        const motion = Math.min(1, Math.hypot(dx, dy) / 140);
+                        const open = 0.42 + motion * 0.95;
+                        mouth.style.transform = `scaleY(${open.toFixed(3)})`;
+                    }
+                };
+
+                document.addEventListener('mousemove', (e) => interact(e.clientX, e.clientY));
+                rootEl.addEventListener('mouseenter', (e) => interact(e.clientX, e.clientY));
+                rootEl.addEventListener('mousemove', (e) => interact(e.clientX, e.clientY));
+            }
+
+            mountOaoFace(oaoMeetingLogo);
+            mountOaoFace(oaoToolMeetingIcon);
+            mountOaoFace(document.getElementById('oaoToolTranslateIcon'));
+            initOaoFaceInteraction(oaoMeetingLogo);
+            initOaoFaceInteraction(oaoToolMeetingIcon);
+            initOaoFaceInteraction(document.getElementById('oaoToolTranslateIcon'));
 
             const oaoMeetingVideoSection = document.getElementById('oaoMeetingVideoSection');
             const oaoMeetingVideoStatus = document.getElementById('oaoMeetingVideoStatus');
@@ -8903,38 +9276,6 @@
             let meetingActiveModule = 'workspace';
             let meetingActiveStageTab = 'transcript';
 
-            function initOaoLogoEyeTracking(rootEl) {
-                if (!rootEl) return;
-                const pupils = rootEl.querySelectorAll('.oao-logo-pupil');
-                if (!pupils.length) return;
-                const eyes = [...rootEl.querySelectorAll('.oao-logo-eye')].map((eye) => {
-                    const ring = eye.querySelector('.oao-logo-eye-ring');
-                    const pupil = eye.querySelector('.oao-logo-pupil');
-                    return ring && pupil ? { ring, pupil } : null;
-                }).filter(Boolean);
-                if (!eyes.length) return;
-
-                const moveEyes = (clientX, clientY) => {
-                    eyes.forEach(({ ring, pupil }) => {
-                        const rect = ring.getBoundingClientRect();
-                        const cx = rect.left + rect.width / 2;
-                        const cy = rect.top + rect.height / 2;
-                        const dx = clientX - cx;
-                        const dy = clientY - cy;
-                        const angle = Math.atan2(dy, dx);
-                        const maxOffset = Math.min(7, rect.width * 0.18);
-                        const dist = Math.min(maxOffset, Math.hypot(dx, dy) / 12);
-                        pupil.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`;
-                    });
-                };
-
-                document.addEventListener('mousemove', (e) => moveEyes(e.clientX, e.clientY));
-                rootEl.addEventListener('mouseenter', (e) => moveEyes(e.clientX, e.clientY));
-            }
-
-            initOaoLogoEyeTracking(oaoMeetingLogo);
-            initOaoLogoEyeTracking(oaoToolMeetingIcon);
-
             function getMeetingSttModePreference() {
                 return oaoMeetingSttMode?.value || window.OAO_MEETING_STT_MODE || 'auto';
             }
@@ -8950,15 +9291,13 @@
                 const pref = getMeetingSttModePreference();
                 if (pref === 'whisper') return 'whisper';
                 if (pref === 'browser') return MeetingSpeechCtor ? 'browser' : 'whisper';
-                if (isOaoLocalPreview()) return 'whisper';
-                return MeetingSpeechCtor ? 'browser' : 'whisper';
+                return 'dual';
             }
 
             function shouldBrowserCommitTranscriptLines() {
                 const pref = getMeetingSttModePreference();
-                if (pref === 'browser') return true;
                 if (pref === 'whisper') return false;
-                return meetingActiveSttEngine === 'browser';
+                return !!MeetingSpeechCtor;
             }
 
             function shouldUseBrowserInterimOnly() {
@@ -9035,27 +9374,36 @@
                 return '';
             }
 
+            let meetingWhisperFailCount = 0;
+
             async function processMeetingWhisperChunk() {
                 if (meetingState !== 'recording' || meetingWhisperBusy) return;
-                if (meetingWhisperChunkCursor >= meetingAudioChunks.length) return;
-                const chunks = meetingAudioChunks.slice(meetingWhisperChunkCursor);
-                if (!chunks.length) return;
-                meetingWhisperChunkCursor = meetingAudioChunks.length;
-                const blob = new Blob(chunks, { type: meetingRecordedMimeType || 'audio/webm' });
-                if (blob.size < 800) return;
+
+                const wavBlob = flushMeetingPcmWhisperWav();
+                if (!wavBlob || wavBlob.size < 800) return;
 
                 meetingWhisperBusy = true;
                 updateMeetingSttStatus(meetingT('sttWhisperProcessing'));
                 try {
-                    const text = await transcribeBlobWithWhisper(blob);
+                    const text = await transcribeBlobWithWhisper(wavBlob);
                     if (text && meetingState === 'recording') {
+                        meetingWhisperFailCount = 0;
                         meetingBrowserSttGotResult = true;
                         pushMeetingTranscriptLine(text, getMeetingCurrentSpeakerName());
                         renderMeetingTranscript(true);
                         scheduleRealtimeMeetingMinutesUpdate();
+                    } else if (meetingState === 'recording') {
+                        meetingWhisperFailCount += 1;
+                        if (meetingWhisperFailCount >= 3 && !MeetingSpeechCtor) {
+                            showConnectionToast(meetingT('sttWhisperNeedModel'), 'error');
+                        }
                     }
                 } catch (err) {
+                    meetingWhisperFailCount += 1;
                     console.warn('[小O会议] Whisper 转写失败:', err);
+                    if (meetingWhisperFailCount >= 3) {
+                        showConnectionToast(meetingT('sttWhisperNeedModel'), 'error');
+                    }
                 } finally {
                     meetingWhisperBusy = false;
                     if (meetingState === 'recording' && meetingActiveSttEngine === 'whisper') {
@@ -9068,6 +9416,7 @@
                 stopMeetingWhisperLoop();
                 meetingWhisperChunkCursor = 0;
                 updateMeetingSttStatus(meetingT('sttWhisperListening'));
+                void processMeetingWhisperChunk();
                 meetingWhisperTimer = setInterval(() => {
                     void processMeetingWhisperChunk();
                 }, MEETING_WHISPER_INTERVAL_MS);
@@ -9087,9 +9436,18 @@
                 startMeetingWhisperLoop();
             }
 
+            function clearMeetingInterimCommitTimer() {
+                if (meetingInterimCommitTimer) {
+                    clearTimeout(meetingInterimCommitTimer);
+                    meetingInterimCommitTimer = null;
+                }
+            }
+
             function stopMeetingStt() {
                 stopMeetingRecognition();
                 stopMeetingWhisperLoop();
+                stopMeetingPcmWhisperCapture();
+                clearMeetingInterimCommitTimer();
                 if (meetingBrowserSttProbeTimer) {
                     clearTimeout(meetingBrowserSttProbeTimer);
                     meetingBrowserSttProbeTimer = null;
@@ -9099,32 +9457,34 @@
 
             function startMeetingStt() {
                 meetingBrowserSttGotResult = false;
-                meetingActiveSttEngine = resolveInitialMeetingSttEngine();
+                clearMeetingInterimCommitTimer();
                 const pref = getMeetingSttModePreference();
 
-                if (meetingActiveSttEngine === 'whisper') {
+                if (pref !== 'browser') {
+                    meetingActiveSttEngine = 'whisper';
                     updateMeetingSttStatus(meetingT('sttWhisperListening'));
                     startMeetingWhisperLoop();
-                    if (pref === 'auto' && MeetingSpeechCtor) {
-                        startMeetingRecognition();
-                    }
-                    return;
+                    void ensureMeetingOllamaReady();
                 }
 
-                if (!MeetingSpeechCtor) {
+                if (pref !== 'whisper' && MeetingSpeechCtor) {
+                    if (pref === 'browser') {
+                        meetingActiveSttEngine = 'browser';
+                        updateMeetingSttStatus(meetingT('sttBrowserListening'));
+                    }
+                    startMeetingRecognition();
+                } else if (pref === 'browser') {
                     fallbackMeetingSttToWhisper(false);
-                    return;
                 }
+            }
 
-                updateMeetingSttStatus(meetingT('sttBrowserListening'));
-                startMeetingRecognition();
-
-                if (pref !== 'auto') return;
-                meetingBrowserSttProbeTimer = setTimeout(() => {
-                    if (meetingState === 'recording' && !meetingBrowserSttGotResult) {
-                        fallbackMeetingSttToWhisper(true);
-                    }
-                }, MEETING_BROWSER_PROBE_MS);
+            async function ensureMeetingOllamaReady() {
+                try {
+                    const res = await fetch(`${OLLAMA_CONFIG.baseUrl}/api/tags`, { signal: AbortSignal.timeout(4000) });
+                    if (!res.ok) throw new Error('bad status');
+                } catch (_) {
+                    showConnectionToast(meetingT('sttWhisperNeedModel'), 'error');
+                }
             }
 
             function setMeetingModule(module) {
@@ -9342,17 +9702,19 @@
             }
 
             function applyMeetingSpeechGrammar(recognition) {
-                if (!recognition) return;
-                const vocab = getMeetingNameVocabulary().slice(0, 40);
+                if (!recognition || window.OAO_MEETING_STT_GRAMMAR === false) return;
+                const vocab = getMeetingNameVocabulary().slice(0, 24);
                 if (!vocab.length) return;
                 try {
                     const GrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
                     if (!GrammarList) return;
-                    const escaped = vocab.map((n) => n.replace(/[^\u4e00-\u9fffA-Za-z0-9]/g, '')).filter(Boolean);
-                    if (!escaped.length) return;
+                    const escaped = vocab
+                        .map((n) => n.replace(/[^\u4e00-\u9fffA-Za-z0-9]/g, ''))
+                        .filter((n) => n.length >= 2);
+                    if (escaped.length < 2) return;
                     const grammarList = new GrammarList();
                     const grammar = `#JSGF V1.0; grammar meetingNames; public <name> = ${escaped.join(' | ')} ;`;
-                    grammarList.addFromString(grammar, 1);
+                    grammarList.addFromString(grammar, 0.25);
                     recognition.grammars = grammarList;
                 } catch (_) {}
             }
@@ -11152,6 +11514,21 @@
                     renderMeetingTranscript(true);
                     updateMeetingSubtitle();
                     updateMeetingSttStatus(meetingT('sttBrowserActive'));
+                    const pending = getMeetingPendingDisplayText();
+                    if (pending && shouldBrowserCommitTranscriptLines()) {
+                        clearMeetingInterimCommitTimer();
+                        meetingInterimCommitTimer = setTimeout(() => {
+                            meetingInterimCommitTimer = null;
+                            if (meetingState !== 'recording') return;
+                            const phrase = getMeetingPendingDisplayText();
+                            if (!phrase) return;
+                            pushMeetingTranscriptLine(phrase, getMeetingCurrentSpeakerName());
+                            meetingCurrentPhrase = '';
+                            meetingInterimLine = '';
+                            renderMeetingTranscript(true);
+                            scheduleRealtimeMeetingMinutesUpdate();
+                        }, 2800);
+                    }
                 };
 
                 rec.onerror = (event) => {
@@ -11195,6 +11572,10 @@
 
             async function startMeetingRecording() {
                 window.OAOAI?.stopVoiceInput?.();
+                if (!window.isSecureContext) {
+                    showConnectionToast(meetingT('videoNeedHttps'), 'error');
+                    return;
+                }
                 try {
                     if (meetingVideoEnabled) {
                         await ensureMeetingVideoLocalMedia();
@@ -11261,6 +11642,8 @@
 
                 meetingMediaRecorder.start(250);
                 meetingWhisperChunkCursor = 0;
+                meetingWhisperFailCount = 0;
+                startMeetingPcmWhisperCapture(meetingAudioStream);
                 setMeetingUIState('recording');
                 startMeetingStt();
                 void setupMeetingAudioAnalyser(meetingAudioStream);
@@ -11386,6 +11769,7 @@
             }
 
             async function convertMeetingAudioToWav(sourceBlob) {
+                if (sourceBlob?.type?.includes('wav')) return sourceBlob;
                 const arrayBuffer = await sourceBlob.arrayBuffer();
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (!AudioCtx) {
@@ -11398,6 +11782,69 @@
                 } finally {
                     await audioCtx.close().catch(() => {});
                 }
+            }
+
+            function stopMeetingPcmWhisperCapture() {
+                if (meetingPcmWhisperProcessor) {
+                    try { meetingPcmWhisperProcessor.disconnect(); } catch (_) {}
+                    meetingPcmWhisperProcessor.onaudioprocess = null;
+                    meetingPcmWhisperProcessor = null;
+                }
+                if (meetingPcmWhisperSource) {
+                    try { meetingPcmWhisperSource.disconnect(); } catch (_) {}
+                    meetingPcmWhisperSource = null;
+                }
+                if (meetingPcmWhisperCtx) {
+                    const ctx = meetingPcmWhisperCtx;
+                    meetingPcmWhisperCtx = null;
+                    ctx.close().catch(() => {});
+                }
+                meetingPcmWhisperBuffers = [];
+            }
+
+            function startMeetingPcmWhisperCapture(stream) {
+                stopMeetingPcmWhisperCapture();
+                if (!stream?.getAudioTracks?.().length) return;
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                try {
+                    meetingPcmWhisperCtx = new AudioCtx();
+                    meetingPcmWhisperSampleRate = meetingPcmWhisperCtx.sampleRate;
+                    meetingPcmWhisperSource = meetingPcmWhisperCtx.createMediaStreamSource(stream);
+                    meetingPcmWhisperProcessor = meetingPcmWhisperCtx.createScriptProcessor(4096, 1, 1);
+                    meetingPcmWhisperBuffers = [];
+                    meetingPcmWhisperProcessor.onaudioprocess = (event) => {
+                        if (meetingState !== 'recording') return;
+                        meetingPcmWhisperBuffers.push(new Float32Array(event.inputBuffer.getChannelData(0)));
+                    };
+                    const mute = meetingPcmWhisperCtx.createGain();
+                    mute.gain.value = 0;
+                    meetingPcmWhisperSource.connect(meetingPcmWhisperProcessor);
+                    meetingPcmWhisperProcessor.connect(mute);
+                    mute.connect(meetingPcmWhisperCtx.destination);
+                    void meetingPcmWhisperCtx.resume();
+                } catch (error) {
+                    console.warn('[小O会议] PCM 采集失败:', error);
+                    stopMeetingPcmWhisperCapture();
+                }
+            }
+
+            function flushMeetingPcmWhisperWav() {
+                if (!meetingPcmWhisperBuffers.length) return null;
+                const totalLength = meetingPcmWhisperBuffers.reduce((sum, chunk) => sum + chunk.length, 0);
+                const minSamples = Math.floor(meetingPcmWhisperSampleRate * 0.5);
+                if (totalLength < minSamples) return null;
+                const merged = new Float32Array(totalLength);
+                let offset = 0;
+                for (const chunk of meetingPcmWhisperBuffers) {
+                    merged.set(chunk, offset);
+                    offset += chunk.length;
+                }
+                meetingPcmWhisperBuffers = [];
+                const offline = new OfflineAudioContext(1, merged.length, meetingPcmWhisperSampleRate);
+                const audioBuffer = offline.createBuffer(1, merged.length, meetingPcmWhisperSampleRate);
+                audioBuffer.copyToChannel(merged, 0);
+                return encodeAudioBufferToWav(audioBuffer);
             }
 
             async function getMeetingAudioBlobByFormat(format = 'wav') {
@@ -12225,6 +12672,112 @@ ${emptyHint}`;
             }
 
             oaoToolMeetingBtn?.addEventListener('click', openOaoMeetingModal);
+
+            function resolveOaoTranslateUrl() {
+                if (window.OAO_TRANSLATE_URL) return String(window.OAO_TRANSLATE_URL);
+                const hostname = window.location.hostname;
+                if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {
+                    return 'http://127.0.0.1:3000';
+                }
+                return `${location.protocol}//${location.hostname}:3000`;
+            }
+
+            async function checkOaoTranslateHealth(base) {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 4000);
+                try {
+                    const res = await fetch(base + '/api/health', {
+                        cache: 'no-store',
+                        signal: controller.signal
+                    });
+                    clearTimeout(timer);
+                    return res.ok;
+                } catch (_) {
+                    clearTimeout(timer);
+                    return false;
+                }
+            }
+
+            function setOaoTranslateLoadingVisible(visible, message) {
+                const loading = document.getElementById('oaoTranslateLoading');
+                const fallback = document.getElementById('oaoTranslateFallback');
+                const frame = document.getElementById('oaoTranslateFrame');
+                const title = document.getElementById('oaoTranslateLoadingTitle');
+                if (visible) {
+                    fallback?.classList.add('hidden');
+                    frame?.classList.add('hidden');
+                    loading?.classList.remove('hidden');
+                    if (title && message) title.textContent = message;
+                } else {
+                    loading?.classList.add('hidden');
+                }
+            }
+
+            function openOaoTranslateModal() {
+                if (!isLoggedIn) {
+                    showConnectionToast?.(
+                        currentLang === 'zh'
+                            ? '请先登录（钱包、微信或管理员）后再使用 OAO翻译'
+                            : 'Please login before using OAO Translate',
+                        'error'
+                    );
+                    window.openLoginModal?.('admin');
+                    return;
+                }
+
+                const modal = document.getElementById('oaoTranslateModal');
+                const frame = document.getElementById('oaoTranslateFrame');
+                const fallback = document.getElementById('oaoTranslateFallback');
+                if (!modal || !frame || !fallback) return;
+
+                modal.classList.remove('hidden', 'is-fullscreen');
+                setOaoTranslateLoadingVisible(true, currentLang === 'zh' ? '正在连接 OAO翻译服务...' : 'Connecting to OAO Translate...');
+
+                const base = resolveOaoTranslateUrl().replace(/\/$/, '');
+                const embedUrl = buildOaoTranslateEmbedUrl(base);
+
+                void (async () => {
+                    const maxAttempts = 45;
+                    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                        if (await checkOaoTranslateHealth(base)) {
+                            setOaoTranslateLoadingVisible(false);
+                            fallback.classList.add('hidden');
+                            frame.classList.remove('hidden');
+                            frame.src = embedUrl;
+                            return;
+                        }
+                        const msg = currentLang === 'zh'
+                            ? `正在连接 OAO翻译服务... (${attempt}/${maxAttempts})`
+                            : `Connecting... (${attempt}/${maxAttempts})`;
+                        setOaoTranslateLoadingVisible(true, msg);
+                        await new Promise((resolve) => setTimeout(resolve, 2000));
+                    }
+
+                    setOaoTranslateLoadingVisible(false);
+                    frame.src = 'about:blank';
+                    frame.classList.add('hidden');
+                    fallback.classList.remove('hidden');
+                })();
+            }
+
+            function closeOaoTranslateModal() {
+                const modal = document.getElementById('oaoTranslateModal');
+                const frame = document.getElementById('oaoTranslateFrame');
+                document.getElementById('oaoTranslateLoading')?.classList.add('hidden');
+                modal?.classList.add('hidden');
+                modal?.classList.remove('is-fullscreen');
+                if (frame) frame.src = 'about:blank';
+            }
+
+            function toggleOaoTranslateFullscreen() {
+                document.getElementById('oaoTranslateModal')?.classList.toggle('is-fullscreen');
+            }
+
+            document.getElementById('oaoToolTranslate')?.addEventListener('click', openOaoTranslateModal);
+            document.getElementById('oaoTranslateModalClose')?.addEventListener('click', closeOaoTranslateModal);
+            document.getElementById('oaoTranslateModalOverlay')?.addEventListener('click', closeOaoTranslateModal);
+            document.getElementById('oaoTranslateFullscreenBtn')?.addEventListener('click', toggleOaoTranslateFullscreen);
+            document.getElementById('oaoTranslateRetryBtn')?.addEventListener('click', openOaoTranslateModal);
             oaoMeetingModalClose?.addEventListener('click', closeOaoMeetingModal);
             oaoMeetingCloseSaveBtn?.addEventListener('click', () => resolveMeetingCloseConfirm('save'));
             oaoMeetingCloseDiscardBtn?.addEventListener('click', () => resolveMeetingCloseConfirm('discard'));
@@ -12458,6 +13011,13 @@ ${emptyHint}`;
                 aiHomeSidePanelTitle: 'AI交互信息显示',
                 aiHomeLoginHint: '请点击右上角「登录」后使用 AI 功能',
                 oaoToolMeeting: '小O会议',
+                oaoToolTranslate: 'OAO翻译',
+                oaoTranslateModalTitle: 'OAO翻译',
+                oaoTranslateModalTagline: '本地 Ollama · Whisper 转写 + Qwen 翻译 · 零 Token 消耗',
+                oaoTranslateFallbackTitle: '无法加载 OAO翻译服务',
+                oaoTranslateFallbackDesc: '请确认「OAO Services」后台窗口仍在运行，并稍候后点击重试。若首次运行，请先完整执行一次「打开OAO.bat」。',
+                oaoTranslateRetry: '重试',
+                oaoTranslateFullscreen: '全屏',
                 oaoMeetingModalTitle: '小O会议',
                 oaoMeetingModalTagline: '企业级会议 · 实时转写 · AI 智能纪要',
                 oaoMeetingNavWorkspace: '会议中心',
@@ -12642,6 +13202,13 @@ ${emptyHint}`;
                 aiHomeSidePanelTitle: 'AI Interaction',
                 aiHomeLoginHint: 'Click「Login」at top-right to use AI features',
                 oaoToolMeeting: 'Xiao O Meeting',
+                oaoToolTranslate: 'OAO Translate',
+                oaoTranslateModalTitle: 'OAO Translate',
+                oaoTranslateModalTagline: 'Local Ollama · Whisper STT + Qwen translate · Zero OpenAI tokens',
+                oaoTranslateFallbackTitle: 'Unable to load OAO Translate',
+                oaoTranslateFallbackDesc: 'Ensure the「OAO Services」window is running, wait a moment, then Retry. On first run, execute「打开OAO.bat」fully once.',
+                oaoTranslateRetry: 'Retry',
+                oaoTranslateFullscreen: 'Fullscreen',
                 oaoMeetingModalTitle: 'Xiao O Meeting',
                 oaoMeetingModalTagline: 'Enterprise meeting · Live transcript · AI minutes',
                 oaoMeetingNavWorkspace: 'Meeting Hub',
@@ -12883,6 +13450,9 @@ ${emptyHint}`;
             const mainSubtitle = document.getElementById('mainSubtitle');
             if (mainSubtitle) mainSubtitle.textContent = translations[lang].mainSubtitle;
 
+            const homeHeroSubtitle = document.getElementById('homeHeroSubtitle');
+            if (homeHeroSubtitle) homeHeroSubtitle.textContent = translations[lang].mainSubtitle;
+
             // 更新AI输入区域
             const aiHomeHeader = document.querySelector('.ai-home-header span');
             if (aiHomeHeader) aiHomeHeader.textContent = translations[lang].aiHomeHeader;
@@ -12909,6 +13479,25 @@ ${emptyHint}`;
 
             const oaoToolMeetingLabel = document.getElementById('oaoToolMeetingLabel');
             if (oaoToolMeetingLabel) oaoToolMeetingLabel.textContent = translations[lang].oaoToolMeeting;
+
+            const oaoToolTranslateLabel = document.getElementById('oaoToolTranslateLabel');
+            if (oaoToolTranslateLabel) oaoToolTranslateLabel.textContent = translations[lang].oaoToolTranslate;
+
+            const oaoTranslateModalTitle = document.getElementById('oaoTranslateModalTitle');
+            if (oaoTranslateModalTitle) oaoTranslateModalTitle.textContent = translations[lang].oaoTranslateModalTitle;
+            const oaoTranslateModalTagline = document.getElementById('oaoTranslateModalTagline');
+            if (oaoTranslateModalTagline) oaoTranslateModalTagline.textContent = translations[lang].oaoTranslateModalTagline;
+            const oaoTranslateFallbackTitle = document.getElementById('oaoTranslateFallbackTitle');
+            if (oaoTranslateFallbackTitle) oaoTranslateFallbackTitle.textContent = translations[lang].oaoTranslateFallbackTitle;
+            const oaoTranslateFallbackDesc = document.getElementById('oaoTranslateFallbackDesc');
+            if (oaoTranslateFallbackDesc) oaoTranslateFallbackDesc.textContent = translations[lang].oaoTranslateFallbackDesc;
+            const oaoTranslateRetryBtn = document.getElementById('oaoTranslateRetryBtn');
+            if (oaoTranslateRetryBtn) oaoTranslateRetryBtn.textContent = translations[lang].oaoTranslateRetry;
+            const oaoTranslateFullscreenBtn = document.getElementById('oaoTranslateFullscreenBtn');
+            if (oaoTranslateFullscreenBtn) {
+                oaoTranslateFullscreenBtn.title = translations[lang].oaoTranslateFullscreen;
+                oaoTranslateFullscreenBtn.setAttribute('aria-label', translations[lang].oaoTranslateFullscreen);
+            }
 
             const aiHomeHeaderText = document.getElementById('aiHomeHeaderText');
             if (aiHomeHeaderText) {
@@ -14211,24 +14800,6 @@ ${emptyHint}`;
                 item.classList.remove('active');
             });
 
-            document.body.classList.toggle('oao-home-active', pageId === 'pageHome');
-            if (pageId !== 'pageHome') {
-                document.body.classList.remove('oao-scene-dragging');
-            }
-
-            const canvas = document.getElementById('oaoBackgroundCanvas');
-            if (canvas) {
-                if (pageId === 'pageHome') {
-                    canvas.style.display = 'block';
-                } else {
-                    canvas.style.display = 'none';
-                }
-            }
-
-            if (pageId === 'pageHome' && typeof window.oaoSceneResetView === 'function') {
-                window.oaoSceneResetView();
-            }
-
             if (pageId === 'pageHome') {
                 document.getElementById('navHome').classList.add('active');
             } else if (pageId === 'pageNav') {
@@ -14273,6 +14844,27 @@ ${emptyHint}`;
         let currentTheme = 'light';
         const themeToggle = document.getElementById('themeToggle');
 
+        function getOaoPageTheme() {
+            return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        }
+
+        function buildOaoTranslateEmbedUrl(base) {
+            return `${base}/?embed=1&theme=${getOaoPageTheme()}`;
+        }
+
+        function syncOaoTranslateIframeTheme() {
+            const modal = document.getElementById('oaoTranslateModal');
+            const frame = document.getElementById('oaoTranslateFrame');
+            if (!modal || modal.classList.contains('hidden') || !frame || frame.classList.contains('hidden')) return;
+            const hostname = window.location.hostname;
+            const base = (window.OAO_TRANSLATE_URL
+                ? String(window.OAO_TRANSLATE_URL)
+                : (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === ''
+                    ? 'http://127.0.0.1:3000'
+                    : `${location.protocol}//${location.hostname}:3000`)).replace(/\/$/, '');
+            frame.src = buildOaoTranslateEmbedUrl(base);
+        }
+
         themeToggle.addEventListener('click', function() {
             if (typeof window.oaoSetThemeUserOverride === 'function') {
                 window.oaoSetThemeUserOverride(true);
@@ -14287,1039 +14879,12 @@ ${emptyHint}`;
                 this.classList.remove('active');
             }, 300);
             
-            // 更新主页 3D 背景主题色
-            updateParticleColor();
-            
             // 更新AI输入区域按钮图标颜色
             if (typeof updateLoginUI === 'function') {
                 updateLoginUI();
             }
+            syncOaoTranslateIframeTheme();
         });
-
-        function updateParticleColor() {
-            if (typeof window.oaoSceneThemeUpdate === 'function') {
-                window.oaoSceneThemeUpdate();
-            }
-        }
-
-        // OAO 主页背景 — 沉浸式 3D 空间（WASD · 鼠标视角 · 滚轮 · 昼夜渐变）
-        (function() {
-            const canvas = document.getElementById('oaoBackgroundCanvas');
-            if (!canvas || typeof THREE === 'undefined') return;
-
-            const isMobile = window.innerWidth < 768;
-            const GRID_RADIUS = isMobile ? 6 : 9;
-            const STAR_COUNT = isMobile ? 700 : 1400;
-            const FLOW_COUNT = isMobile ? 68 : 128;
-            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-            const LOGO_TARGET = { x: 0, y: 5.2, z: 0 };
-            const LOGO_VIEW = {
-                desktop: { dist: 56, heightOffset: 12, yaw: 0, pitch: -0.05, aimLift: 2.2 },
-                mobile: { dist: 46, heightOffset: 10, yaw: 0, pitch: -0.04, aimLift: 1.7 }
-            };
-
-            const DAY = {
-                fog: 0x8ec8f5, fogDensity: 0.0019,
-                skyTop: '#5a9ef5', skyHorizon: '#c8e8ff', skyDeep: '#3d7fd8',
-                grid: '#64748b', glow: '#ff5e00',
-                flowA: '#0088ff', flowB: '#ff006e', flowC: '#8338ec', flowD: '#00f5d4',
-                particle: '#0066ff',
-                ambient: 0.72, sun: 1.12, sunColor: 0xfff4e8,
-                moon: 0, rim: 0.62, neon: 1.48, logoKey: 3.0
-            };
-            const NIGHT = {
-                fog: 0x020306, fogDensity: 0.0042,
-                skyTop: '#03050a', skyHorizon: '#0c1830', skyDeep: '#142040',
-                grid: '#2d3a52', glow: '#ff9a44',
-                flowA: '#00e5ff', flowB: '#ff6b9d', flowC: '#c77dff', flowD: '#39ff14',
-                particle: '#80eaff',
-                ambient: 0.42, sun: 0.14, sunColor: 0x7799dd,
-                moon: 0.92, rim: 1.28, neon: 2.35, logoKey: 3.85
-            };
-
-            let scene, camera, renderer;
-            let cityGroup, groundMesh, skyMesh, starField, oaoMonument;
-            let buildingMats = [], edgeLineMats = [], flowLineMats = [], towerFlowLineMats = [];
-            let currentPalette = null;
-            let logoMats = [], logoWireMats = [];
-            let logoEyes = [];
-            let logoBaseMesh;
-            let sceneLights = { sun: null, moon: null, neon: null, oaoKey: null, oaoSpot: null, oaoFill: null, rim: null };
-            let flowLines = [];
-            let time = 0;
-            let paused = false;
-            let nightFactor = 0;
-            let themeUserOverride = false;
-            let lastThemeSyncMin = -1;
-            const mouseScreen = { x: 0, y: 0, active: false };
-
-            const player = {
-                position: new THREE.Vector3(),
-                yaw: 0,
-                pitch: -0.05,
-                speed: isMobile ? 0.4 : 0.58,
-                wheelSpeed: isMobile ? 0.08 : 0.12,
-                lookSpeed: 0.0026,
-                dragging: false,
-                lastX: 0, lastY: 0,
-                keys: { w: false, a: false, s: false, d: false }
-            };
-            const _forward = new THREE.Vector3();
-            const _right = new THREE.Vector3();
-            const _tmpCol = new THREE.Color();
-
-            function lerpHex(a, b, t) {
-                _tmpCol.setHex(a).lerp(new THREE.Color(b), t);
-                return _tmpCol.getHex();
-            }
-            function lerpColorStr(a, b, t) {
-                return _tmpCol.set(a).lerp(new THREE.Color(b), t).getStyle();
-            }
-            function lerpNum(a, b, t) { return a + (b - a) * t; }
-
-            function getLocalTimeState() {
-                const now = new Date();
-                const h = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
-                let nf;
-                if (h >= 7 && h < 17) nf = 0;
-                else if (h >= 5 && h < 7) nf = 1 - (h - 5) / 2;
-                else if (h >= 17 && h < 19) nf = (h - 17) / 2;
-                else nf = 1;
-                return { hour: h, nightFactor: THREE.MathUtils.clamp(nf, 0, 1) };
-            }
-
-            function blendPalette(nf) {
-                return {
-                    fog: lerpHex(DAY.fog, NIGHT.fog, nf),
-                    fogDensity: lerpNum(DAY.fogDensity, NIGHT.fogDensity, nf),
-                    skyTop: lerpColorStr(DAY.skyTop, NIGHT.skyTop, nf),
-                    skyHorizon: lerpColorStr(DAY.skyHorizon, NIGHT.skyHorizon, nf),
-                    skyDeep: lerpColorStr(DAY.skyDeep, NIGHT.skyDeep, nf),
-                    grid: lerpColorStr(DAY.grid, NIGHT.grid, nf),
-                    glow: lerpColorStr(DAY.glow, NIGHT.glow, nf),
-                    flowA: lerpColorStr(DAY.flowA, NIGHT.flowA, nf),
-                    flowB: lerpColorStr(DAY.flowB, NIGHT.flowB, nf),
-                    flowC: lerpColorStr(DAY.flowC, NIGHT.flowC, nf),
-                    flowD: lerpColorStr(DAY.flowD, NIGHT.flowD, nf),
-                    particle: lerpColorStr(DAY.particle, NIGHT.particle, nf),
-                    ambient: lerpNum(DAY.ambient, NIGHT.ambient, nf),
-                    sun: lerpNum(DAY.sun, NIGHT.sun, nf),
-                    sunColor: lerpHex(DAY.sunColor, NIGHT.sunColor, nf),
-                    moon: lerpNum(DAY.moon, NIGHT.moon, nf),
-                    rim: lerpNum(DAY.rim, NIGHT.rim, nf),
-                    neon: lerpNum(DAY.neon, NIGHT.neon, nf),
-                    logoKey: lerpNum(DAY.logoKey, NIGHT.logoKey, nf),
-                    isDark: nf > 0.5 ? 1 : 0,
-                    nightFactor: nf
-                };
-            }
-
-            function syncPageThemeFromTime() {
-                if (themeUserOverride) return;
-                const { nightFactor: nf } = getLocalTimeState();
-                const theme = nf > 0.5 ? 'dark' : 'light';
-                if (document.documentElement.getAttribute('data-theme') === theme) return;
-                document.documentElement.setAttribute('data-theme', theme);
-                document.body.setAttribute('data-theme', theme);
-                if (typeof currentTheme !== 'undefined') currentTheme = theme;
-                const btn = document.getElementById('themeToggle');
-                if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
-                updateCssSceneVars(blendPalette(nf));
-            }
-
-            function updateCssSceneVars(p) {
-                const root = document.documentElement.style;
-                root.setProperty('--scene-aurora-a', p.skyTop);
-                root.setProperty('--scene-aurora-b', p.skyHorizon);
-                root.setProperty('--scene-aurora-c', p.skyDeep);
-                root.setProperty('--scene-glow-color', p.glow);
-                root.setProperty('--scene-grid-color', p.grid);
-                root.setProperty('--particle-color', p.particle);
-                root.setProperty('--scene-flow-a', p.flowA);
-                root.setProperty('--scene-flow-b', p.flowB);
-                root.setProperty('--scene-flow-c', p.flowC);
-                root.setProperty('--scene-flow-d', p.flowD);
-            }
-
-            window.oaoSetThemeUserOverride = function(v) { themeUserOverride = !!v; };
-            window.oaoSyncThemeFromTime = syncPageThemeFromTime;
-
-            const EXTRUDE_LOGO = {
-                depth: isMobile ? 4 : 5.2,
-                bevelEnabled: true,
-                bevelThickness: isMobile ? 0.34 : 0.44,
-                bevelSize: isMobile ? 0.28 : 0.36,
-                bevelSegments: 3,
-                curveSegments: isMobile ? 32 : 44
-            };
-
-            const SHADERS = {
-                sky: {
-                    vertex: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-                    fragment: `
-                        uniform float uTime; uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uDeep;
-                        uniform vec3 uFlowA; uniform vec3 uFlowB; uniform vec3 uFlowC; uniform float uNight;
-                        varying vec2 vUv;
-                        void main(){
-                            float band = smoothstep(0.0, 0.62, vUv.y);
-                            vec3 col = mix(uHorizon, uTop, band);
-                            col = mix(col, uDeep, smoothstep(0.0, 0.35, 1.0 - vUv.y) * 0.35);
-                            float aur = sin(vUv.x * 10.0 + uTime * 0.12) * 0.5 + 0.5;
-                            float boost = mix(1.65, 1.05, uNight);
-                            col += uFlowA * aur * smoothstep(0.25, 0.92, vUv.y) * 0.22 * boost;
-                            col += uFlowB * (sin(vUv.x * 6.0 - uTime * 0.1) * 0.5 + 0.5) * smoothstep(0.1, 0.8, vUv.y) * 0.14 * boost;
-                            col += uFlowC * smoothstep(0.55, 1.0, aur) * 0.09 * boost;
-                            col += uFlowA * sin(uTime * 0.35 + vUv.x * 8.0) * 0.04 * boost;
-                            gl_FragColor = vec4(col, 1.0);
-                        }`
-                },
-                ground: {
-                    vertex: `varying vec3 vWorldPos; void main(){ vWorldPos=(modelMatrix*vec4(position,1.0)).xyz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-                    fragment: `
-                        uniform float uTime; uniform vec3 uGrid; uniform vec3 uGlow;
-                        uniform vec3 uFlowA; uniform vec3 uFlowB; uniform vec3 uFlowC; uniform float uNight;
-                        varying vec3 vWorldPos;
-                        float gridLine(float c, float w){ float g=abs(fract(c-0.5)-0.5); return smoothstep(w,0.0,g); }
-                        float marquee(float coord, float speed){ float m=fract(coord-uTime*speed); return smoothstep(0.0,0.035,m)*smoothstep(0.22,0.035,m); }
-                        void main(){
-                            float lx=vWorldPos.x*0.08, lz=vWorldPos.z*0.08;
-                            float gx=gridLine(lx,0.022), gz=gridLine(lz,0.022);
-                            float major=gridLine(vWorldPos.x*0.016,0.009)+gridLine(vWorldPos.z*0.016,0.009);
-                            float grid=max(gx,gz)*0.5+major*0.32;
-                            float dist=length(vWorldPos.xz)*0.011;
-                            float fade=exp(-dist);
-                            float mx=marquee(lx,mix(0.05,0.075,uNight));
-                            float mz=marquee(lz,mix(0.038,0.058,uNight));
-                            float mx2=marquee(lx+lz*0.5,mix(0.03,0.042,uNight));
-                            vec3 flowCol=mix(uFlowA,uFlowB,0.5+0.5*sin(uTime*0.55+dist));
-                            flowCol=mix(flowCol,uFlowC,mx2*0.6);
-                            vec3 base=mix(uGrid*mix(0.5,0.14,uNight),uGlow,grid*0.52);
-                            float flowBoost=mix(1.85,1.05,uNight);
-                            vec3 col=base+flowCol*(gx*mx+gz*mz+major*mx2*0.55)*flowBoost;
-                            col+=uFlowC*sin(uTime*0.6+dist*2.0)*0.08*fade;
-                            float alpha=(grid*0.58+(mx+mz+mx2*0.45)*0.42)*fade*mix(0.78,0.88,uNight)+fade*mix(0.07,0.04,uNight);
-                            if(alpha<0.012) discard;
-                            gl_FragColor=vec4(col,alpha);
-                        }`
-                },
-                building: {
-                    vertex: `varying vec3 vNormal; varying vec3 vWorldPos; void main(){ vNormal=normalize(normalMatrix*normal); vWorldPos=(modelMatrix*vec4(position,1.0)).xyz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-                    fragment: `
-                        uniform float uTime; uniform vec3 uBase; uniform vec3 uGlow;
-                        uniform vec3 uFlowA; uniform vec3 uFlowB; uniform vec3 uFlowC; uniform vec3 uFlowD;
-                        uniform float uSeed; uniform float uNight;
-                        varying vec3 vNormal; varying vec3 vWorldPos;
-                        void main(){
-                            float vBand=fract(vWorldPos.y*0.1-uTime*mix(0.12,0.2,uNight)+uSeed);
-                            float vStreak=smoothstep(0.0,0.032,vBand)*smoothstep(0.24,0.032,vBand);
-                            float vBand2=fract(vWorldPos.y*0.06-uTime*mix(0.08,0.14,uNight)+uSeed*1.7);
-                            float vStreak2=smoothstep(0.0,0.025,vBand2)*smoothstep(0.18,0.025,vBand2);
-                            float win=step(0.76,fract(vWorldPos.y*0.42+uSeed))*step(0.7,fract(vWorldPos.x*0.48+vWorldPos.z*0.36+uSeed));
-                            float hueT=sin(uTime*0.45+uSeed*3.7+vWorldPos.y*0.035)*0.5+0.5;
-                            float hueT2=sin(uTime*0.33+uSeed*2.3+vWorldPos.y*0.05)*0.5+0.5;
-                            float hueT3=sin(uTime*0.58+uSeed*5.1)*0.5+0.5;
-                            vec3 fc=mix(uFlowA,uFlowB,hueT);
-                            fc=mix(fc,uFlowC,hueT2);
-                            fc=mix(fc,uFlowD,hueT3);
-                            float edge=pow(1.0-abs(dot(normalize(vNormal),vec3(0.0,1.0,0.0))),2.2);
-                            float flicker=0.52+0.48*sin(uTime*2.6+uSeed*7.0+vWorldPos.y*0.2);
-                            vec3 col=uBase*mix(0.12,0.035,uNight);
-                            col+=fc*vStreak*mix(1.15,1.75,uNight);
-                            col+=fc*vStreak2*mix(0.55,0.95,uNight);
-                            col+=fc*win*flicker*mix(0.38,0.92,uNight);
-                            col+=uGlow*edge*0.22*mix(0.45,0.95,uNight);
-                            gl_FragColor=vec4(col,mix(0.5,0.9,uNight));
-                        }`
-                },
-                logo: {
-                    vertex: `varying vec3 vNormal; varying vec3 vViewDir; varying vec3 vWorldPos; void main(){ vec4 wp=modelMatrix*vec4(position,1.0); vWorldPos=wp.xyz; vNormal=normalize(normalMatrix*normal); vec4 mv=viewMatrix*wp; vViewDir=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`,
-                    fragment: `
-                        uniform float uTime; uniform vec3 uBase; uniform vec3 uGlow; uniform vec3 uAccent;
-                        uniform vec3 uFlowA; uniform vec3 uFlowB; uniform vec3 uFlowC;
-                        uniform float uNight; uniform float uIndex;
-                        varying vec3 vNormal; varying vec3 vViewDir; varying vec3 vWorldPos;
-                        void main(){
-                            float fresnel=pow(1.0-max(dot(normalize(vNormal),normalize(vViewDir)),0.0),2.2);
-                            float pulse=0.5+0.5*sin(uTime*1.35+uIndex*1.4);
-                            float band=fract(vWorldPos.y*0.12-uTime*mix(0.08,0.12,uNight)+uIndex*0.35);
-                            float marquee=smoothstep(0.0,0.07,band)*smoothstep(0.24,0.07,band);
-                            float hueT=sin(uTime*0.95+uIndex*1.9)*0.5+0.5;
-                            float hueT2=cos(uTime*0.7+uIndex*0.8)*0.5+0.5;
-                            vec3 flowCol=mix(uFlowA,uFlowB,hueT);
-                            flowCol=mix(flowCol,uFlowC,hueT2);
-                            vec3 body=uBase*mix(0.38,0.16,uNight);
-                            vec3 col=mix(body,flowCol,fresnel*mix(0.8,1.0,uNight)+marquee*0.5);
-                            col+=uGlow*fresnel*pulse*mix(0.28,0.5,uNight);
-                            col+=uAccent*marquee*mix(0.2,0.42,uNight);
-                            col+=flowCol*fresnel*0.18*mix(0.6,1.0,uNight);
-                            gl_FragColor=vec4(col,1.0);
-                        }`
-                }
-            };
-
-            function centerGeometry(geo) {
-                geo.computeBoundingBox();
-                const c = new THREE.Vector3();
-                geo.boundingBox.getCenter(c);
-                geo.translate(-c.x, -c.y, -c.z);
-            }
-            function makeShapeO(r) {
-                const s = new THREE.Shape();
-                s.absarc(0, 0, r, 0, Math.PI * 2, false);
-                const hole = new THREE.Path();
-                hole.absarc(0, 0, r * 0.55, 0, Math.PI * 2, true);
-                s.holes.push(hole);
-                return s;
-            }
-            function makeShapeA(size) {
-                const w = size * 0.94, h = size, hw = w * 0.5;
-                const s = new THREE.Shape();
-                s.moveTo(-hw, -h * 0.46); s.lineTo(0, h * 0.5); s.lineTo(hw, -h * 0.46);
-                s.lineTo(hw * 0.58, -h * 0.46); s.lineTo(hw * 0.36, h * 0.06);
-                s.lineTo(-hw * 0.36, h * 0.06); s.lineTo(-hw * 0.58, -h * 0.46); s.closePath();
-                const hole = new THREE.Path();
-                hole.moveTo(-hw * 0.24, -h * 0.1); hole.lineTo(0, h * 0.28); hole.lineTo(hw * 0.24, -h * 0.1);
-                hole.lineTo(hw * 0.19, h * 0.08); hole.lineTo(-hw * 0.19, h * 0.08); hole.closePath();
-                s.holes.push(hole);
-                return s;
-            }
-
-            function addVerticalFlowLine(group, w, d, h, baseY, colors, seed) {
-                const r = (o) => { const s = Math.sin((seed + o) * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
-                const hw = w * 0.5, hd = d * 0.5;
-                const face = Math.floor(r(0) * 4);
-                let x0, z0;
-                if (face === 0) { x0 = hw + 0.05; z0 = (r(1) - 0.5) * d * 0.85; }
-                else if (face === 1) { x0 = -hw - 0.05; z0 = (r(1) - 0.5) * d * 0.85; }
-                else if (face === 2) { x0 = (r(1) - 0.5) * w * 0.85; z0 = hd + 0.05; }
-                else { x0 = (r(1) - 0.5) * w * 0.85; z0 = -hd - 0.05; }
-                const positions = new Float32Array([x0, baseY, z0, x0, baseY + h, z0]);
-                const geo = new THREE.BufferGeometry();
-                geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                const mat = new THREE.LineBasicMaterial({
-                    color: colors.flowA, transparent: true,
-                    opacity: colors.isDark ? 0.78 : 0.88, blending: THREE.AdditiveBlending
-                });
-                towerFlowLineMats.push({ mat, seed, phase: r(2) * Math.PI * 2 });
-                const line = new THREE.Line(geo, mat);
-                line.position.y = 0;
-                group.add(line);
-            }
-
-            function addSkyscraperSegment(group, w, d, h, baseY, colors, seed) {
-                const geo = new THREE.BoxGeometry(w, h, d);
-                const ghostMat = new THREE.ShaderMaterial({
-                    uniforms: {
-                        uTime: { value: 0 }, uBase: { value: new THREE.Color(colors.skyDeep) },
-                        uGlow: { value: new THREE.Color(colors.glow) },
-                        uFlowA: { value: new THREE.Color(colors.flowA) },
-                        uFlowB: { value: new THREE.Color(colors.flowB) },
-                        uFlowC: { value: new THREE.Color(colors.flowC) },
-                        uFlowD: { value: new THREE.Color(colors.flowD) },
-                        uSeed: { value: seed }, uNight: { value: colors.isDark }
-                    },
-                    vertexShader: SHADERS.building.vertex, fragmentShader: SHADERS.building.fragment, transparent: true
-                });
-                buildingMats.push(ghostMat);
-                const ghost = new THREE.Mesh(geo, ghostMat);
-                ghost.position.y = baseY + h * 0.5;
-                group.add(ghost);
-                const edgeMat = new THREE.LineBasicMaterial({
-                    color: colors.flowB, transparent: true,
-                    opacity: colors.isDark ? 0.62 : 0.78, blending: THREE.AdditiveBlending
-                });
-                edgeMat.userData.baseOpacity = edgeMat.opacity;
-                edgeLineMats.push(edgeMat);
-                const lines = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 8), edgeMat);
-                lines.position.y = baseY + h * 0.5;
-                group.add(lines);
-                const lineCount = 2 + Math.floor((seed % 1) * 3);
-                for (let i = 0; i < lineCount; i++) addVerticalFlowLine(group, w, d, h, baseY, colors, seed + i * 0.23);
-            }
-
-            function addSpireAntenna(group, radius, h, baseY, colors, seed) {
-                const geo = new THREE.CylinderGeometry(radius * 0.35, radius, h, 6);
-                const mat = new THREE.ShaderMaterial({
-                    uniforms: {
-                        uTime: { value: 0 }, uBase: { value: new THREE.Color(colors.skyDeep) },
-                        uGlow: { value: new THREE.Color(colors.glow) },
-                        uFlowA: { value: new THREE.Color(colors.flowA) },
-                        uFlowB: { value: new THREE.Color(colors.flowB) },
-                        uFlowC: { value: new THREE.Color(colors.flowC) },
-                        uFlowD: { value: new THREE.Color(colors.flowD) },
-                        uSeed: { value: seed }, uNight: { value: colors.isDark }
-                    },
-                    vertexShader: SHADERS.building.vertex, fragmentShader: SHADERS.building.fragment, transparent: true
-                });
-                buildingMats.push(mat);
-                const spire = new THREE.Mesh(geo, mat);
-                spire.position.y = baseY + h * 0.5;
-                group.add(spire);
-                const tipGeo = new THREE.BufferGeometry();
-                tipGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, baseY + h, 0, 0, baseY + h * 1.35, 0]), 3));
-                const tipMat = new THREE.LineBasicMaterial({ color: colors.flowC, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending });
-                towerFlowLineMats.push({ mat: tipMat, seed, phase: 0 });
-                group.add(new THREE.Line(tipGeo, tipMat));
-            }
-
-            function buildSkyscraperClassic(colors, x, z, seed, distFactor) {
-                const g = new THREE.Group();
-                const r = (o) => { const s = Math.sin((seed + o) * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
-                const totalH = 34 + r(1) * (distFactor < 5 ? 62 : 48);
-                const w = 1.2 + r(2) * 3.8, d = 1.2 + r(3) * 3.8;
-                addSkyscraperSegment(g, w, d, totalH * 0.76, 0, colors, seed);
-                addSkyscraperSegment(g, w * 0.58, d * 0.58, totalH * 0.16, totalH * 0.76, colors, seed + 1.3);
-                addSpireAntenna(g, Math.min(w, d) * 0.22, totalH * 0.14, totalH * 0.92, colors, seed + 2.6);
-                g.position.set(x, 0, z);
-                return g;
-            }
-
-            function buildTwinTowers(colors, x, z, seed) {
-                const g = new THREE.Group();
-                const r = (o) => { const s = Math.sin((seed + o) * 97.3 + 211.1) * 43758.5453; return s - Math.floor(s); };
-                const h = 38 + r(1) * 42, gap = 2.2 + r(2) * 2.5, w = 1.1 + r(3) * 1.8;
-                [-1, 1].forEach((side, i) => {
-                    const t = new THREE.Group();
-                    addSkyscraperSegment(t, w, w, h * 0.82, 0, colors, seed + i * 1.1);
-                    addSkyscraperSegment(t, w * 0.62, w * 0.62, h * 0.18, h * 0.82, colors, seed + i * 1.1 + 0.5);
-                    addSpireAntenna(t, w * 0.3, h * 0.1, h, colors, seed + i + 2);
-                    t.position.x = side * gap;
-                    g.add(t);
-                });
-                g.position.set(x, 0, z);
-                return g;
-            }
-
-            function buildSteppedPyramid(colors, x, z, seed) {
-                const g = new THREE.Group();
-                const r = (o) => { const s = Math.sin((seed + o) * 73.5 + 419.2) * 43758.5453; return s - Math.floor(s); };
-                const steps = 4 + Math.floor(r(0) * 3);
-                let y = 0, bw = 5 + r(1) * 4, bd = 5 + r(2) * 4;
-                for (let i = 0; i < steps; i++) {
-                    const sh = 8 + r(i + 3) * 14;
-                    addSkyscraperSegment(g, bw, bd, sh, y, colors, seed + i * 1.9);
-                    y += sh * 0.92;
-                    bw *= 0.72;
-                    bd *= 0.72;
-                }
-                addSpireAntenna(g, 0.35, 10 + r(9) * 8, y, colors, seed + 8);
-                g.position.set(x, 0, z);
-                return g;
-            }
-
-            function buildTwistedStack(colors, x, z, seed) {
-                const g = new THREE.Group();
-                const r = (o) => { const s = Math.sin((seed + o) * 55.1 + 883.4) * 43758.5453; return s - Math.floor(s); };
-                const layers = 5 + Math.floor(r(0) * 4);
-                let y = 0;
-                for (let i = 0; i < layers; i++) {
-                    const seg = new THREE.Group();
-                    const w = 2.2 + r(i + 1) * 2.8, h = 7 + r(i + 2) * 10;
-                    addSkyscraperSegment(seg, w, w * (0.75 + r(i + 3) * 0.4), h, 0, colors, seed + i * 2.1);
-                    seg.position.y = y;
-                    seg.rotation.y = (i * 0.22 + r(i + 4) * 0.35) * (seed > 20 ? 1 : -1);
-                    g.add(seg);
-                    y += h * 0.88;
-                }
-                g.position.set(x, 0, z);
-                return g;
-            }
-
-            function buildRingAtrium(colors, x, z, seed) {
-                const g = new THREE.Group();
-                const r = (o) => { const s = Math.sin((seed + o) * 111.7 + 57.3) * 43758.5453; return s - Math.floor(s); };
-                const h = 42 + r(1) * 38, radius = 2.2 + r(2) * 2.5;
-                const cylMat = new THREE.ShaderMaterial({
-                    uniforms: {
-                        uTime: { value: 0 }, uBase: { value: new THREE.Color(colors.skyDeep) },
-                        uGlow: { value: new THREE.Color(colors.glow) },
-                        uFlowA: { value: new THREE.Color(colors.flowA) },
-                        uFlowB: { value: new THREE.Color(colors.flowB) },
-                        uFlowC: { value: new THREE.Color(colors.flowC) },
-                        uFlowD: { value: new THREE.Color(colors.flowD) },
-                        uSeed: { value: seed }, uNight: { value: colors.isDark }
-                    },
-                    vertexShader: SHADERS.building.vertex, fragmentShader: SHADERS.building.fragment, transparent: true
-                });
-                buildingMats.push(cylMat);
-                const tower = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.72, radius, h, 8), cylMat);
-                tower.position.y = h * 0.5;
-                g.add(tower);
-                for (let i = 0; i < 4; i++) {
-                    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius * 1.05, 0.08, 6, 24), new THREE.MeshBasicMaterial({
-                        color: [colors.flowA, colors.flowB, colors.flowC, colors.flowD][i % 4],
-                        transparent: true, opacity: colors.isDark ? 0.55 : 0.72, blending: THREE.AdditiveBlending
-                    }));
-                    ring.rotation.x = Math.PI / 2;
-                    ring.position.y = 8 + i * (h / 4.5);
-                    g.add(ring);
-                }
-                addSpireAntenna(g, radius * 0.25, h * 0.12, h, colors, seed + 5);
-                g.position.set(x, 0, z);
-                return g;
-            }
-
-            function buildCantileverTower(colors, x, z, seed) {
-                const g = new THREE.Group();
-                const r = (o) => { const s = Math.sin((seed + o) * 63.9 + 701.2) * 43758.5453; return s - Math.floor(s); };
-                addSkyscraperSegment(g, 6 + r(1) * 4, 4 + r(2) * 3, 12 + r(3) * 8, 0, colors, seed);
-                const upper = new THREE.Group();
-                addSkyscraperSegment(upper, 2 + r(4) * 2, 2 + r(5) * 2, 36 + r(6) * 40, 0, colors, seed + 2.2);
-                upper.position.set((r(7) - 0.5) * 5, 14 + r(8) * 6, (r(9) - 0.5) * 4);
-                g.add(upper);
-                addSpireAntenna(g, 0.4, 14 + r(10) * 10, upper.position.y + 42, colors, seed + 4);
-                g.position.set(x, 0, z);
-                return g;
-            }
-
-            function buildNeedleCluster(colors, x, z, seed) {
-                const g = new THREE.Group();
-                const r = (o) => { const s = Math.sin((seed + o) * 41.3 + 999.1) * 43758.5453; return s - Math.floor(s); };
-                addSpireAntenna(g, 0.55, 52 + r(1) * 28, 0, colors, seed);
-                for (let i = 0; i < 5; i++) {
-                    const ang = (i / 5) * Math.PI * 2 + r(i + 2);
-                    const sub = new THREE.Group();
-                    addSkyscraperSegment(sub, 0.9 + r(i + 3) * 0.8, 0.9 + r(i + 4) * 0.8, 18 + r(i + 5) * 22, 0, colors, seed + i * 1.4);
-                    sub.position.set(Math.cos(ang) * (3.5 + r(i + 6) * 2), 0, Math.sin(ang) * (3.5 + r(i + 6) * 2));
-                    g.add(sub);
-                }
-                g.position.set(x, 0, z);
-                return g;
-            }
-
-            function buildDataStack(colors, x, z, seed) {
-                const g = new THREE.Group();
-                const r = (o) => { const s = Math.sin((seed + o) * 89.2 + 333.6) * 43758.5453; return s - Math.floor(s); };
-                const stacks = 3 + Math.floor(r(0) * 3);
-                for (let s = 0; s < stacks; s++) {
-                    const col = new THREE.Group();
-                    let y = 0;
-                    const layers = 4 + Math.floor(r(s + 1) * 4);
-                    for (let i = 0; i < layers; i++) {
-                        const w = 1.4 + r(s + i + 5) * 2.2, h = 4 + r(s + i + 10) * 7;
-                        addSkyscraperSegment(col, w, w * 0.85, h, y, colors, seed + s * 3 + i);
-                        y += h * 0.95;
-                    }
-                    col.position.set((s - (stacks - 1) / 2) * (3.5 + r(s + 20) * 2), 0, (r(s + 21) - 0.5) * 3);
-                    g.add(col);
-                }
-                g.position.set(x, 0, z);
-                return g;
-            }
-
-            const BUILDING_TYPES = [
-                buildSkyscraperClassic, buildTwinTowers, buildSteppedPyramid, buildTwistedStack,
-                buildRingAtrium, buildCantileverTower, buildNeedleCluster, buildDataStack
-            ];
-
-            function buildCyberCity(colors) {
-                const city = new THREE.Group();
-                const cell = isMobile ? 13 : 15;
-                const rng = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
-                for (let gx = -GRID_RADIUS; gx <= GRID_RADIUS; gx++) {
-                    for (let gz = -GRID_RADIUS; gz <= GRID_RADIUS; gz++) {
-                        const dist = Math.hypot(gx, gz);
-                        if (dist < 3.4) continue;
-                        const n = gx * 100 + gz;
-                        if (rng(n) > 0.74) continue;
-                        const x = gx * cell + (rng(n + 4) - 0.5) * 4.5;
-                        const z = gz * cell + (rng(n + 5) - 0.5) * 4.5;
-                        const seed = rng(n + 6) * 40;
-                        const typeIdx = Math.floor(rng(n + 7) * BUILDING_TYPES.length);
-                        city.add(BUILDING_TYPES[typeIdx](colors, x, z, seed, dist));
-                    }
-                }
-                [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz], i) => {
-                    city.add(buildNeedleCluster(colors, sx * cell * (GRID_RADIUS - 0.5), sz * cell * (GRID_RADIUS - 0.5), 8 + i * 3.7));
-                });
-                return city;
-            }
-
-            function buildFlowLines(colors) {
-                const group = new THREE.Group();
-                for (let i = 0; i < FLOW_COUNT; i++) {
-                    const len = 4 + Math.random() * 18;
-                    const positions = new Float32Array(6);
-                    const axis = Math.random() > 0.45 ? 'x' : 'z';
-                    const y = 2 + Math.random() * 72;
-                    const offset = (Math.random() - 0.5) * 160;
-                    const fixed = (Math.random() - 0.5) * 160;
-                    if (axis === 'x') { positions[0] = offset; positions[1] = y; positions[2] = fixed; positions[3] = offset + len; positions[4] = y; positions[5] = fixed; }
-                    else { positions[0] = fixed; positions[1] = y; positions[2] = offset; positions[3] = fixed; positions[4] = y; positions[5] = offset + len; }
-                    const geo = new THREE.BufferGeometry();
-                    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                    const mat = new THREE.LineBasicMaterial({
-                        color: [colors.flowA, colors.flowB, colors.flowC, colors.flowD][i % 4],
-                        transparent: true, opacity: colors.isDark ? 0.62 : 0.78, blending: THREE.AdditiveBlending
-                    });
-                    flowLineMats.push(mat);
-                    const line = new THREE.Line(geo, mat);
-                    line.userData = { axis, speed: 0.12 + Math.random() * 0.2, span: 160, y, len, offset, fixed };
-                    flowLines.push(line);
-                    group.add(line);
-                }
-                return group;
-            }
-
-            function buildOLetterEye(colors, spacingX, letterSize, index) {
-                const outerR = letterSize * 0.5;
-                const shape = makeShapeO(outerR);
-                const geo = new THREE.ExtrudeGeometry(shape, EXTRUDE_LOGO);
-                centerGeometry(geo);
-                const mat = new THREE.ShaderMaterial({
-                    uniforms: {
-                        uTime: { value: 0 }, uBase: { value: new THREE.Color(colors.skyDeep) },
-                        uGlow: { value: new THREE.Color(colors.glow) },
-                        uAccent: { value: new THREE.Color(colors.particle) },
-                        uFlowA: { value: new THREE.Color(colors.flowA) },
-                        uFlowB: { value: new THREE.Color(colors.flowB) },
-                        uFlowC: { value: new THREE.Color(colors.flowC) },
-                        uNight: { value: colors.isDark }, uIndex: { value: index }
-                    },
-                    vertexShader: SHADERS.logo.vertex, fragmentShader: SHADERS.logo.fragment
-                });
-                logoMats.push(mat);
-                const mesh = new THREE.Mesh(geo, mat);
-                const edgeMat = new THREE.LineBasicMaterial({ color: colors.flowB, transparent: true, opacity: colors.isDark ? 0.95 : 0.88, blending: THREE.AdditiveBlending });
-                logoWireMats.push(edgeMat);
-                mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 10), edgeMat));
-                const pupilGroup = new THREE.Group();
-                const pupilR = outerR * 0.26;
-                const maxOffset = outerR * 0.34;
-                const zFront = EXTRUDE_LOGO.depth * 0.52;
-                const sclera = new THREE.Mesh(new THREE.CircleGeometry(outerR * 0.5, 32), new THREE.MeshBasicMaterial({
-                    color: 0xffffff, transparent: true, opacity: colors.isDark ? 0.14 : 0.22, blending: THREE.AdditiveBlending
-                }));
-                sclera.position.z = zFront - 0.08;
-                const iris = new THREE.Mesh(new THREE.RingGeometry(pupilR * 0.38, pupilR * 1.08, 32), new THREE.MeshBasicMaterial({
-                    color: colors.flowC, transparent: true, opacity: 0.92, blending: THREE.AdditiveBlending
-                }));
-                iris.position.z = zFront;
-                const pupil = new THREE.Mesh(new THREE.CircleGeometry(pupilR * 0.52, 24), new THREE.MeshBasicMaterial({
-                    color: colors.flowA, transparent: true, opacity: 1, blending: THREE.AdditiveBlending
-                }));
-                pupil.position.z = zFront + 0.06;
-                const highlight = new THREE.Mesh(new THREE.CircleGeometry(pupilR * 0.14, 12), new THREE.MeshBasicMaterial({
-                    color: 0xffffff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending
-                }));
-                highlight.position.set(-pupilR * 0.22, pupilR * 0.24, zFront + 0.12);
-                pupilGroup.add(sclera, iris, pupil, highlight);
-                mesh.add(pupilGroup);
-                mesh.position.x = spacingX;
-                logoEyes.push({ pupilGroup, maxOffset, iris, pupil, highlight });
-                return mesh;
-            }
-
-            function buildOaoMonument(colors) {
-                const monument = new THREE.Group();
-                logoEyes = [];
-                const baseGeo = new THREE.RingGeometry(18, 30, 72);
-                baseGeo.rotateX(-Math.PI / 2);
-                logoBaseMesh = new THREE.Mesh(baseGeo, new THREE.ShaderMaterial({
-                    uniforms: { uTime: { value: 0 }, uGlow: { value: new THREE.Color(colors.glow) }, uFlowA: { value: new THREE.Color(colors.flowA) }, uFlowB: { value: new THREE.Color(colors.flowB) }, uFlowC: { value: new THREE.Color(colors.flowC) }, uNight: { value: colors.isDark } },
-                    vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-                    fragmentShader: `
-                        uniform float uTime; uniform vec3 uGlow; uniform vec3 uFlowA; uniform vec3 uFlowB; uniform vec3 uFlowC; uniform float uNight;
-                        varying vec2 vUv;
-                        void main(){
-                            float ang=atan(vUv.y-0.5,vUv.x-0.5);
-                            float m=fract(ang*0.16-uTime*mix(0.1,0.16,uNight));
-                            float band=smoothstep(0.0,0.06,m)*smoothstep(0.2,0.06,m);
-                            float rad=length(vUv-0.5)*2.0;
-                            float ring=smoothstep(0.55,0.72,rad)*smoothstep(0.98,0.78,rad);
-                            vec3 col=mix(mix(uFlowA,uFlowB,band),uFlowC,sin(uTime*0.5)*0.5+0.5)*band*ring;
-                            col+=uGlow*ring*mix(0.35,0.62,uNight);
-                            float alpha=ring*(band*0.85+0.18)*mix(0.55,0.92,uNight);
-                            if(alpha<0.02) discard;
-                            gl_FragColor=vec4(col,alpha);
-                        }`,
-                    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide
-                }));
-                logoBaseMesh.position.y = 0.06;
-                monument.add(logoBaseMesh);
-                const letterGroup = new THREE.Group();
-                const letterSize = isMobile ? 8.2 : 10.8;
-                const spacing = isMobile ? 12.8 : 16.5;
-                letterGroup.add(buildOLetterEye(colors, -spacing, letterSize, 0));
-                const aShape = makeShapeA(letterSize);
-                const aGeo = new THREE.ExtrudeGeometry(aShape, EXTRUDE_LOGO);
-                centerGeometry(aGeo);
-                const aMat = new THREE.ShaderMaterial({
-                    uniforms: {
-                        uTime: { value: 0 }, uBase: { value: new THREE.Color(colors.skyDeep) },
-                        uGlow: { value: new THREE.Color(colors.glow) },
-                        uAccent: { value: new THREE.Color(colors.particle) },
-                        uFlowA: { value: new THREE.Color(colors.flowA) },
-                        uFlowB: { value: new THREE.Color(colors.flowB) },
-                        uFlowC: { value: new THREE.Color(colors.flowC) },
-                        uNight: { value: colors.isDark }, uIndex: { value: 1 }
-                    },
-                    vertexShader: SHADERS.logo.vertex, fragmentShader: SHADERS.logo.fragment
-                });
-                logoMats.push(aMat);
-                const aMesh = new THREE.Mesh(aGeo, aMat);
-                const aEdge = new THREE.LineBasicMaterial({ color: colors.flowD, transparent: true, opacity: colors.isDark ? 0.95 : 0.88, blending: THREE.AdditiveBlending });
-                logoWireMats.push(aEdge);
-                aMesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(aGeo, 10), aEdge));
-                letterGroup.add(aMesh);
-                letterGroup.add(buildOLetterEye(colors, spacing, letterSize, 2));
-                letterGroup.position.y = 5.5;
-                letterGroup.rotation.x = -0.035;
-                monument.add(letterGroup);
-                monument.userData.letterGroup = letterGroup;
-                return monument;
-            }
-
-            function buildSky(colors) {
-                return new THREE.Mesh(new THREE.SphereGeometry(260, 32, 16), new THREE.ShaderMaterial({
-                    uniforms: { uTime: { value: 0 }, uTop: { value: new THREE.Color(colors.skyTop) }, uHorizon: { value: new THREE.Color(colors.skyHorizon) }, uDeep: { value: new THREE.Color(colors.skyDeep) }, uFlowA: { value: new THREE.Color(colors.flowA) }, uFlowB: { value: new THREE.Color(colors.flowB) }, uFlowC: { value: new THREE.Color(colors.flowC) }, uNight: { value: colors.isDark } },
-                    vertexShader: SHADERS.sky.vertex, fragmentShader: SHADERS.sky.fragment, side: THREE.BackSide, depthWrite: false
-                }));
-            }
-
-            function buildGround(colors) {
-                const geo = new THREE.PlaneGeometry(480, 480);
-                geo.rotateX(-Math.PI / 2);
-                return new THREE.Mesh(geo, new THREE.ShaderMaterial({
-                    uniforms: { uTime: { value: 0 }, uGrid: { value: new THREE.Color(colors.grid) }, uGlow: { value: new THREE.Color(colors.glow) }, uFlowA: { value: new THREE.Color(colors.flowA) }, uFlowB: { value: new THREE.Color(colors.flowB) }, uFlowC: { value: new THREE.Color(colors.flowC) }, uNight: { value: colors.isDark } },
-                    vertexShader: SHADERS.ground.vertex, fragmentShader: SHADERS.ground.fragment, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
-                }));
-            }
-
-            function buildStars(colors) {
-                const geo = new THREE.BufferGeometry();
-                const positions = new Float32Array(STAR_COUNT * 3);
-                for (let i = 0; i < STAR_COUNT; i++) {
-                    const r = 160 + Math.random() * 90;
-                    const theta = Math.random() * Math.PI * 2;
-                    const phi = Math.acos(2 * Math.random() - 1);
-                    positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-                    positions[i * 3 + 1] = Math.abs(r * Math.cos(phi)) + 15;
-                    positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-                }
-                geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                return new THREE.Points(geo, new THREE.PointsMaterial({ color: colors.particle, size: isMobile ? 0.5 : 0.68, transparent: true, opacity: colors.isDark ? 0.72 : 0.42, depthWrite: false, blending: THREE.AdditiveBlending }));
-            }
-
-            function resetPlayerView() {
-                const v = isMobile ? LOGO_VIEW.mobile : LOGO_VIEW.desktop;
-                player.position.set(LOGO_TARGET.x, LOGO_TARGET.y + v.heightOffset, LOGO_TARGET.z + v.dist);
-                player.yaw = v.yaw;
-                player.pitch = v.pitch;
-                player.keys.w = player.keys.a = player.keys.s = player.keys.d = false;
-                player.dragging = false;
-                document.body.classList.remove('oao-scene-dragging');
-                camera.position.copy(player.position);
-                camera.lookAt(LOGO_TARGET.x, LOGO_TARGET.y + (v.aimLift || 1.5), LOGO_TARGET.z);
-            }
-
-            function updateCameraFromPlayer() {
-                const cp = Math.cos(player.pitch), sp = Math.sin(player.pitch);
-                const sy = Math.sin(player.yaw), cy = Math.cos(player.yaw);
-                camera.position.copy(player.position);
-                camera.lookAt(player.position.x - sy * cp, player.position.y + sp, player.position.z - cy * cp);
-            }
-
-            function clampPlayer() {
-                player.position.x = THREE.MathUtils.clamp(player.position.x, -120, 120);
-                player.position.y = THREE.MathUtils.clamp(player.position.y, 3.2, 42);
-                player.position.z = THREE.MathUtils.clamp(player.position.z, -120, 120);
-            }
-
-            function getPlayerBasis() {
-                _forward.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw)).normalize();
-                _right.set(Math.cos(player.yaw), 0, -Math.sin(player.yaw)).normalize();
-                return { forward: _forward, right: _right };
-            }
-
-            function isHomeActive() { return document.getElementById('pageHome')?.classList.contains('active'); }
-            function isUiTarget(el) {
-                if (!el || el === document.documentElement) return false;
-                return !!el.closest('.topbar,.nav-menu,.wallet-env-banner,.home-center-content,.oao-side-panel,.oao-toolbar-toggle,.ai-home-toggle,.section-tag,button,input,textarea,select,a,label,[contenteditable="true"]');
-            }
-
-            function bindLogoEyeTracking() {
-                const track = (cx, cy) => {
-                    if (!isHomeActive()) return;
-                    mouseScreen.x = (cx / window.innerWidth) * 2 - 1;
-                    mouseScreen.y = -(cy / window.innerHeight) * 2 + 1;
-                    mouseScreen.active = true;
-                };
-                document.addEventListener('mousemove', (e) => track(e.clientX, e.clientY), true);
-                document.addEventListener('touchmove', (e) => { if (e.touches[0]) track(e.touches[0].clientX, e.touches[0].clientY); }, { capture: true, passive: true });
-            }
-
-            function updateLogoEyes() {
-                if (!logoEyes.length || !isHomeActive()) return;
-                logoEyes.forEach((eye, i) => {
-                    const pg = eye.pupilGroup;
-                    const max = eye.maxOffset;
-                    const tx = mouseScreen.active ? mouseScreen.x * max * 1.25 : 0;
-                    const ty = mouseScreen.active ? mouseScreen.y * max * 1.05 : 0;
-                    pg.position.x += (tx - pg.position.x) * 0.15;
-                    pg.position.y += (ty - pg.position.y) * 0.15;
-                    if (currentPalette) {
-                        eye.iris.material.color.copy(cycleFlowColor(time * 0.35 + i * 0.2, i + 1));
-                        eye.pupil.material.color.copy(cycleFlowColor(time * 0.5 + i * 0.3, i + 2));
-                    }
-                });
-            }
-
-            function bindPlayerControls() {
-                const setDrag = (on) => { player.dragging = on; document.body.classList.toggle('oao-scene-dragging', on); };
-                document.addEventListener('keydown', (e) => {
-                    if (!isHomeActive() || isUiTarget(document.activeElement)) return;
-                    const k = e.key.toLowerCase();
-                    if (k in player.keys) { player.keys[k] = true; e.preventDefault(); }
-                }, true);
-                document.addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); if (k in player.keys) player.keys[k] = false; }, true);
-                document.addEventListener('mousedown', (e) => {
-                    if (!isHomeActive() || isUiTarget(e.target)) return;
-                    if (e.button !== 0 && e.button !== 2) return;
-                    setDrag(true); player.lastX = e.clientX; player.lastY = e.clientY;
-                }, true);
-                document.addEventListener('mousemove', (e) => {
-                    if (!player.dragging || !isHomeActive()) return;
-                    const dx = e.clientX - player.lastX, dy = e.clientY - player.lastY;
-                    if (dx || dy) e.preventDefault();
-                    player.yaw -= dx * player.lookSpeed;
-                    player.pitch = THREE.MathUtils.clamp(player.pitch - dy * player.lookSpeed, -Math.PI * 0.4, Math.PI * 0.42);
-                    player.lastX = e.clientX; player.lastY = e.clientY;
-                    updateCameraFromPlayer();
-                }, { capture: true, passive: false });
-                document.addEventListener('mouseup', () => setDrag(false), true);
-                document.addEventListener('mouseleave', () => setDrag(false), true);
-                document.addEventListener('wheel', (e) => {
-                    if (!isHomeActive() || isUiTarget(e.target)) return;
-                    e.preventDefault();
-                    const { forward } = getPlayerBasis();
-                    player.position.addScaledVector(forward, -e.deltaY * player.wheelSpeed);
-                    clampPlayer(); updateCameraFromPlayer();
-                }, { capture: true, passive: false });
-                document.addEventListener('contextmenu', (e) => { if (isHomeActive() && !isUiTarget(e.target)) e.preventDefault(); }, true);
-                document.addEventListener('touchstart', (e) => {
-                    if (!isHomeActive() || isUiTarget(e.target) || !e.touches[0]) return;
-                    setDrag(true); player.lastX = e.touches[0].clientX; player.lastY = e.touches[0].clientY;
-                }, { capture: true, passive: true });
-                document.addEventListener('touchmove', (e) => {
-                    if (!player.dragging || !e.touches[0]) return;
-                    e.preventDefault();
-                    const dx = e.touches[0].clientX - player.lastX, dy = e.touches[0].clientY - player.lastY;
-                    player.yaw -= dx * player.lookSpeed;
-                    player.pitch = THREE.MathUtils.clamp(player.pitch - dy * player.lookSpeed, -Math.PI * 0.4, Math.PI * 0.42);
-                    player.lastX = e.touches[0].clientX; player.lastY = e.touches[0].clientY;
-                    updateCameraFromPlayer();
-                }, { capture: true, passive: false });
-                document.addEventListener('touchend', () => setDrag(false), true);
-            }
-
-            function updatePlayerMovement(dt) {
-                if (!isHomeActive()) return;
-                const { forward, right } = getPlayerBasis();
-                const move = player.speed * (dt / 0.016);
-                if (player.keys.w) player.position.addScaledVector(forward, move);
-                if (player.keys.s) player.position.addScaledVector(forward, -move);
-                if (player.keys.a) player.position.addScaledVector(right, -move);
-                if (player.keys.d) player.position.addScaledVector(right, move);
-                if (player.keys.w || player.keys.a || player.keys.s || player.keys.d) { clampPlayer(); updateCameraFromPlayer(); }
-            }
-
-            function cycleFlowColor(t, seed) {
-                if (!currentPalette) return new THREE.Color(0xffffff);
-                const cols = [currentPalette.flowA, currentPalette.flowB, currentPalette.flowC, currentPalette.flowD];
-                const tt = (t + seed * 0.17) % 1;
-                const idx = Math.floor(tt * 4) % 4;
-                const nxt = (idx + 1) % 4;
-                const f = (tt * 4) % 1;
-                return _tmpCol.set(cols[idx]).lerp(new THREE.Color(cols[nxt]), f);
-            }
-
-            function applyTimeOfDay(force) {
-                const ts = getLocalTimeState();
-                nightFactor = themeUserOverride
-                    ? (document.documentElement.getAttribute('data-theme') === 'dark' ? 1 : 0)
-                    : ts.nightFactor;
-                const p = blendPalette(nightFactor);
-                currentPalette = p;
-                updateCssSceneVars(p);
-                scene.fog = new THREE.FogExp2(p.fog, p.fogDensity);
-                renderer.setClearColor(p.fog, 1);
-                if (skyMesh?.material?.uniforms) {
-                    const u = skyMesh.material.uniforms;
-                    u.uTop.value.set(p.skyTop); u.uHorizon.value.set(p.skyHorizon); u.uDeep.value.set(p.skyDeep);
-                    u.uFlowA.value.set(p.flowA); u.uFlowB.value.set(p.flowB); u.uFlowC.value.set(p.flowC);
-                    u.uNight.value = p.isDark;
-                }
-                if (groundMesh?.material?.uniforms) {
-                    const u = groundMesh.material.uniforms;
-                    u.uGrid.value.set(p.grid); u.uGlow.value.set(p.glow);
-                    u.uFlowA.value.set(p.flowA); u.uFlowB.value.set(p.flowB); u.uFlowC.value.set(p.flowC);
-                    u.uNight.value = p.isDark;
-                }
-                buildingMats.forEach((m) => {
-                    m.uniforms.uGlow.value.set(p.glow);
-                    m.uniforms.uFlowA.value.set(p.flowA);
-                    m.uniforms.uFlowB.value.set(p.flowB);
-                    m.uniforms.uFlowC.value.set(p.flowC);
-                    m.uniforms.uFlowD.value.set(p.flowD);
-                    m.uniforms.uNight.value = p.isDark;
-                });
-                edgeLineMats.forEach((m, i) => {
-                    m.color.set([p.flowA, p.flowB, p.flowC, p.flowD][i % 4]);
-                    m.userData.baseOpacity = p.isDark ? 0.62 : 0.78;
-                    m.opacity = m.userData.baseOpacity;
-                });
-                flowLineMats.forEach((m, i) => { m.color.set([p.flowA, p.flowB, p.flowC, p.flowD][i % 4]); m.opacity = p.isDark ? 0.62 : 0.78; });
-                logoMats.forEach((m) => {
-                    m.uniforms.uGlow.value.set(p.glow);
-                    m.uniforms.uAccent.value.set(p.particle);
-                    m.uniforms.uFlowA.value.set(p.flowA);
-                    m.uniforms.uFlowB.value.set(p.flowB);
-                    m.uniforms.uFlowC.value.set(p.flowC);
-                    m.uniforms.uNight.value = p.isDark;
-                });
-                logoWireMats.forEach((m, i) => { m.color.set([p.flowA, p.flowB, p.flowC, p.flowD][i % 4]); m.opacity = p.isDark ? 0.95 : 0.88; });
-                if (starField?.material) { starField.material.color.set(p.particle); starField.material.opacity = p.isDark ? 0.72 : 0.42; }
-                if (logoBaseMesh?.material?.uniforms) {
-                    logoBaseMesh.material.uniforms.uGlow.value.set(p.glow);
-                    logoBaseMesh.material.uniforms.uFlowA.value.set(p.flowA);
-                    logoBaseMesh.material.uniforms.uFlowB.value.set(p.flowB);
-                    logoBaseMesh.material.uniforms.uFlowC.value.set(p.flowC);
-                    logoBaseMesh.material.uniforms.uNight.value = p.isDark;
-                }
-                const dayT = 1 - nightFactor;
-                let sunX = 40, sunY = 55, sunZ = 25;
-                if (ts.hour >= 6 && ts.hour <= 18) {
-                    const t = (ts.hour - 6) / 12;
-                    sunX = Math.cos(t * Math.PI) * 70;
-                    sunY = Math.sin(t * Math.PI) * 50 + 12;
-                    sunZ = 35;
-                }
-                sceneLights.sun.color.setHex(p.sunColor);
-                sceneLights.sun.intensity = p.sun;
-                sceneLights.sun.position.set(sunX * dayT + 20 * nightFactor, sunY * dayT + 45 * nightFactor, sunZ);
-                sceneLights.moon.intensity = p.moon;
-                sceneLights.moon.position.set(-sunX * 0.6, 38 + nightFactor * 20, -sunZ);
-                sceneLights.neon.intensity = p.neon;
-                sceneLights.oaoKey.intensity = p.logoKey;
-                sceneLights.oaoKey.userData.base = p.logoKey;
-                sceneLights.rim.intensity = p.rim;
-                sceneLights.oaoFill.color.set(p.flowA);
-                if (force !== false) syncPageThemeFromTime();
-            }
-
-            function init() {
-                syncPageThemeFromTime();
-                const p = blendPalette(getLocalTimeState().nightFactor);
-                scene = new THREE.Scene();
-                scene.fog = new THREE.FogExp2(p.fog, p.fogDensity);
-                camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.4, 400);
-                renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, alpha: false, powerPreference: 'high-performance' });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
-                renderer.setClearColor(p.fog, 1);
-                scene.add(new THREE.AmbientLight(0x8899bb, p.ambient));
-                sceneLights.sun = new THREE.DirectionalLight(p.sunColor, p.sun);
-                sceneLights.moon = new THREE.DirectionalLight(0xaabbff, p.moon);
-                sceneLights.neon = new THREE.PointLight(p.glow, p.neon, 150);
-                sceneLights.neon.position.set(0, 38, 0);
-                sceneLights.oaoKey = new THREE.PointLight(p.glow, p.logoKey, 100);
-                sceneLights.oaoKey.userData.base = p.logoKey;
-                sceneLights.oaoKey.position.set(0, 30, 18);
-                sceneLights.oaoSpot = new THREE.SpotLight(p.glow, p.logoKey * 0.85, 130, 0.48, 0.3);
-                sceneLights.oaoSpot.position.set(0, 58, 36);
-                sceneLights.oaoSpot.target.position.set(0, LOGO_TARGET.y + 2.5, 0);
-                sceneLights.oaoFill = new THREE.PointLight(p.flowA, 0.95, 85);
-                sceneLights.oaoFill.position.set(-24, 22, -18);
-                sceneLights.rim = new THREE.PointLight(p.flowC, p.rim, 95);
-                sceneLights.rim.position.set(32, 28, -28);
-                scene.add(sceneLights.sun, sceneLights.moon, sceneLights.neon, sceneLights.oaoKey, sceneLights.oaoSpot, sceneLights.oaoSpot.target, sceneLights.oaoFill, sceneLights.rim);
-                skyMesh = buildSky(p);
-                groundMesh = buildGround(p);
-                groundMesh.position.y = 0.02;
-                starField = buildStars(p);
-                const flowGroup = buildFlowLines(p);
-                cityGroup = buildCyberCity(p);
-                oaoMonument = buildOaoMonument(p);
-                scene.add(skyMesh, starField, groundMesh, flowGroup, cityGroup, oaoMonument);
-                bindPlayerControls();
-                bindLogoEyeTracking();
-                resetPlayerView();
-                if (document.getElementById('pageHome')?.classList.contains('active')) document.body.classList.add('oao-home-active');
-                window.addEventListener('resize', onWindowResize);
-                document.addEventListener('visibilitychange', () => { paused = document.hidden; });
-                window.oaoSceneResetView = resetPlayerView;
-                window.oaoSceneThemeUpdate = () => applyTimeOfDay(false);
-                applyTimeOfDay(false);
-                window.addEventListener('pageshow', () => {
-                    if (isHomeActive()) resetPlayerView();
-                });
-                animate();
-            }
-
-            function onWindowResize() {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }
-
-            function animate() {
-                requestAnimationFrame(animate);
-                if (canvas.style.display === 'none') return;
-                if (paused) return;
-                const dt = reduceMotion ? 0.004 : 0.016;
-                time += dt;
-                const now = new Date();
-                if (now.getMinutes() !== lastThemeSyncMin) {
-                    lastThemeSyncMin = now.getMinutes();
-                    applyTimeOfDay(true);
-                }
-                if (!reduceMotion) updatePlayerMovement(dt);
-                if (skyMesh?.material?.uniforms) skyMesh.material.uniforms.uTime.value = time;
-                if (groundMesh?.material?.uniforms) groundMesh.material.uniforms.uTime.value = time;
-                if (logoBaseMesh?.material?.uniforms) logoBaseMesh.material.uniforms.uTime.value = time;
-                buildingMats.forEach((m) => { m.uniforms.uTime.value = time; });
-                logoMats.forEach((m) => { m.uniforms.uTime.value = time; });
-                edgeLineMats.forEach((m, i) => {
-                    const base = m.userData.baseOpacity ?? 0.5;
-                    m.opacity = base * (0.7 + 0.3 * Math.sin(time * 0.85 + i * 0.11));
-                });
-                if (!reduceMotion) {
-                    flowLines.forEach((line) => {
-                        const ud = line.userData, pos = line.geometry.attributes.position.array;
-                        ud.offset = ((ud.offset ?? 0) + ud.speed) % ud.span - ud.span * 0.5;
-                        if (ud.axis === 'x') { pos[0] = ud.offset; pos[3] = ud.offset + ud.len; pos[1] = pos[4] = ud.y; pos[2] = pos[5] = ud.fixed; }
-                        else { pos[2] = ud.offset; pos[5] = ud.offset + ud.len; pos[1] = pos[4] = ud.y; pos[0] = pos[3] = ud.fixed; }
-                        line.geometry.attributes.position.needsUpdate = true;
-                    });
-                    if (currentPalette) {
-                        flowLineMats.forEach((m, i) => m.color.copy(cycleFlowColor(time * 0.45 + i * 0.08, i)));
-                        towerFlowLineMats.forEach((item, i) => {
-                            item.mat.color.copy(cycleFlowColor(time * 0.38 + i * 0.05, item.seed + item.phase));
-                            item.mat.opacity = (currentPalette.isDark ? 0.72 : 0.85) * (0.75 + 0.25 * Math.sin(time * 2.2 + item.phase));
-                        });
-                        edgeLineMats.forEach((m, i) => {
-                            m.color.copy(cycleFlowColor(time * 0.32 + i * 0.04, i * 1.7));
-                            m.opacity = (m.userData.baseOpacity ?? 0.7) * (0.82 + 0.18 * Math.sin(time * 1.6 + i));
-                        });
-                    }
-                }
-                updateLogoEyes();
-                if (oaoMonument?.userData?.letterGroup && !reduceMotion) {
-                    const lg = oaoMonument.userData.letterGroup;
-                    lg.scale.setScalar(1 + Math.sin(time * Math.PI / 2) * 0.032);
-                    if (!player.dragging) lg.rotation.y = Math.sin(time * 0.26) * 0.038;
-                }
-                if (sceneLights.oaoKey?.userData?.base) {
-                    sceneLights.oaoKey.intensity = sceneLights.oaoKey.userData.base * (0.82 + 0.18 * Math.sin(time * 1.5));
-                }
-                if (sceneLights.oaoSpot && !reduceMotion) sceneLights.oaoSpot.position.x = Math.sin(time * 0.2) * 7;
-                renderer.render(scene, camera);
-            }
-
-            init();
-        })();
 
         // 时间席位滚动功能
         let currentSection = 0;
@@ -16268,7 +15833,6 @@ Generated by OAO ENS Identity Lab
         window.addEventListener('load', async () => {
             const savedLang = localStorage.getItem('oao-language') || 'en';
             updateLanguage(savedLang);
-            updateParticleColor();
             parseWeChatCallbackOnLoad();
             if (!tryRestoreWeChatSession()) {
                 if (!tryRestoreAdminSession()) {
