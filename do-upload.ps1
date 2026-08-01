@@ -5,7 +5,7 @@ Set-Location -LiteralPath $Root
 
 $Log = Join-Path $Root 'upload-log.txt'
 $TokenFile = Join-Path $Root 'git-token.txt'
-$RepoUrl = 'https://github.com/wh529007/oao-platform.git'
+$RepoUrl = 'https://github.com/wh9007/oao-platform.git'
 
 function Log($msg) {
     $line = "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $msg"
