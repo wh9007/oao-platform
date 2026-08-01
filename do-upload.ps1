@@ -13,6 +13,16 @@ function Log($msg) {
     Write-Host $msg
 }
 
+function Invoke-Git([string[]]$GitArgs) {
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $out = & git @GitArgs 2>&1
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = $prev
+    $out | ForEach-Object { Log $_ }
+    return $code
+}
+
 '' | Set-Content -LiteralPath $Log -Encoding UTF8
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
@@ -27,22 +37,23 @@ if ($token -notmatch '^(ghp_|github_pat_)') {
 }
 
 if (-not (Test-Path (Join-Path $Root '.git'))) {
-    git init | Out-Null
+    Invoke-Git @('init') | Out-Null
     Log 'git init'
 }
 
-git branch -M main 2>$null
+Invoke-Git @('branch', '-M', 'main') | Out-Null
 
 $hasOrigin = git remote 2>$null | Select-String -Pattern '^origin$'
-if (-not $hasOrigin) { git remote add origin $RepoUrl }
-else { git remote set-url origin $RepoUrl }
+if (-not $hasOrigin) { Invoke-Git @('remote', 'add', 'origin', $RepoUrl) | Out-Null }
+else { Invoke-Git @('remote', 'set-url', 'origin', $RepoUrl) | Out-Null }
 
-git add -A 2>&1 | ForEach-Object { if ($_ -match '\S') { Log $_ } }
+Invoke-Git @('add', '-A') | Out-Null
 
 $status = git status --porcelain
 if ($status) {
     $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
-    git -c user.name='OAO Site' -c user.email='wh529007@users.noreply.github.com' commit -m "Update OAO site $stamp" 2>&1 | ForEach-Object { Log $_ }
+    $code = Invoke-Git -GitArgs @('-c', 'user.name=OAO Site', '-c', 'user.email=wh9007@users.noreply.github.com', 'commit', '-m', "Update OAO site $stamp")
+    if ($code -ne 0) { exit 1 }
 } else {
     Log 'No local changes; syncing remote only'
 }
@@ -50,17 +61,16 @@ if ($status) {
 $authUrl = $RepoUrl -replace 'https://', "https://${token}@"
 
 Log 'git fetch / pull --rebase'
-git fetch $authUrl 2>&1 | ForEach-Object { Log $_ }
-git pull --rebase $authUrl main 2>&1 | ForEach-Object { Log $_ }
-if ($LASTEXITCODE -ne 0) {
-    git pull $authUrl main --allow-unrelated-histories --no-edit 2>&1 | ForEach-Object { Log $_ }
-    if ($LASTEXITCODE -eq 0) {
-        git pull --rebase $authUrl main 2>&1 | ForEach-Object { Log $_ }
-    }
+Invoke-Git @('fetch', $authUrl) | Out-Null
+$code = Invoke-Git @('pull', '--rebase', $authUrl, 'main')
+if ($code -ne 0) {
+    Invoke-Git @('pull', $authUrl, 'main', '--allow-unrelated-histories', '--no-edit') | Out-Null
+    $code = Invoke-Git @('pull', '--rebase', $authUrl, 'main')
+    if ($code -ne 0) { exit 1 }
 }
 
 Log 'git push'
-git push $authUrl main 2>&1 | ForEach-Object { Log $_ }
-if ($LASTEXITCODE -ne 0) { exit 1 }
+$code = Invoke-Git @('push', $authUrl, 'main')
+if ($code -ne 0) { exit 1 }
 Log 'SUCCESS'
 exit 0
