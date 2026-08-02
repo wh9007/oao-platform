@@ -3,6 +3,7 @@ main = "oao-ai-worker.js"
 compatibility_date = "2024-01-01"
 
 # 复制为 wrangler.toml 后填写 account_id，并执行: npx wrangler deploy
+# 智谱 Key 勿写入此文件，请用: npx wrangler secret put ZHIPU_API_KEY
 
 # account_id = "你的 Cloudflare Account ID"
 
@@ -16,7 +17,8 @@ tag = "v1"
 new_classes = ["MeetingRoom"]
 
 [vars]
-# 在 Cloudflare Tunnel 里为以下服务各建一个 Public Hostname 后填入：
+ZHIPU_MODEL = "glm-4.7-flash"
+# 可选 — 本机 Tunnel（本地 AnythingLLM / Ollama 外网访问）
 # LLM_ORIGIN = "https://llm.你的域名.com"
 # OLLAMA_ORIGIN = "https://ollama.你的域名.com"
-# ANYTHINGLLM_API_KEY = "你的 AnythingLLM API Key"
+# ANYTHINGLLM_API_KEY = "（可选，仅 Tunnel 代理 AnythingLLM 时使用）"

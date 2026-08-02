@@ -1,18 +1,26 @@
 /**
  * OAO 统一 Cloudflare Worker
- * - /ollama/*  → 本机 Ollama（经 Tunnel）
- * - /api/* 等  → 本机 AnythingLLM（经 Tunnel）
- * - /meeting   → 视频会议信令（Durable Object）
- * - /auth/*    → 微信登录等（可选）
  *
- * Worker 环境变量（Settings → Variables）：
- *   LLM_ORIGIN    = https://llm.你的域名.com
- *   OLLAMA_ORIGIN = https://ollama.你的域名.com
- *   ANYTHINGLLM_API_KEY = （可选，若 AnythingLLM 需要）
- *   WECHAT_APP_ID / WECHAT_APP_SECRET / WECHAT_REDIRECT_URI（可选）
+ * 架构：GitHub Pages（前端）→ 本 Worker（中转 + 鉴权）→ 智谱 GLM / 本机 Tunnel
+ *
+ * 路由：
+ *   GET  /glm/health        智谱代理状态（不含 Key）
+ *   POST /glm/chat          智谱 GLM-4.7-Flash 对话（Key 在 Secrets）
+ *   /ollama/*               本机 Ollama（经 Tunnel，可选）
+ *   /api/* 等               本机 AnythingLLM（经 Tunnel，可选）
+ *   /meeting                视频会议信令（Durable Object）
+ *   /auth/wechat/config     微信登录（可选）
+ *
+ * Secrets（Dashboard 或 wrangler secret put）：
+ *   ZHIPU_API_KEY           智谱开放平台 API Key（必填，外网 AI 对话/纪要）
+ *
+ * Variables（Settings → Variables）：
+ *   ZHIPU_MODEL             默认 glm-4.7-flash
+ *   LLM_ORIGIN / OLLAMA_ORIGIN / ANYTHINGLLM_API_KEY（可选，本机 Tunnel）
  */
 
 import { MeetingRoom } from './meeting-room.js';
+import { handleGlmChat, handleGlmHealth } from './glm-handler.js';
 
 export { MeetingRoom };
 
@@ -116,6 +124,19 @@ export default {
       return handleMeeting(request, env);
     }
 
+    if (path.startsWith('/glm/')) {
+      if (path === '/glm/health' && request.method === 'GET') {
+        return withCors(await handleGlmHealth(env, CORS));
+      }
+      if (path === '/glm/chat' && request.method === 'POST') {
+        return withCors(await handleGlmChat(request, env, CORS));
+      }
+      return withCors(new Response(JSON.stringify({ error: 'not_found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      }));
+    }
+
     if (path.startsWith('/ollama')) {
       const origin = env.OLLAMA_ORIGIN;
       if (!origin) {
@@ -137,8 +158,10 @@ export default {
     return withCors(new Response(JSON.stringify({
       service: 'OAO AI Worker',
       status: 'online',
-      endpoints: ['/ollama/*', '/api/*', '/meeting', '/auth/wechat/config'],
-      note: 'Configure LLM_ORIGIN and OLLAMA_ORIGIN to your Cloudflare Tunnel hostnames.',
+      glm: env.ZHIPU_API_KEY ? 'configured' : 'missing ZHIPU_API_KEY secret',
+      model: env.ZHIPU_MODEL || 'glm-4.7-flash',
+      endpoints: ['/glm/health', '/glm/chat', '/ollama/*', '/api/*', '/meeting', '/auth/wechat/config'],
+      note: 'Set ZHIPU_API_KEY secret for cloud AI. Optional: LLM_ORIGIN + OLLAMA_ORIGIN for home Tunnel.',
     }), {
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
     }));

@@ -5,6 +5,8 @@ cloudflare/*.json
 !cloudflare/wrangler.toml.example
 cloudflare/wrangler.toml
 cloudflare/.dev.vars
+cloudflare/.dev.vars.*
+!cloudflare/.dev.vars.example
 
 # 本地与系统
 .DS_Store
