@@ -5,174 +5,109 @@
 【正式网站】
   https://wh9007.github.io/oao-platform/
 
-【日常只需 3 步】
+【日常只需 3 个脚本】
 
-  ① 双击「打开OAO.bat」→ 本地预览（http://127.0.0.1:8777/OAO.html）
-  ② 登录后测试功能（AI 助手 / 小O会议 / OAO翻译）
-  ③ 满意后双击「一键上传GitHub.bat」→ 更新对外网站
+  ① 打开OAO.bat          本地功能测试
+  ② OAO服务器.bat        外网远程访问本机 AI（Tunnel）
+  ③ 一键上传GitHub.bat   版本更新 / 发布到 GitHub Pages
 
-  上传后等约 2 分钟，按 Ctrl+F5 强制刷新正式网站。
+  本地测完 → 需要外网连本机 AI 时开服务器 → 满意后上传 GitHub
+  上传后等约 2 分钟，正式站 Ctrl+F5 强制刷新。
 
 
 ───────────────────────────────────────────────────
-一、项目结构（您需要知道的）
+一、三个主脚本说明
 ───────────────────────────────────────────────────
 
-  【双击使用 — 按顺序】
-    打开OAO.bat            启动主页 + 后台服务（日常必用）
-    一键上传GitHub.bat     上传到 GitHub Pages
-    启动Tunnel.bat         本机 AI 外网穿透（可选，智谱云端无需此步）
-    构建翻译AI.bat         可选：编译本地 AI 服务（:3011）
-    cloudflare\部署智谱Worker.bat  部署智谱 GLM 中转（外网 AI 必做，一次性）
+  【1. 打开OAO.bat — 本地测试】
+    · 启动 http://127.0.0.1:8777/OAO.html
+    · 检测 Ollama / AnythingLLM 是否就绪
+    · 用于：AI 对话、小O会议、OAO翻译 功能验证
+    · 不启动 Tunnel，不影响外网
+
+  【2. OAO服务器.bat — 远程 AI 服务】
+    · 菜单选项：
+        [1] 全部 — 后台服务 + Cloudflare Tunnel（推荐）
+        [2] 仅后台 — Ollama、翻译中继 :3011、主页
+        [3] 仅 Tunnel — 外网穿透本机 :11434 / :3001
+        [4] 构建翻译 AI — 编译 oao-translate/server
+        [5] 部署智谱 Worker — 一次性 GLM 备援
+    · 命令行：OAO服务器.bat all | services | tunnel | build | worker
+    · 前置：本机 Ollama + AnythingLLM；cloudflare\tunnel-token.txt
+
+  【3. 一键上传GitHub.bat — 版本更新】
+    · 自动 commit + push 到 wh9007/oao-platform
+    · 首次需配置 git-token.txt（GitHub Token，repo 权限）
+    · 日志：upload-log.txt
+
+  ※ 旧版分散脚本已删除，统一使用上述 3 个入口 + scripts\ 内部文件
+
+
+───────────────────────────────────────────────────
+二、项目结构
+───────────────────────────────────────────────────
 
   【网站核心】
-    OAO.html               主页面（全部功能）
-    index.html             自动跳转到 OAO.html
-    assets/css/            企业主题样式
+    OAO.html               主页面
+    index.html             跳转 OAO.html
+    assets/css/            样式
     oao-meeting-signal.js  小O会议信令
-    oao-services.cmd       后台服务（由 bat 自动调用，勿删）
+    oao-translate/embed/   OAO翻译（浏览器模式）
 
-  【OAO翻译（轻量 embed）】
-    oao-translate/embed/   翻译界面（浏览器默认可用，零安装）
-      app.js               主逻辑：识别、翻译、分享、导出
-      view.html / view.js  分享观看页
-    oao-translate/server/  可选本地 AI + 分享中继（:3011）
-
-  【云端 / 参考】
-    cloudflare/            Worker 与 Tunnel 配置示例
-    ipfs-ens/index.html    ENS 跳转页
-    local-config.example.txt  复制为 local-config.js 可配置 API
-    oao-translate/README.md   翻译模块技术说明
-
-  【自动脚本（勿手动删）】
-    do-upload.ps1          由「一键上传GitHub.bat」自动调用
+  【内部脚本（勿删）】
+    scripts/lib.cmd        公共函数库
+    scripts/oao-services.cmd  后台服务（由 OAO服务器 调用）
+    do-upload.ps1          上传逻辑（由一键上传 调用）
+    cloudflare/            Worker + Tunnel 配置
 
   【勿分享 / 勿上传】
-    git-token.txt          GitHub Token（已在 .gitignore）
+    git-token.txt
     cloudflare\tunnel-token.txt
-    oao-translate\server\.env
     local-config.js
 
 
 ───────────────────────────────────────────────────
-二、OAO翻译 — 功能说明
+三、AI 架构（本地 + 云端）
 ───────────────────────────────────────────────────
 
-  ■ 浏览器模式（默认）
-    无需 Node.js，双击「打开OAO.bat」即可使用。
-    语音识别：Chrome / Edge 浏览器引擎（与小O会议共用逻辑）。
-    翻译：浏览器在线翻译 API。
+  默认：AnythingLLM + Ollama 优先；Tunnel 离线时智谱 GLM 备援
 
-  ■ 语音识别引擎（设置 → 识别引擎）
-    · 自动（推荐）— 故障时依次切换下列引擎
-    · 浏览器原生 · Web Speech — Edge→Microsoft / Chrome→Google
-    · 全球通用 · English STT — 网络受限时优先
-    · 全球通用 · Multilingual — 多候选识别
+  【AnythingLLM 知识库 — 必做】
+    1. 安装 AnythingLLM 并启动（http://127.0.0.1:3001）
+    2. 创建工作区「OAOeth」，绑定 Ollama 模型 qwen2.5:7b
+    3. 工作区聊天设置 → 聊天模式选「查询 Query」（知识库检索；勿用 Agent）
+    4. 填写 OAO_ANYTHINGLLM_API_KEY（AnythingLLM 设置 → API Keys）
+    5. 登录 OAO 后点击 AI 区「+」上传文件/文本到知识库
+    6. 对话默认从 OAOeth 工作区检索回答
 
-    当前引擎名称显示在模态窗口顶部状态栏。
-    需允许麦克风并联网。
-
-  ■ 默认关闭（可在设置中开启）
-    · 对话模式（双语交流播报）
-    · 自动朗读译文
-
-  ■ 会话中可改设置
-    开始后仍可切换语言、识别引擎；设置变更会热更新。
-
-  ■ 分享观看
-    点击「分享」生成 view.html 链接；需保持「OAO Services」
-    窗口开启（:3011 中继）。首次使用可运行「构建翻译AI.bat」。
-
-  ■ 导出
-    · 底部「导出 TXT」— 导出当前字幕
-    · 设置 → 导出 — 勾选原文/译文/时间戳后导出
-    · 历史 → 勾选多条 →「导出所选」
-
-  ■ 历史记录
-    设置侧栏 →「历史」：勾选、导出所选、删除所选、清空全部。
-    点击记录可加载到当前字幕区（需先停止会话）。
-
-  ■ 防误关
-    点击模态外部不会关闭；仅点 × 会弹出确认。
+  本地测试：打开OAO.bat + 本机 Ollama + AnythingLLM
+  外网连本机：OAO服务器.bat 选项 1 + Worker 配置 LLM_ORIGIN / OLLAMA_ORIGIN
+  智谱备援：OAO服务器.bat 选项 5 或 cloudflare\部署智谱Worker.bat
 
 
 ───────────────────────────────────────────────────
-三、小O会议
+四、OAO翻译 / 小O会议
 ───────────────────────────────────────────────────
 
-  与 OAO翻译 共用浏览器语音识别逻辑。
-  登录后点击左侧「小O会议」进入。
-  字体与翻译模态已统一为相同字号规范。
-
-
-───────────────────────────────────────────────────
-四、云端 AI（智谱 GLM · 外网用户）
-───────────────────────────────────────────────────
-
-  架构：GitHub Pages → Cloudflare Worker → 智谱 GLM-4.7-Flash
-  API Key 只存在 Worker Secrets，不会出现在前端或 GitHub。
-
-  首次部署（需您人工操作）：
-    1. https://open.bigmodel.cn/usercenter/apikeys 创建 API Key
-    2. cloudflare 目录：复制 wrangler.toml.example → wrangler.toml
-    3. 双击「部署智谱Worker.bat」→ 浏览器登录 Cloudflare → 粘贴 Key
-    4. 验收：https://oao-ai.wh529007.workers.dev/glm/health 显示 ok:true
-
-  外网用户：AI 对话 + 小O会议纪要 自动走智谱，无需本机开机。
-  本地预览：仍可用 AnythingLLM / Ollama（可选）。
+  · 浏览器模式默认可用（Chrome / Edge + 麦克风）
+  · 分享观看需 OAO服务器 选项 2 或 1（:3011 中继）
+  · 会议纪要优先 AnythingLLM + 本地 Ollama；失败时智谱备援
 
 
 ───────────────────────────────────────────────────
-五、本地 AI（可选）
+五、常见问题
 ───────────────────────────────────────────────────
 
-  1. 安装 Ollama：https://ollama.com
-  2. 终端执行：ollama pull qwen2.5    （翻译润色，可按需换模型）
-  3. 可选：双击「构建翻译AI.bat」编译 :3011 服务
-  4. 双击「打开OAO.bat」，保持「OAO Services」窗口开启
+  Q：外网 AI 无响应？
+  A：OAO服务器.bat 选 [1]；确认 Tunnel Token 与 Worker 变量；控制台 OAO_Diagnostic.testRemoteTunnel()
 
-  ※ 语音识别始终使用浏览器；本地 AI 用于翻译润色与分享中继（可选）
-
-
-───────────────────────────────────────────────────
-六、上传 GitHub
-───────────────────────────────────────────────────
-
-  1. 双击「一键上传GitHub.bat」
-  2. 首次会打开 git-token.txt，粘贴 Token 后保存关闭
-  3. 脚本自动 commit + push 到 wh9007/oao-platform
-
-  Token 获取：
-    https://github.com/settings/tokens/new?scopes=repo
-    Classic Token 请勾选 repo 权限
-
-  上传日志：upload-log.txt（失败时查看）
-  ※ Token 是密码，切勿发给他人
-
-
-───────────────────────────────────────────────────
-七、常见问题
-───────────────────────────────────────────────────
-
-  Q：外网 AI 对话无响应？
-  A：确认已部署 Worker 并设置 ZHIPU_API_KEY；访问 /glm/health；
-     控制台运行 OAO_Diagnostic.testGlm()。
-
-  Q：语音识别没有文字？
-  A：确认已允许麦克风；使用 Chrome 或 Edge；检查网络。
-     设置中选「自动」可切换备用引擎；查看顶部状态栏引擎名称。
-
-  Q：分享页一直「初始化…」？
-  A：确认「OAO Services」窗口在运行；必要时运行「构建翻译AI.bat」
-     后重启服务。分享链接应为 view.html?session=...
-
-  Q：误点外面翻译窗口关了？
-  A：已修复：点外部不会关闭；只有点 × 才会确认后关闭。
+  Q：本地 AI 显示 Ollama？
+  A：正常。请 ollama pull qwen2.5 并启动 AnythingLLM oaoeth 工作区。
 
   Q：上传失败？
-  A：重新生成 GitHub Token；查看 upload-log.txt；确认网络可访问 GitHub。
+  A：查看 upload-log.txt；重新生成 GitHub Token（repo 权限）。
 
 
 ═══════════════════════════════════════════════════
-  更新：2026-08-02  智谱 GLM 云端 AI · Worker 中转 · 会议纪要
+  更新：2026-08-02  三脚本整合 · 本地测试 / 远程 AI / GitHub 发布
 ═══════════════════════════════════════════════════

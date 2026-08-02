@@ -173,7 +173,7 @@
       socket.emit("viewer:join", { sessionId }, (res) => {
         if (!res?.ok) {
           hintEl.textContent = res?.error || "会话不存在或已结束";
-          setDetail("请确认分享方已开始会话且 OAO Services 正在运行");
+          setDetail("请确认分享方已开始会话；观看同步需分享方运行「OAO服务器.bat」");
           statusEl.innerHTML = "<strong>观看模式</strong> · 未连接";
           return;
         }
@@ -195,7 +195,7 @@
       });
     } catch (_) {
       hintEl.textContent = "无法连接分享服务";
-      setDetail("请确认分享方已开启 OAO Services（端口 3011）且会话进行中");
+      setDetail("请确认分享方已开启本地分享服务（端口 3011）且会话进行中");
       statusEl.innerHTML = "<strong>观看模式</strong> · 连接失败";
     }
   }

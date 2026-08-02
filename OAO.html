@@ -32,13 +32,11 @@
     <script async src="https://cse.google.com/cse.js?cx=50e946c8b03534c5d"></script>
     <script>
         // ========== OAO 个人使用说明 ==========
-        // 1. 本地：双击同目录「打开OAO.bat」
-        // 2. 外网：GitHub Pages → https://wh9007.github.io/oao-platform/
-        // 3. 外网 AI：GitHub Pages → Cloudflare Worker → 智谱 GLM-4.7-Flash（Key 在 Worker Secrets）
-        // 4. 本地 AI（可选）：Ollama :11434 + AnythingLLM :3001；外网经 Cloudflare Tunnel + Worker
-        // 5. 可选覆盖：复制 local-config.example.txt 为 local-config.js 并填写
-        // 6. 部署智谱 Worker：cloudflare\部署智谱Worker.bat
-        // 7. Tunnel 启动：启动Tunnel.bat（仅本机 AI 外网穿透时需要）
+        // 1. 本地测试：双击「打开OAO.bat」
+        // 2. 外网远程本机 AI：双击「OAO服务器.bat」（Tunnel + Ollama + AnythingLLM）
+        // 3. 版本发布：双击「一键上传GitHub.bat」
+        // 4. 外网站点：https://wh9007.github.io/oao-platform/
+        // 5. AI：本地 AnythingLLM + Ollama 优先；Tunnel 经 Worker；智谱 GLM 备援
         // 8. 视频会议信令：window.OAO_MEETING_SIGNAL_URL = 'wss://oao-ai.wh529007.workers.dev/meeting';
         // 7. OAO翻译（可选覆盖云端地址）：window.OAO_TRANSLATE_URL = 'https://your-translate-host/oao-translate/embed/index.html';
         // 联网搜索（可选）：取消下面注释并填写 Key
@@ -3549,16 +3547,16 @@
         .ai-home-web-toggle {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 13px;
+            gap: 6px;
+            font-size: 11px;
             color: var(--ai-muted-text);
             cursor: pointer;
             user-select: none;
         }
 
         .ai-home-web-toggle input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             accent-color: var(--ai-surface-text);
             cursor: pointer;
         }
@@ -3569,8 +3567,9 @@
         }
 
         .ai-home-status {
-            font-size: 12px;
+            font-size: 10px;
             color: var(--ai-muted-text);
+            line-height: 1.35;
         }
 
         .ai-message-meta {
@@ -6381,7 +6380,7 @@
                                 <div class="ai-home-toolbar">
                                     <label id="aiWebSearchLabel" class="ai-home-web-toggle disabled">
                                         <input type="checkbox" id="aiWebSearchToggle" disabled>
-                                        <span id="aiWebSearchText">联网搜索（勾选：网络优先 + 知识库双回复）</span>
+                                        <span id="aiWebSearchText">联网搜索</span>
                                     </label>
                                     <span id="aiHomeStatus" class="ai-home-status">本地知识库 · AnythingLLM</span>
                                 </div>
@@ -7006,7 +7005,7 @@
                 </div>
                 <div id="oaoTranslateFallback" class="oao-translate-fallback hidden">
                     <p id="oaoTranslateFallbackTitle">无法加载 OAO翻译服务</p>
-                    <p id="oaoTranslateFallbackDesc">本地翻译服务未就绪。请点击「查看安装说明」，或确认「OAO Services」窗口仍在运行后重试。</p>
+                    <p id="oaoTranslateFallbackDesc">翻译界面暂时无法加载，请检查网络后重试。</p>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
                         <button type="button" id="oaoTranslateSetupBtn" class="oao-meeting-btn">查看安装说明</button>
                         <button type="button" id="oaoTranslateRetryBtn" class="oao-meeting-btn oao-meeting-btn-primary">重试</button>
@@ -7038,9 +7037,9 @@
             </header>
             <div class="oao-local-setup-body">
                 <ol id="oaoLocalSetupSteps" class="oao-local-setup-steps">
-                    <li>双击项目文件夹中的 <strong>打开OAO.bat</strong>（保持「OAO Services」窗口开启）</li>
-                    <li>浏览器访问 <strong>http://127.0.0.1:8777/OAO.html</strong>（不要直接双击 HTML 文件）</li>
-                    <li>首次使用请安装 <strong>Node.js</strong>（LTS 版）；翻译/会议 AI 建议安装 <strong>Ollama</strong></li>
+                    <li>本地测试：双击 <strong>打开OAO.bat</strong>，访问 <strong>http://127.0.0.1:8777/OAO.html</strong></li>
+                    <li>外网远程 AI：双击 <strong>OAO服务器.bat</strong>，选 [1] 启动全部</li>
+                    <li>请安装 <strong>Ollama</strong> 与 <strong>AnythingLLM</strong>（oaoeth 工作区）</li>
                 </ol>
                 <div id="oaoLocalSetupStatus" class="oao-local-setup-status"></div>
             </div>
@@ -7320,6 +7319,9 @@
                 if (window.OAO_AI_BASE_URL) {
                     return String(window.OAO_AI_BASE_URL).replace(/\/$/, '');
                 }
+                if (window.__oaoAnythingLLMBase) {
+                    return String(window.__oaoAnythingLLMBase).replace(/\/$/, '');
+                }
                 if (isOaoLocalPreview()) return 'http://localhost:3001';
                 return resolveWorkerBaseUrl();
             }
@@ -7331,8 +7333,40 @@
             function useCloudGlmAi() {
                 if (window.OAO_FORCE_LOCAL_AI === true) return false;
                 if (window.OAO_FORCE_GLM === true) return true;
-                return !isOaoLocalPreview();
+                return false;
             }
+
+            /** 本地 AI 不可用时是否回退智谱 GLM（默认开启） */
+            function shouldUseZhipuFallback() {
+                if (window.OAO_FORCE_LOCAL_AI === true) return false;
+                if (window.OAO_DISABLE_GLM_FALLBACK === true) return false;
+                return true;
+            }
+
+            /** @deprecated 别名，与 useCloudGlmAi 相同 */
+            function useZhipuAi() {
+                return useCloudGlmAi();
+            }
+
+            function getAiStatusReadyLabel() {
+                if (useCloudGlmAi()) {
+                    return currentLang === 'zh' ? '智谱 GLM · 云端 AI' : 'Zhipu GLM · Cloud AI';
+                }
+                const ws = getAnythingLLMWorkspaceDisplayName();
+                return currentLang === 'zh'
+                    ? `本地知识库 · AnythingLLM · ${ws}`
+                    : `Local KB · AnythingLLM · ${ws}`;
+            }
+
+            function getAiStatusSearchingLabel() {
+                if (useCloudGlmAi()) {
+                    return currentLang === 'zh' ? '正在连接智谱 AI...' : 'Connecting to Zhipu AI...';
+                }
+                return translations[currentLang].aiHomeStatusSearching;
+            }
+
+            window.getAiStatusReadyLabel = getAiStatusReadyLabel;
+            window.getAiStatusSearchingLabel = getAiStatusSearchingLabel;
 
             function resolveOllamaBaseUrl() {
                 if (window.OAO_OLLAMA_BASE_URL) {
@@ -7370,15 +7404,97 @@
                 if (!error) return false;
                 if (error.code === 'GLM_NOT_CONFIGURED' || error.code === 'GLM_UNAVAILABLE') return true;
                 const msg = error.message || '';
-                return /zhipu_not_configured|GLM API|GLM_NOT|智谱/i.test(msg);
+                return /zhipu_not_configured|zhipu_unreachable|GLM_NOT_CONFIGURED/i.test(msg);
+            }
+
+            function getGlmUserFacingError(error) {
+                const msg = String(error?.message || '');
+                if (!msg) return null;
+                if (/429|rate.?limit|too many requests|请求过于频繁|并发/i.test(msg)) {
+                    return currentLang === 'zh'
+                        ? '智谱 API 触发限流或免费额度已用尽。\n\n请到 https://open.bigmodel.cn/usercenter 查看余额与用量，充值或稍后再试。'
+                        : 'Zhipu rate limit or quota exceeded. Check balance at open.bigmodel.cn/usercenter and retry later.';
+                }
+                if (/402|403|余额|quota|insufficient|额度|资源包|欠费|balance|exceeded/i.test(msg)) {
+                    return currentLang === 'zh'
+                        ? '智谱账户余额或免费额度可能已用完。\n\n请登录 https://open.bigmodel.cn/usercenter 查看资源包与账单；确认后可在 cloudflare 目录重新执行「部署智谱Worker.bat」更新 Key。'
+                        : 'Zhipu balance or quota may be exhausted. Check open.bigmodel.cn/usercenter.';
+                }
+                if (/401|invalid.*key|unauthorized|鉴权|API key/i.test(msg)) {
+                    return currentLang === 'zh'
+                        ? '智谱 API Key 无效或已失效。\n\n请在 open.bigmodel.cn 重新创建 Key，并在 Worker 中执行：npx wrangler secret put ZHIPU_API_KEY'
+                        : 'Invalid Zhipu API key. Recreate the key and run wrangler secret put ZHIPU_API_KEY.';
+                }
+                const apiMatch = msg.match(/^GLM API \[(\d+)\]:\s*(.+)$/);
+                if (apiMatch) {
+                    const status = apiMatch[1];
+                    const detail = apiMatch[2].trim();
+                    if (status.startsWith('5')) {
+                        return currentLang === 'zh'
+                            ? `智谱服务暂时异常（HTTP ${status}），请稍后重试。\n\n详情：${detail}`
+                            : `Zhipu service error (HTTP ${status}): ${detail}`;
+                    }
+                    if (status.startsWith('4')) {
+                        return currentLang === 'zh'
+                            ? `智谱 API 拒绝请求（HTTP ${status}）。\n\n详情：${detail}\n\n若与额度有关，请到 open.bigmodel.cn/usercenter 查看。`
+                            : `Zhipu API rejected the request (HTTP ${status}): ${detail}`;
+                    }
+                }
+                return null;
             }
 
             function getAiConnectionHint() {
                 if (useCloudGlmAi()) return getGlmConnectionHint();
                 if (isOaoLocalPreview()) return getLocalAiConnectionHint();
                 return currentLang === 'zh'
-                    ? '无法通过 Tunnel 连接本机 AI。若需本机模式请运行 启动Tunnel.bat；外网用户默认应走智谱云端（无需 Tunnel）。'
-                    : 'Tunnel offline. Public users should use cloud GLM via Worker; local mode needs Tunnel.';
+                    ? '无法通过 Cloudflare Tunnel 连接本机 AI。\n\n请在本机：\n1. 启动 Ollama(:11434) 与 AnythingLLM(:3001)\n2. 双击「OAO服务器.bat」选 [1] 启动全部\n3. Worker 已配置 LLM_ORIGIN / OLLAMA_ORIGIN'
+                    : 'Cannot reach home AI via Tunnel. Run OAO服务器.bat option [1].';
+            }
+
+            async function deliverGlmChatReply(message, typingDiv, options = {}) {
+                const glmResult = await callZhipuChat(message);
+                removeTypingIndicator(typingDiv);
+
+                if (isWebSearchEnabled()) {
+                    const webTypingDiv = addTypingIndicator();
+                    setAiHomeStatus(translations[currentLang].aiHomeStatusWeb);
+                    let webAnswer;
+                    let webDurationSec = '0.0';
+                    try {
+                        const webStarted = performance.now();
+                        webAnswer = await searchWebAndAnswer(message);
+                        webDurationSec = ((performance.now() - webStarted) / 1000).toFixed(1);
+                    } catch (webErr) {
+                        console.warn('[OAO-AI] 联网搜索失败:', webErr);
+                        webAnswer = currentLang === 'zh'
+                            ? '联网搜索暂时不可用。'
+                            : 'Web search is temporarily unavailable.';
+                    }
+                    removeTypingIndicator(webTypingDiv);
+                    const webContent = formatSourceSectionHeader('web') + webAnswer;
+                    const webMeta = {
+                        source: 'web',
+                        timestamp: Date.now(),
+                        model: GLM_CONFIG.model,
+                        durationSec: webDurationSec
+                    };
+                    addMessage(webContent, false, webMeta);
+                    appendAiReplyToHistory(webContent, webMeta);
+                }
+
+                const aiMeta = {
+                    source: 'glm',
+                    timestamp: Date.now(),
+                    model: glmResult.model,
+                    durationSec: glmResult.durationSec
+                };
+                const prefix = options.isFallback && currentLang === 'zh'
+                    ? '（本地 AI 暂不可用，以下为智谱 GLM 回答）\n\n'
+                    : (options.isFallback ? '(Local AI unavailable; answered by Zhipu GLM)\n\n' : '');
+                const answerText = prefix + glmResult.answer;
+                addMessage(answerText, false, aiMeta);
+                setAiHomeStatus(getAiStatusReadyLabel());
+                appendAiReplyToHistory(answerText, aiMeta);
             }
 
             async function throwIfTunnelHttpError(response) {
@@ -7403,15 +7519,236 @@
                 throw new Error(`API错误 [${response.status}]: ${detail || response.statusText}`);
             }
 
+            function getAnythingLLMWorkspaceHint() {
+                return window.OAO_ANYTHINGLLM_WORKSPACE || 'OAOeth';
+            }
+
+            function getAnythingLLMWorkspaceDisplayName() {
+                return window.__oaoAnythingLLMWorkspaceName
+                    || window.OAO_ANYTHINGLLM_WORKSPACE
+                    || 'OAOeth';
+            }
+
             const LLM_CONFIG = {
                 get baseUrl() { return resolveAiBaseUrl(); },
                 get apiKey() { return window.OAO_ANYTHINGLLM_API_KEY || ''; },
-                workspace: 'oaoeth',
+                get workspace() { return getAnythingLLMWorkspaceDisplayName(); },
+                get workspaceSlug() { return window.__oaoAnythingLLMWorkspace || 'oaoeth'; },
                 timeout: 120000,
                 maxTokens: 4096,
                 temperature: 0.1,
                 mode: 'query'
             };
+
+            async function resolveAnythingLLMWorkspaceSlug(baseUrl, forceRefresh) {
+                if (!forceRefresh && window.__oaoAnythingLLMWorkspace) {
+                    return window.__oaoAnythingLLMWorkspace;
+                }
+                const url = String(baseUrl || await resolveAnythingLLMBaseUrl(false)).replace(/\/$/, '');
+                const hint = getAnythingLLMWorkspaceHint();
+                const hintNorm = String(hint).toLowerCase().replace(/\s+/g, '');
+
+                const matchesHint = (item) => {
+                    const name = String(item?.name || '').trim();
+                    const slug = String(item?.slug || '').trim();
+                    const norm = (s) => s.toLowerCase().replace(/\s+/g, '');
+                    return norm(name) === hintNorm
+                        || norm(slug) === hintNorm
+                        || /oao\s*eth/i.test(norm(name))
+                        || /oao\s*eth/i.test(norm(slug));
+                };
+
+                try {
+                    const res = await fetch(`${url}/api/v1/workspaces`, {
+                        headers: buildAnythingLLMHeaders(false),
+                        cache: 'no-store'
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const list = Array.isArray(data?.workspaces) ? data.workspaces : (Array.isArray(data) ? data : []);
+                        const match = list.find(matchesHint);
+                        if (match?.slug) {
+                            window.__oaoAnythingLLMWorkspace = match.slug;
+                            window.__oaoAnythingLLMWorkspaceName = match.name || match.slug;
+                            return match.slug;
+                        }
+                    }
+                } catch (_) {}
+
+                const candidates = [...new Set(['oaoeth', hint, 'OAOeth', 'OAOETH'])];
+                for (const candidate of candidates) {
+                    if (!candidate) continue;
+                    try {
+                        const res = await fetch(`${url}/api/v1/workspace/${encodeURIComponent(candidate)}`, {
+                            headers: buildAnythingLLMHeaders(false),
+                            cache: 'no-store'
+                        });
+                        if (res.ok) {
+                            window.__oaoAnythingLLMWorkspace = candidate;
+                            try {
+                                const data = await res.json();
+                                const ws = data?.workspace?.[0] || data?.workspace || data;
+                                window.__oaoAnythingLLMWorkspaceName = ws?.name || candidate;
+                            } catch (_) {
+                                window.__oaoAnythingLLMWorkspaceName = candidate;
+                            }
+                            return candidate;
+                        }
+                    } catch (_) {}
+                }
+
+                window.__oaoAnythingLLMWorkspace = 'oaoeth';
+                window.__oaoAnythingLLMWorkspaceName = hint;
+                return 'oaoeth';
+            }
+
+            let cachedAnythingLLMHealth = null;
+            let cachedAnythingLLMHealthAt = 0;
+
+            function buildAnythingLLMHeaders(jsonContent) {
+                const headers = {};
+                if (jsonContent) headers['Content-Type'] = 'application/json';
+                if (LLM_CONFIG.apiKey) headers.Authorization = `Bearer ${LLM_CONFIG.apiKey}`;
+                return headers;
+            }
+
+            async function probeAnythingLLMBase(baseUrl) {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 4500);
+                try {
+                    const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/v1/system`, {
+                        method: 'GET',
+                        headers: buildAnythingLLMHeaders(false),
+                        signal: controller.signal,
+                        cache: 'no-store'
+                    });
+                    clearTimeout(timer);
+                    return res.ok;
+                } catch (_) {
+                    clearTimeout(timer);
+                    return false;
+                }
+            }
+
+            async function resolveAnythingLLMBaseUrl(forceProbe) {
+                if (window.OAO_AI_BASE_URL) {
+                    return String(window.OAO_AI_BASE_URL).replace(/\/$/, '');
+                }
+                if (!isOaoLocalPreview()) {
+                    return resolveWorkerBaseUrl();
+                }
+                if (!forceProbe && window.__oaoAnythingLLMBase) {
+                    return window.__oaoAnythingLLMBase;
+                }
+                const candidates = [
+                    'http://127.0.0.1:3001',
+                    'http://localhost:3001',
+                    'http://127.0.0.1:3000',
+                    'http://localhost:3000'
+                ];
+                for (const base of candidates) {
+                    if (await probeAnythingLLMBase(base)) {
+                        window.__oaoAnythingLLMBase = base;
+                        return base;
+                    }
+                }
+                window.__oaoAnythingLLMBase = 'http://127.0.0.1:3001';
+                return window.__oaoAnythingLLMBase;
+            }
+
+            async function checkAnythingLLMHealth(forceRefresh) {
+                const now = Date.now();
+                if (!forceRefresh && cachedAnythingLLMHealth && now - cachedAnythingLLMHealthAt < 25000) {
+                    return cachedAnythingLLMHealth;
+                }
+                const baseUrl = await resolveAnythingLLMBaseUrl(forceRefresh);
+                const systemOk = await probeAnythingLLMBase(baseUrl);
+                let workspaceOk = false;
+                let workspaceStatus = 0;
+                let workspaceSlug = LLM_CONFIG.workspace;
+                if (systemOk) {
+                    try {
+                        workspaceSlug = await resolveAnythingLLMWorkspaceSlug(baseUrl, forceRefresh);
+                        const res = await fetch(`${baseUrl}/api/v1/workspace/${encodeURIComponent(workspaceSlug)}`, {
+                            headers: buildAnythingLLMHeaders(false),
+                            cache: 'no-store'
+                        });
+                        workspaceStatus = res.status;
+                        workspaceOk = res.ok;
+                    } catch (_) {
+                        workspaceOk = false;
+                    }
+                }
+                cachedAnythingLLMHealth = {
+                    ok: systemOk && workspaceOk,
+                    systemOk,
+                    workspaceOk,
+                    baseUrl,
+                    workspace: workspaceSlug,
+                    hasApiKey: !!LLM_CONFIG.apiKey,
+                    workspaceStatus
+                };
+                cachedAnythingLLMHealthAt = now;
+                window.__oaoAnythingLLMHealth = cachedAnythingLLMHealth;
+                return cachedAnythingLLMHealth;
+            }
+
+            function getAnythingLLMSetupHint(health, errorMsg) {
+                const h = health || cachedAnythingLLMHealth || {};
+                const lines = [];
+                if (!h.systemOk) {
+                    lines.push(currentLang === 'zh'
+                        ? '1. 启动 AnythingLLM（默认 http://127.0.0.1:3001）'
+                        : '1. Start AnythingLLM on http://127.0.0.1:3001');
+                    lines.push(currentLang === 'zh'
+                        ? '2. 本地测试可先双击「打开OAO.bat」；远程需「OAO服务器.bat」'
+                        : '2. Run 打开OAO.bat locally or OAO服务器.bat for remote');
+                } else if (!h.workspaceOk) {
+                    lines.push(currentLang === 'zh'
+                        ? `1. 在 AnythingLLM 中创建工作区「OAOeth」（当前 API 返回 ${h.workspaceStatus || '404'}）`
+                        : `1. Create workspace「OAOeth」 in AnythingLLM (API ${h.workspaceStatus || '404'})`);
+                    lines.push(currentLang === 'zh'
+                        ? '2. 工作区聊天模式建议设为「查询 Query」以便知识库检索'
+                        : '2. Set workspace chat mode to Query for RAG');
+                }
+                if (!LLM_CONFIG.apiKey) {
+                    lines.push(currentLang === 'zh'
+                        ? '3. 复制 local-config.example.txt → local-config.js，填写 OAO_ANYTHINGLLM_API_KEY（AnythingLLM 设置 → API Keys）'
+                        : '3. Set OAO_ANYTHINGLLM_API_KEY in local-config.js (from AnythingLLM API Keys)');
+                }
+                if (errorMsg) {
+                    lines.push(currentLang === 'zh' ? `详情：${errorMsg}` : `Detail: ${errorMsg}`);
+                }
+                const header = currentLang === 'zh'
+                    ? 'AnythingLLM 知识库暂不可用，请按下列步骤配置：'
+                    : 'AnythingLLM knowledge base unavailable. Setup:';
+                return `${header}\n\n${lines.join('\n')}`;
+            }
+
+            async function refreshAnythingLLMStatus() {
+                if (!isLoggedIn || useCloudGlmAi()) return;
+                const health = await checkAnythingLLMHealth(false);
+                if (health.ok) {
+                    setAiHomeStatus(getAiStatusReadyLabel());
+                    return;
+                }
+                if (health.systemOk && !health.workspaceOk) {
+                    setAiHomeStatus(currentLang === 'zh'
+                        ? `请创建工作区「${LLM_CONFIG.workspace}」`
+                        : `Create workspace「${LLM_CONFIG.workspace}」`);
+                } else if (!health.hasApiKey) {
+                    setAiHomeStatus(currentLang === 'zh'
+                        ? '请配置 OAO_ANYTHINGLLM_API_KEY'
+                        : 'Configure OAO_ANYTHINGLLM_API_KEY');
+                } else {
+                    setAiHomeStatus(currentLang === 'zh'
+                        ? 'AnythingLLM 未连接 · 请启动 :3001'
+                        : 'AnythingLLM offline · start :3001');
+                }
+            }
+
+            window.checkAnythingLLMHealth = checkAnythingLLMHealth;
+            window.refreshAnythingLLMStatus = refreshAnythingLLMStatus;
 
             const GLM_CONFIG = {
                 get baseUrl() { return resolveWorkerBaseUrl(); },
@@ -7587,9 +7924,9 @@
             async function getWorkspaceChatModel() {
                 if (cachedWorkspaceChatModel) return cachedWorkspaceChatModel;
                 try {
-                    const slug = encodeURIComponent(LLM_CONFIG.workspace || 'oaoeth');
+                    const slug = encodeURIComponent(await resolveAnythingLLMWorkspaceSlug(LLM_CONFIG.baseUrl, false));
                     const res = await fetch(`${LLM_CONFIG.baseUrl}/api/v1/workspace/${slug}`, {
-                        headers: { Authorization: `Bearer ${LLM_CONFIG.apiKey}` }
+                        headers: buildAnythingLLMHeaders(false)
                     });
                     if (res.ok) {
                         const data = await res.json();
@@ -7640,7 +7977,7 @@
                     }
                     if (meta.source) {
                         const badge = document.createElement('span');
-                        badge.className = `ai-source-badge ${meta.source === 'web' ? 'web' : ''}`;
+                        badge.className = `ai-source-badge ${meta.source === 'web' ? 'web' : meta.source === 'glm' ? 'glm' : ''}`;
                         badge.textContent = getSourceLabel(meta.source);
                         row.appendChild(badge);
                     }
@@ -7653,6 +7990,9 @@
             function getSourceLabel(source) {
                 if (source === 'web') {
                     return currentLang === 'zh' ? '联网搜索' : 'Web Search';
+                }
+                if (source === 'glm') {
+                    return currentLang === 'zh' ? '智谱云端' : 'Zhipu Cloud';
                 }
                 if (source === 'kb') {
                     return currentLang === 'zh' ? '本地知识库' : 'Local KB';
@@ -7941,6 +8281,10 @@
                 
                 if (isLoggedIn) {
                     loadAndDisplayHistory();
+                    void (async () => {
+                        await resolveAnythingLLMWorkspaceSlug(await resolveAnythingLLMBaseUrl(true), true);
+                        await refreshAnythingLLMStatus();
+                    })();
                 }
             }
             
@@ -7983,7 +8327,8 @@
                     aiHomeInput.placeholder = translations[currentLang].aiHomePlaceholderActive;
                     if (aiWebSearchToggle) aiWebSearchToggle.disabled = false;
                     if (aiWebSearchLabel) aiWebSearchLabel.classList.remove('disabled');
-                    setAiHomeStatus(translations[currentLang].aiHomeStatusReady);
+                    setAiHomeStatus(getAiStatusReadyLabel());
+                    void refreshAnythingLLMStatus();
                     const aiHomeHeaderText = document.getElementById('aiHomeHeaderText');
                     if (aiHomeHeaderText) aiHomeHeaderText.textContent = translations[currentLang].aiHomeHeader;
                     
@@ -8062,79 +8407,62 @@
                 // 添加加载指示器
                 const typingDiv = addTypingIndicator();
                 const requestStartedAt = performance.now();
-                setAiHomeStatus(translations[currentLang].aiHomeStatusSearching);
+                setAiHomeStatus(getAiStatusSearchingLabel());
+                if (!useCloudGlmAi()) {
+                    void checkAnythingLLMHealth(true);
+                }
                 
                 try {
                     if (useCloudGlmAi()) {
-                        const glmResult = await callZhipuChat(message);
-                        removeTypingIndicator(typingDiv);
-
-                        if (isWebSearchEnabled()) {
-                            const webTypingDiv = addTypingIndicator();
-                            setAiHomeStatus(translations[currentLang].aiHomeStatusWeb);
-                            let webAnswer;
-                            let webDurationSec = '0.0';
-                            try {
-                                const webStarted = performance.now();
-                                webAnswer = await searchWebAndAnswer(message);
-                                webDurationSec = ((performance.now() - webStarted) / 1000).toFixed(1);
-                            } catch (webErr) {
-                                console.warn('[OAO-AI] 联网搜索失败:', webErr);
-                                webAnswer = currentLang === 'zh'
-                                    ? '联网搜索暂时不可用。'
-                                    : 'Web search is temporarily unavailable.';
-                            }
-                            removeTypingIndicator(webTypingDiv);
-                            const webContent = formatSourceSectionHeader('web') + webAnswer;
-                            const webMeta = {
-                                source: 'web',
-                                timestamp: Date.now(),
-                                model: GLM_CONFIG.model,
-                                durationSec: webDurationSec
-                            };
-                            addMessage(webContent, false, webMeta);
-                            appendAiReplyToHistory(webContent, webMeta);
-                        }
-
-                        const aiMeta = {
-                            source: 'glm',
-                            timestamp: Date.now(),
-                            model: glmResult.model,
-                            durationSec: glmResult.durationSec
-                        };
-                        addMessage(glmResult.answer, false, aiMeta);
-                        setAiHomeStatus(translations[currentLang].aiHomeStatusReady);
-                        appendAiReplyToHistory(glmResult.answer, aiMeta);
+                        await deliverGlmChatReply(message, typingDiv);
                         return;
                     }
 
                     let kbResult;
                     try {
-                        kbResult = await callLLMAPI(message);
+                        kbResult = await callLLMAPI(message, { mode: 'query' });
                     } catch (llmError) {
                         if (isTunnelUnavailableError(llmError)) throw llmError;
-                        console.warn('[OAO-AI] AnythingLLM 不可用，回退到 Ollama:', llmError);
-                        setAiHomeStatus(currentLang === 'zh' ? 'AnythingLLM 不可用，使用 Ollama...' : 'AnythingLLM unavailable, using Ollama...');
+                        const health = await checkAnythingLLMHealth(true);
+                        const setupHint = getAnythingLLMSetupHint(health, llmError.message);
+                        console.warn('[OAO-AI] AnythingLLM 知识库调用失败:', llmError);
+
+                        if (window.OAO_DISABLE_OLLAMA_CHAT_FALLBACK === true) {
+                            removeTypingIndicator(typingDiv);
+                            addMessage(setupHint, false, { timestamp: Date.now(), source: 'kb' });
+                            setAiHomeStatus(translations[currentLang].aiHomeStatusError);
+                            return;
+                        }
+
+                        setAiHomeStatus(currentLang === 'zh'
+                            ? '知识库不可用，尝试 Ollama 通用回答…'
+                            : 'KB unavailable, trying Ollama…');
                         const ollamaStarted = performance.now();
                         let ollamaAnswer;
                         try {
                             ollamaAnswer = await callOllamaChat(message);
                         } catch (ollamaErr) {
                             if (isTunnelUnavailableError(ollamaErr)) throw ollamaErr;
-                            throw ollamaErr;
+                            removeTypingIndicator(typingDiv);
+                            addMessage(setupHint, false, { timestamp: Date.now() });
+                            setAiHomeStatus(translations[currentLang].aiHomeStatusError);
+                            return;
                         }
                         const ollamaDurationSec = ((performance.now() - ollamaStarted) / 1000).toFixed(1);
                         removeTypingIndicator(typingDiv);
+                        const notice = currentLang === 'zh'
+                            ? `${setupHint}\n\n【以下为 Ollama 通用回答，非知识库检索】\n\n`
+                            : `${setupHint}\n\n[Ollama general answer — not from KB]\n\n`;
                         const ollamaMeta = {
                             source: 'ollama',
                             timestamp: Date.now(),
                             model: OLLAMA_CONFIG.model,
                             durationSec: ollamaDurationSec
                         };
-                        addMessage(ollamaAnswer, false, ollamaMeta);
-                        setAiHomeStatus(translations[currentLang].aiHomeStatusReady);
+                        addMessage(notice + ollamaAnswer, false, ollamaMeta);
+                        setAiHomeStatus(getAiStatusReadyLabel());
                         const updatedHistory = loadChatHistory();
-                        updatedHistory.push({ type: 'ai', content: ollamaAnswer, ...ollamaMeta });
+                        updatedHistory.push({ type: 'ai', content: notice + ollamaAnswer, ...ollamaMeta });
                         saveChatHistory(updatedHistory);
                         return;
                     }
@@ -8186,7 +8514,7 @@
                         };
                         addMessage(kbContent, false, kbMeta);
                         appendAiReplyToHistory(kbContent, kbMeta);
-                        setAiHomeStatus(translations[currentLang].aiHomeStatusReady);
+                        setAiHomeStatus(getAiStatusReadyLabel());
                         return;
                     }
 
@@ -8206,18 +8534,39 @@
                         webSearchQuery: kbHasNoAnswer ? message : null
                     };
                     addMessage(finalAnswer, false, aiMeta);
-                    setAiHomeStatus(translations[currentLang].aiHomeStatusReady);
+                    setAiHomeStatus(getAiStatusReadyLabel());
                     appendAiReplyToHistory(finalAnswer, aiMeta);
                 } catch (error) {
+                    if (shouldUseZhipuFallback() && !useCloudGlmAi() && !error.__zhipuFallbackTried) {
+                        error.__zhipuFallbackTried = true;
+                        console.warn('[OAO-AI] 本地 AI 失败，回退智谱 GLM:', error);
+                        try {
+                            setAiHomeStatus(currentLang === 'zh'
+                                ? '本地 AI 不可用，正在使用智谱 GLM…'
+                                : 'Local AI unavailable, trying Zhipu GLM…');
+                            await deliverGlmChatReply(message, typingDiv, { isFallback: true });
+                            return;
+                        } catch (glmErr) {
+                            console.warn('[OAO-AI] 智谱 GLM 备援也失败:', glmErr);
+                            error = glmErr;
+                        }
+                    }
                     console.warn('[OAO-AI] API调用失败:', error);
                     removeTypingIndicator(typingDiv);
                     setAiHomeStatus(translations[currentLang].aiHomeStatusError);
                     
                     let errorMessage = '';
-                    if (isGlmUnavailableError(error) || isTunnelUnavailableError(error)) {
+                    const glmUserError = getGlmUserFacingError(error);
+                    if (glmUserError) {
+                        errorMessage = glmUserError;
+                    } else if (isGlmUnavailableError(error) || isTunnelUnavailableError(error)) {
                         errorMessage = getAiConnectionHint();
                     } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                        errorMessage = getAiConnectionHint();
+                        errorMessage = useCloudGlmAi()
+                            ? (currentLang === 'zh'
+                                ? '无法连接 Cloudflare Worker（网络/CORS 问题）。\n\n请确认能打开 ' + resolveWorkerBaseUrl() + '/glm/health ，或稍后重试。'
+                                : 'Cannot reach Cloudflare Worker. Check ' + resolveWorkerBaseUrl() + '/glm/health')
+                            : getAiConnectionHint();
                     } else if (error.name === 'AbortError') {
                         errorMessage = currentLang === 'zh'
                             ? (useCloudGlmAi() ? '智谱 AI 请求超时，请稍后重试' : '请求超时，请检查本地 AI 服务')
@@ -8228,8 +8577,8 @@
                             : 'API key error, please check AnythingLLM configuration';
                     } else if (error.message.includes('404')) {
                         errorMessage = currentLang === 'zh' 
-                            ? '工作区不存在，请检查 AnythingLLM 中是否已创建 oaoeth 工作区'
-                            : 'Workspace not found, please ensure oaoeth workspace exists in AnythingLLM';
+                            ? '工作区不存在，请检查 AnythingLLM 中是否已创建 OAOeth 工作区'
+                            : 'Workspace not found, please ensure OAOeth workspace exists in AnythingLLM';
                     } else if (error.message.includes('500')) {
                         errorMessage = currentLang === 'zh' 
                             ? '服务器内部错误，请稍后重试'
@@ -8264,7 +8613,8 @@
                     console.log('glmChatUrl:', resolveGlmChatUrl());
                     console.log('local LLM baseUrl:', LLM_CONFIG.baseUrl);
                     console.log('ollamaUrl:', OLLAMA_CONFIG.baseUrl);
-                    console.log('AnythingLLM apiKey:', LLM_CONFIG.apiKey ? LLM_CONFIG.apiKey.substring(0, 6) + '...' : '未设置（正确）');
+                    console.log('AnythingLLM apiKey:', LLM_CONFIG.apiKey ? LLM_CONFIG.apiKey.substring(0, 6) + '...' : '未设置（上传需配置）');
+                    console.log('AnythingLLM workspace:', LLM_CONFIG.workspace);
                     console.log('===========================================');
                     return { useCloudGlmAi: useCloudGlmAi(), worker: resolveWorkerBaseUrl(), glm: GLM_CONFIG };
                 },
@@ -8290,6 +8640,33 @@
                     }
                 },
 
+                testAnythingLLM: async function() {
+                    console.log('========== AnythingLLM 知识库诊断 ==========');
+                    const health = await checkAnythingLLMHealth(true);
+                    console.log('health:', health);
+                    if (!health.systemOk) {
+                        console.error('❌ AnythingLLM 未运行');
+                        console.error(getAnythingLLMSetupHint(health));
+                        return { success: false, health };
+                    }
+                    if (!health.workspaceOk) {
+                        console.error(`❌ 工作区「${LLM_CONFIG.workspace}」不存在`);
+                        console.error(getAnythingLLMSetupHint(health));
+                        return { success: false, health };
+                    }
+                    if (!LLM_CONFIG.apiKey) {
+                        console.warn('⚠ 未配置 OAO_ANYTHINGLLM_API_KEY，对话可能可用但无法上传文件');
+                    }
+                    try {
+                        const chat = await callLLMAPI('回复 OK', { mode: 'query' });
+                        console.log('✅ 知识库对话测试通过:', chat.answer?.slice(0, 80));
+                        return { success: true, health, sample: chat };
+                    } catch (error) {
+                        console.error('❌ 知识库对话失败:', error.message);
+                        return { success: false, health, error: error.message };
+                    }
+                },
+
                 testRemoteTunnel: async function() {
                     console.log('========== 远程 Tunnel / Worker 诊断 ==========');
                     const testBase = isOaoLocalPreview()
@@ -8299,7 +8676,7 @@
                     try {
                         const response = await fetch(`${testBase}/api/v1/system`, {
                             method: 'GET',
-                            headers: { Authorization: `Bearer ${LLM_CONFIG.apiKey}` }
+                            headers: buildAnythingLLMHeaders(false)
                         });
                         const text = await response.text();
                         if (response.ok) {
@@ -8309,7 +8686,7 @@
                         }
                         if (isTunnelUnavailableBody(text)) {
                             console.error('❌ Cloudflare Tunnel 未运行或 LLM_ORIGIN 不可达（Error 1033）');
-                            console.error('请在本机运行：启动Tunnel.bat，并确保 Ollama + AnythingLLM 已启动');
+                            console.error('请在本机运行：OAO服务器.bat 选项 [1]，并确保 Ollama + AnythingLLM 已启动');
                             return { success: false, error: 'tunnel_offline' };
                         }
                         console.error('❌ 异常响应', response.status, text.slice(0, 240));
@@ -8506,6 +8883,7 @@
             console.log('  OAO_Diagnostic.testConnection()   - 测试连接');
             console.log('  OAO_Diagnostic.testWorkspace()    - 测试工作区');
             console.log('  OAO_Diagnostic.testChat()         - 测试聊天');
+            console.log('  OAO_Diagnostic.testAnythingLLM()  - 测试 AnythingLLM 知识库');
             console.log('  OAO_Diagnostic.testGlm()         - 测试智谱 GLM Worker');
             console.log('  OAO_Diagnostic.testRemoteTunnel() - 测试本机 Tunnel（可选）');
             console.log('  OAO_Diagnostic.runFullDiagnostic() - 运行完整诊断');
@@ -8543,7 +8921,8 @@
                 let detail = text.slice(0, 400);
                 try {
                     const json = JSON.parse(text);
-                    detail = json.message || json.error || json.hint || detail;
+                    detail = json.error?.message || json.message || json.error || json.hint || detail;
+                    if (typeof detail === 'object') detail = JSON.stringify(detail);
                     if (json.error === 'zhipu_not_configured') {
                         const err = new Error('GLM_NOT_CONFIGURED');
                         err.code = 'GLM_NOT_CONFIGURED';
@@ -8586,6 +8965,22 @@
                 }
             }
 
+            function getOaoSystemDatetimeContext() {
+                const now = new Date();
+                const locale = currentLang === 'zh' ? 'zh-CN' : 'en-US';
+                const formatted = now.toLocaleString(locale, {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'long',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                return currentLang === 'zh'
+                    ? `当前日期与时间（以用户浏览器为准）：${formatted}。用户问今天几号、什么日子、星期几、现在几点时，请直接据此回答，不要说无法联网。`
+                    : `Current date/time (user browser): ${formatted}. For "what day/date/time is it", answer from this directly; do not say you lack internet for calendar or clock questions.`;
+            }
+
             async function callZhipuChat(userMessage) {
                 const history = loadChatHistory().slice(-10);
                 const messages = history.map((item) => ({
@@ -8594,8 +8989,8 @@
                 }));
                 messages.push({ role: 'user', content: userMessage });
                 const systemPrompt = currentLang === 'zh'
-                    ? '你是 OAO 助手，简洁准确地回答用户问题。'
-                    : 'You are the OAO assistant. Answer concisely and accurately.';
+                    ? `${getOaoSystemDatetimeContext()}\n\n你是 OAO 平台的 AI 助手，由智谱 AI 的 GLM-4.7-Flash 模型驱动。不要自称通义千问、ChatGPT 或其他厂商产品；若被问及模型身份，请说明你是 OAO 助手，底层为智谱 GLM-4.7-Flash。若用户询问实时新闻、突发资讯或需联网核实的事实，说明需勾选「联网搜索」。回答简洁准确。`
+                    : `${getOaoSystemDatetimeContext()}\n\nYou are the OAO assistant powered by Zhipu GLM-4.7-Flash. Do not claim to be Qwen, ChatGPT, or other products. If asked about your model, say you are the OAO assistant using Zhipu GLM-4.7-Flash. For breaking news or facts that need live web verification, suggest enabling web search. Answer concisely and accurately.`;
                 messages.unshift({ role: 'system', content: systemPrompt });
 
                 const abortController = new AbortController();
@@ -8691,7 +9086,17 @@
                 if (useCloudGlmAi()) {
                     return callZhipuPrompt(prompt, options);
                 }
-                return callOllama(prompt);
+                try {
+                    const result = await callLLMAPI(prompt, {
+                        mode: 'chat',
+                        temperature: options.temperature,
+                        max_tokens: options.max_tokens
+                    });
+                    if (result?.answer) return result.answer;
+                } catch (err) {
+                    console.warn('[OAO-AI] AnythingLLM chat 失败，回退 Ollama:', err);
+                }
+                return callOllama(prompt, options);
             }
 
             /**
@@ -8737,28 +9142,27 @@
                 }
             }
 
-            async function callLLMAPI(message) {
+            async function callLLMAPI(message, options = {}) {
                 const sessionId = getSessionId();
-                const workspaceName = LLM_CONFIG.workspace || 'oaoeth';
+                const baseUrl = LLM_CONFIG.baseUrl;
+                const workspaceName = await resolveAnythingLLMWorkspaceSlug(baseUrl, false);
                 const encodedWorkspace = encodeURIComponent(workspaceName);
                 const apiEndpoint = `${LLM_CONFIG.baseUrl}/api/v1/workspace/${encodedWorkspace}/chat`;
                 const chatModel = await getWorkspaceChatModel();
+                const mode = options.mode || LLM_CONFIG.mode;
+                const temperature = options.temperature ?? LLM_CONFIG.temperature;
+                const maxTokens = options.max_tokens ?? LLM_CONFIG.maxTokens;
                 
                 const requestData = {
                     message: message,
-                    mode: LLM_CONFIG.mode,
+                    mode,
                     sessionId: sessionId,
                     stream: false,
-                    max_tokens: LLM_CONFIG.maxTokens,
-                    temperature: LLM_CONFIG.temperature
+                    max_tokens: maxTokens,
+                    temperature
                 };
                 
-                const requestHeaders = {
-                    'Content-Type': 'application/json'
-                };
-                if (LLM_CONFIG.apiKey) {
-                    requestHeaders.Authorization = `Bearer ${LLM_CONFIG.apiKey}`;
-                }
+                const requestHeaders = buildAnythingLLMHeaders(true);
                 
                 const abortController = new AbortController();
                 const timeoutTimer = setTimeout(() => {
@@ -8770,7 +9174,7 @@
                     console.log('[OAO-AI] 发送请求到 AnythingLLM:', {
                         endpoint: apiEndpoint,
                         workspace: workspaceName,
-                        mode: LLM_CONFIG.mode,
+                        mode,
                         sessionId: sessionId,
                         message: message.substring(0, 100) + (message.length > 100 ? '...' : '')
                     });
@@ -8807,7 +9211,7 @@
                         || metrics.model
                         || chatModel
                         || OLLAMA_CONFIG.model;
-                    console.log('[OAO-AI] 知识库回答完成，来源数量:', sources.length, 'mode:', LLM_CONFIG.mode);
+                    console.log('[OAO-AI] 知识库回答完成，来源数量:', sources.length, 'mode:', mode);
                     return {
                         answer,
                         sources,
@@ -9208,7 +9612,7 @@
             let kbActiveTab = 'file';
             let kbIsUploading = false;
 
-            function openKbUploadModal() {
+            async function openKbUploadModal() {
                 if (!isWalletAuthenticated()) {
                     showConnectionToast?.(
                         currentLang === 'zh' ? '请先登录（钱包签名或微信扫码）' : 'Please login with wallet or WeChat QR first',
@@ -9218,6 +9622,20 @@
                     return;
                 }
                 if (!isLoggedIn) return;
+                const health = await checkAnythingLLMHealth(true);
+                if (!health.ok) {
+                    showConnectionToast?.(getAnythingLLMSetupHint(health), 'error');
+                    if (!health.systemOk) return;
+                }
+                if (!LLM_CONFIG.apiKey) {
+                    showConnectionToast?.(
+                        currentLang === 'zh'
+                            ? '上传知识库需配置 OAO_ANYTHINGLLM_API_KEY（见 local-config.example.txt）'
+                            : 'Set OAO_ANYTHINGLLM_API_KEY to upload to KB',
+                        'error'
+                    );
+                    return;
+                }
                 kbPendingFiles = [];
                 kbActiveTab = 'file';
                 kbIsUploading = false;
@@ -9300,15 +9718,13 @@
 
             async function attachDocumentToWorkspace(documentRef) {
                 if (!documentRef) return false;
-                const encodedWorkspace = encodeURIComponent(LLM_CONFIG.workspace);
+                const workspaceName = await resolveAnythingLLMWorkspaceSlug(LLM_CONFIG.baseUrl, false);
+                const encodedWorkspace = encodeURIComponent(workspaceName);
                 const updateEndpoint = `${LLM_CONFIG.baseUrl}/api/v1/workspace/${encodedWorkspace}/update-embeddings`;
                 try {
                     const updateResponse = await fetch(updateEndpoint, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${LLM_CONFIG.apiKey}`
-                        },
+                        headers: buildAnythingLLMHeaders(true),
                         body: JSON.stringify({ adds: [documentRef], deletes: [] })
                     });
                     if (!updateResponse.ok) {
@@ -9325,17 +9741,26 @@
             }
 
             async function uploadFileToLLM(file, walletTag = '') {
+                if (!LLM_CONFIG.apiKey) {
+                    return {
+                        success: false,
+                        error: currentLang === 'zh'
+                            ? '未配置 OAO_ANYTHINGLLM_API_KEY，无法上传。请在 local-config.js 中填写 AnythingLLM API Key。'
+                            : 'OAO_ANYTHINGLLM_API_KEY not configured in local-config.js'
+                    };
+                }
                 const uploadEndpoint = `${LLM_CONFIG.baseUrl}/api/v1/document/upload`;
+                const workspaceName = await resolveAnythingLLMWorkspaceSlug(LLM_CONFIG.baseUrl, false);
                 const formData = new FormData();
                 formData.append('file', file);
-                formData.append('addToWorkspaces', LLM_CONFIG.workspace);
+                formData.append('addToWorkspaces', workspaceName);
                 formData.append('metadata', JSON.stringify({
                     title: file.name,
                     docSource: walletTag ? `OAO upload by ${walletTag}` : 'OAO web upload'
                 }));
                 const uploadResponse = await fetch(uploadEndpoint, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${LLM_CONFIG.apiKey}` },
+                    headers: buildAnythingLLMHeaders(false),
                     body: formData
                 });
                 if (!uploadResponse.ok) {
@@ -9356,16 +9781,22 @@
             }
 
             async function uploadTextToLLM(title, textContent, walletTag = '') {
+                if (!LLM_CONFIG.apiKey) {
+                    return {
+                        success: false,
+                        error: currentLang === 'zh'
+                            ? '未配置 OAO_ANYTHINGLLM_API_KEY，无法写入知识库。'
+                            : 'OAO_ANYTHINGLLM_API_KEY not configured'
+                    };
+                }
                 const endpoint = `${LLM_CONFIG.baseUrl}/api/v1/document/raw-text`;
+                const workspaceName = await resolveAnythingLLMWorkspaceSlug(LLM_CONFIG.baseUrl, false);
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${LLM_CONFIG.apiKey}`
-                    },
+                    headers: buildAnythingLLMHeaders(true),
                     body: JSON.stringify({
                         textContent,
-                        addToWorkspaces: LLM_CONFIG.workspace,
+                        addToWorkspaces: workspaceName,
                         metadata: {
                             title: title,
                             docSource: walletTag ? `OAO upload by ${walletTag}` : 'OAO web upload'
@@ -9402,19 +9833,26 @@
                                 const result = await uploadFileToLLM(item.file, walletTag);
                                 if (result.success) {
                                     successCount++;
-                                    const embeddedLabel = currentLang === 'zh' ? '已嵌入 oaoeth' : 'Embedded in oaoeth';
+                                    const embeddedLabel = currentLang === 'zh'
+                                        ? `已嵌入 ${LLM_CONFIG.workspace}`
+                                        : `Embedded in ${LLM_CONFIG.workspace}`;
                                     setKbFileStatus(i, 'success', embeddedLabel);
                                     addMessage(currentLang === 'zh'
-                                        ? `✓ 已自动嵌入 oaoeth 工作区: ${item.file.name}`
-                                        : `✓ Auto-embedded into oaoeth workspace: ${item.file.name}`, false, { source: 'kb' });
+                                        ? `✓ 已自动嵌入工作区 ${LLM_CONFIG.workspace}: ${item.file.name}`
+                                        : `✓ Auto-embedded into ${LLM_CONFIG.workspace}: ${item.file.name}`, false, { source: 'kb' });
                                 } else {
                                     setKbFileStatus(i, 'error', currentLang === 'zh' ? '失败' : 'Failed');
+                                    if (result.error) {
+                                        addMessage(`✗ ${item.file.name}: ${result.error}`, false);
+                                    }
                                 }
                             } catch (error) {
                                 setKbFileStatus(i, 'error', currentLang === 'zh' ? '失败' : 'Failed');
                             }
                         }
                         if (successCount > 0) {
+                            cachedAnythingLLMHealth = null;
+                            void refreshAnythingLLMStatus();
                             const history = loadChatHistory();
                             history.push({ type: 'user', content: `[知识库] 上传 ${successCount} 个文件`, timestamp: Date.now() });
                             saveChatHistory(history);
@@ -9430,9 +9868,10 @@
                         const result = await uploadTextToLLM(title, text, walletTag);
                         removeTypingIndicator(typingDiv);
                         if (result.success) {
+                            const wsName = LLM_CONFIG.workspace;
                             addMessage(currentLang === 'zh'
-                                ? `✓ 已自动嵌入 oaoeth 工作区: ${title}`
-                                : `✓ Auto-embedded into oaoeth workspace: ${title}`, false, { source: 'kb' });
+                                ? `✓ 已自动嵌入 ${wsName} 工作区: ${title}`
+                                : `✓ Auto-embedded into ${wsName} workspace: ${title}`, false, { source: 'kb' });
                             const history = loadChatHistory();
                             history.push({ type: 'user', content: `[知识库] ${title}`, timestamp: Date.now() });
                             saveChatHistory(history);
@@ -12953,46 +13392,63 @@ ${emptyHint}`;
                 return fullText.trim();
             }
 
+            async function tryGlmMeetingMinutes(prompt, onChunk) {
+                try {
+                    const fullText = (await streamZhipuMinutes(prompt, onChunk)) || '';
+                    if (fullText.trim()) return { text: fullText.trim(), source: 'glm' };
+                } catch (glmStreamErr) {
+                    console.warn('[OAO Meeting] GLM stream failed:', glmStreamErr);
+                }
+                try {
+                    const answer = await callZhipuPrompt(prompt, { temperature: 0.1, max_tokens: 8192 });
+                    if (answer.trim()) return { text: answer.trim(), source: 'glm' };
+                } catch (glmErr) {
+                    console.warn('[OAO Meeting] GLM prompt failed:', glmErr);
+                }
+                return null;
+            }
+
             async function resolveMeetingMinutesContent(prompt, transcript, onChunk) {
                 if (useCloudGlmAi()) {
-                    try {
-                        const fullText = (await streamZhipuMinutes(prompt, onChunk)) || '';
-                        if (fullText.trim()) return { text: fullText.trim(), source: 'glm' };
-                    } catch (glmStreamErr) {
-                        console.warn('[OAO Meeting] GLM stream failed, fallback:', glmStreamErr);
+                    const glmOnly = await tryGlmMeetingMinutes(prompt, onChunk);
+                    if (glmOnly) return glmOnly;
+                }
+
+                try {
+                    const llmResult = await callLLMAPI(prompt, { mode: 'chat', temperature: 0.15, max_tokens: 8192 });
+                    const answer = (llmResult.answer || '').trim();
+                    if (answer && !isNoKnowledgeAnswer(answer, llmResult.sources)) {
+                        if (onChunk) onChunk(answer);
+                        return { text: answer, source: 'llm' };
                     }
-                    try {
-                        const answer = await callZhipuPrompt(prompt, { temperature: 0.1, max_tokens: 8192 });
-                        if (answer.trim()) return { text: answer.trim(), source: 'glm' };
-                    } catch (glmErr) {
-                        console.warn('[OAO Meeting] GLM prompt failed:', glmErr);
+                    if (answer) {
+                        if (onChunk) onChunk(answer);
+                        return { text: answer, source: 'llm' };
                     }
+                } catch (llmErr) {
+                    console.warn('[OAO Meeting] AnythingLLM 纪要失败，尝试 Ollama:', llmErr);
                 }
 
                 let fullText = '';
                 try {
                     fullText = (await streamMeetingMinutes(prompt, onChunk)) || '';
                 } catch (streamErr) {
-                    console.warn('[OAO Meeting] Ollama stream failed, fallback:', streamErr);
+                    console.warn('[OAO Meeting] Ollama stream failed:', streamErr);
                 }
 
                 if (fullText.trim()) return { text: fullText.trim(), source: 'stream' };
 
                 try {
-                    const result = await callLLMAPI(prompt);
-                    const answer = (result.answer || '').trim();
-                    if (answer && !isNoKnowledgeAnswer(answer, result.sources)) {
-                        return { text: answer, source: 'llm' };
-                    }
-                } catch (llmErr) {
-                    console.warn('[OAO Meeting] AnythingLLM fallback failed:', llmErr);
-                }
-
-                try {
                     const answer = await callOllamaMinutesPrompt(prompt);
+                    if (onChunk && answer) onChunk(answer);
                     return { text: answer, source: 'ollama' };
                 } catch (ollamaErr) {
                     console.warn('[OAO Meeting] Ollama non-stream fallback failed:', ollamaErr);
+                }
+
+                if (shouldUseZhipuFallback()) {
+                    const glmFallback = await tryGlmMeetingMinutes(prompt, onChunk);
+                    if (glmFallback) return glmFallback;
                 }
 
                 return { text: buildLocalMeetingMinutesFallback(transcript), source: 'local' };
@@ -13047,6 +13503,16 @@ ${emptyHint}`;
                     } else if (resolved.source === 'glm') {
                         showConnectionToast(
                             currentLang === 'zh' ? '纪要已由智谱 AI 生成' : 'Minutes generated by Zhipu AI',
+                            'success'
+                        );
+                    } else if (resolved.source === 'llm') {
+                        showConnectionToast(
+                            currentLang === 'zh' ? '纪要已由 AnythingLLM + 本地模型生成' : 'Minutes via AnythingLLM + local model',
+                            'success'
+                        );
+                    } else if (resolved.source === 'stream' || resolved.source === 'ollama') {
+                        showConnectionToast(
+                            currentLang === 'zh' ? '纪要已由 Ollama 本地模型生成' : 'Minutes generated by Ollama',
                             'success'
                         );
                     }
@@ -13342,9 +13808,9 @@ ${emptyHint}`;
                 }
                 let setupAck = false;
                 try { setupAck = localStorage.getItem('oao_local_setup_ack') === '1'; } catch (_) {}
-                if (!setupAck && !skipLoginCheck) {
+                if (!setupAck && !skipLoginCheck && isOaoLocalPreview()) {
                     void checkOaoLocalRuntimeStatus().then((status) => {
-                        if (!status.translateReady && !status.ollamaReady) {
+                        if (status.isFile || (!status.translateReady && status.usingBat)) {
                             showOaoLocalSetupGuide('meeting');
                         }
                     });
@@ -13534,6 +14000,30 @@ ${emptyHint}`;
 
             window.prewarmOaoTranslateService = prewarmOaoTranslateService;
 
+            function getOaoTranslateFallbackDesc() {
+                if (isOaoLocalPreview()) {
+                    return currentLang === 'zh'
+                        ? '翻译界面加载失败。请确认已通过「打开OAO.bat」访问 http://127.0.0.1:8777/OAO.html，或稍候后重试。'
+                        : 'Failed to load translate UI. Open via 打开OAO.bat at http://127.0.0.1:8777/OAO.html and retry.';
+                }
+                return currentLang === 'zh'
+                    ? '翻译界面暂时无法加载，请检查网络后重试。浏览器模式无需安装任何本地服务。'
+                    : 'Could not load translate UI. Check your network and retry. Browser mode needs no local install.';
+            }
+
+            function getOaoTranslateLoadingHint() {
+                return isOaoLocalPreview()
+                    ? (currentLang === 'zh'
+                        ? '轻量浏览器模式，与主页同源加载，无需等待 Node 编译'
+                        : 'Lightweight embed loads from the same origin')
+                    : (currentLang === 'zh'
+                        ? '正在从网站加载翻译界面，无需本地安装'
+                        : 'Loading translate UI from the site; no local install needed');
+            }
+
+            window.getOaoTranslateFallbackDesc = getOaoTranslateFallbackDesc;
+            window.getOaoTranslateLoadingHint = getOaoTranslateLoadingHint;
+
             function setOaoTranslateLoadingVisible(visible, message) {
                 const loading = document.getElementById('oaoTranslateLoading');
                 const fallback = document.getElementById('oaoTranslateFallback');
@@ -13580,11 +14070,7 @@ ${emptyHint}`;
 
                 const embedUrl = buildOaoTranslateEmbedUrl(resolveOaoTranslateUrl());
                 const loadingHint = document.getElementById('oaoTranslateLoadingHint');
-                if (loadingHint) {
-                    loadingHint.textContent = currentLang === 'zh'
-                        ? '轻量浏览器模式，与主页同源加载，无需等待 Node 编译'
-                        : 'Lightweight embed loads from the same origin';
-                }
+                if (loadingHint) loadingHint.textContent = getOaoTranslateLoadingHint();
 
                 setOaoTranslateLoadingVisible(true, currentLang === 'zh' ? '正在打开 OAO翻译…' : 'Opening…');
 
@@ -13601,6 +14087,10 @@ ${emptyHint}`;
                         setOaoTranslateLoadingVisible(false);
                         frame.classList.add('hidden');
                         fallback.classList.remove('hidden');
+                        const descEl = document.getElementById('oaoTranslateFallbackDesc');
+                        if (descEl) descEl.textContent = getOaoTranslateFallbackDesc();
+                        const setupBtn = document.getElementById('oaoTranslateSetupBtn');
+                        if (setupBtn) setupBtn.classList.toggle('hidden', !isOaoLocalPreview());
                     }
                 };
 
@@ -13982,7 +14472,7 @@ ${emptyHint}`;
                 oaoTranslateModalTitle: 'OAO翻译',
                 oaoTranslateModalTagline: '浏览器模式 · 零安装',
                 oaoTranslateFallbackTitle: '无法加载 OAO翻译服务',
-                oaoTranslateFallbackDesc: '翻译界面（端口 3000）仍在启动，请稍候后重试，或完整执行一次「打开OAO.bat」。界面加载后即可使用浏览器模式，无需 Ollama。',
+                oaoTranslateFallbackDesc: '翻译界面加载失败。请确认已通过「打开OAO.bat」访问 http://127.0.0.1:8777/OAO.html，或稍候后重试。',
                 oaoTranslateRetry: '重试',
                 oaoTranslateFullscreen: '全屏',
                 oaoMeetingModalTitle: '小O会议',
@@ -14083,15 +14573,15 @@ ${emptyHint}`;
                 oaoMeetingNoticeContactPh: '姓名',
                 oaoMeetingNoticePhonePh: '手机或座机',
                 oaoMeetingNoticeRemarksPh: '例如：请提前 5 分钟入会，携带相关材料',
-                aiWebSearchText: '联网搜索（勾选：网络优先 + 知识库双回复）',
+                aiWebSearchText: '联网搜索',
                 aiWebSearchBtn: '联网搜索',
                 aiWebSearchBtnSearching: '搜索中…',
-                aiWebSearchNeedEnable: '请先勾选「联网搜索（知识库无答案时）」',
-                aiHomeLoginText: '登录后可使用 OAO 本地知识库助手',
-                aiHomeStatusReady: '本地知识库 · AnythingLLM + Ollama',
-                aiHomeStatusLocked: '登录后启用本地 AI',
-                aiHomeStatusSearching: '正在检索本地知识库...',
-                aiHomeStatusWeb: '知识库无答案，正在联网搜索...',
+                aiWebSearchNeedEnable: '请先勾选「联网搜索」',
+                aiHomeLoginText: '登录后可使用本地知识库或智谱 AI',
+                aiHomeStatusReady: '本地知识库 · AnythingLLM',
+                aiHomeStatusLocked: '登录后启用 AI 对话',
+                aiHomeStatusSearching: '正在检索本地知识库…',
+                aiHomeStatusWeb: '正在联网搜索…',
                 aiHomeStatusError: '本地 AI 服务异常',
                 kbUploadTitle: '上传至知识库',
                 kbTabFile: '文件上传',
@@ -14174,7 +14664,7 @@ ${emptyHint}`;
                 oaoTranslateModalTitle: 'OAO Translate',
                 oaoTranslateModalTagline: 'Browser mode · zero install',
                 oaoTranslateFallbackTitle: 'Unable to load OAO Translate',
-                oaoTranslateFallbackDesc: 'The translate UI (port 3000) is still starting. Retry in a few seconds, or run「打开OAO.bat」once. Browser mode works without Ollama once the page loads.',
+                oaoTranslateFallbackDesc: 'Could not load translate UI. Check your network and retry. Browser mode needs no local install.',
                 oaoTranslateRetry: 'Retry',
                 oaoTranslateFullscreen: 'Fullscreen',
                 oaoMeetingModalTitle: 'Xiao O Meeting',
@@ -14275,15 +14765,15 @@ ${emptyHint}`;
                 oaoMeetingNoticeContactPh: 'Name',
                 oaoMeetingNoticePhonePh: 'Mobile or landline',
                 oaoMeetingNoticeRemarksPh: 'e.g. Join 5 minutes early, bring materials',
-                aiWebSearchText: 'Web search (checked: web first + dual KB reply)',
+                aiWebSearchText: 'Web search',
                 aiWebSearchBtn: 'Web Search',
                 aiWebSearchBtnSearching: 'Searching…',
-                aiWebSearchNeedEnable: 'Please enable "Web search (when KB has no answer)" first',
-                aiHomeLoginText: 'Login to use the OAO local knowledge assistant',
-                aiHomeStatusReady: 'Local KB · AnythingLLM + Ollama',
-                aiHomeStatusLocked: 'Login to enable local AI',
-                aiHomeStatusSearching: 'Searching local knowledge base...',
-                aiHomeStatusWeb: 'No KB match, searching the web...',
+                aiWebSearchNeedEnable: 'Please enable web search first',
+                aiHomeLoginText: 'Login to use local KB or Zhipu AI',
+                aiHomeStatusReady: 'Local KB · AnythingLLM',
+                aiHomeStatusLocked: 'Login to enable AI chat',
+                aiHomeStatusSearching: 'Searching local knowledge base…',
+                aiHomeStatusWeb: 'Searching the web…',
                 aiHomeStatusError: 'Local AI service error',
                 kbUploadTitle: 'Upload to Knowledge Base',
                 kbTabFile: 'File Upload',
@@ -14459,7 +14949,11 @@ ${emptyHint}`;
             const oaoTranslateFallbackTitle = document.getElementById('oaoTranslateFallbackTitle');
             if (oaoTranslateFallbackTitle) oaoTranslateFallbackTitle.textContent = translations[lang].oaoTranslateFallbackTitle;
             const oaoTranslateFallbackDesc = document.getElementById('oaoTranslateFallbackDesc');
-            if (oaoTranslateFallbackDesc) oaoTranslateFallbackDesc.textContent = translations[lang].oaoTranslateFallbackDesc;
+            if (oaoTranslateFallbackDesc) {
+                oaoTranslateFallbackDesc.textContent = typeof window.getOaoTranslateFallbackDesc === 'function'
+                    ? window.getOaoTranslateFallbackDesc()
+                    : translations[lang].oaoTranslateFallbackDesc;
+            }
             const oaoTranslateRetryBtn = document.getElementById('oaoTranslateRetryBtn');
             if (oaoTranslateRetryBtn) oaoTranslateRetryBtn.textContent = translations[lang].oaoTranslateRetry;
             const oaoTranslateFullscreenBtn = document.getElementById('oaoTranslateFullscreenBtn');
@@ -14710,7 +15204,9 @@ ${emptyHint}`;
             const aiHomeStatusEl = document.getElementById('aiHomeStatus');
             if (aiHomeStatusEl) {
                 aiHomeStatusEl.textContent = isLoggedIn
-                    ? translations[lang].aiHomeStatusReady
+                    ? (typeof window.getAiStatusReadyLabel === 'function'
+                        ? window.getAiStatusReadyLabel()
+                        : translations[lang].aiHomeStatusReady)
                     : translations[lang].aiHomeStatusLocked;
             }
 

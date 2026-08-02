@@ -1557,7 +1557,7 @@
 
     const shareReady = await registerShareSession();
     if (!shareReady) {
-      toast("分享中继未连接，观看页可能无法同步；请确认 OAO Services 已启动", "error");
+      toast("分享中继未连接，观看页可能无法同步；请运行「OAO服务器.bat」选项 2 或 1", "error");
     }
 
     state.status = "recording";
@@ -1638,7 +1638,7 @@
     }
     els.shareHint.textContent = state.shareRelayReady
       ? "扫码或复制链接，他人可实时观看识别与译文（含目标语言标签）。"
-      : "分享链接已生成，但中继未连接；请启动 OAO Services 后重新开始会话，观看页才能同步字幕。";
+      : "分享链接已生成，但中继未连接；请运行「OAO服务器.bat」后重新开始会话。";
     els.sharePopover.classList.remove("hidden");
     els.overlay.classList.remove("hidden");
   }
