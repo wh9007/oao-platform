@@ -7336,11 +7336,12 @@
                 return false;
             }
 
-            /** 本地 AI 不可用时是否回退智谱 GLM（默认开启） */
+            /** 本地 AI 不可用时是否回退智谱 GLM（外网/Tunnel 场景默认开启；本地预览默认关闭） */
             function shouldUseZhipuFallback() {
                 if (window.OAO_FORCE_LOCAL_AI === true) return false;
                 if (window.OAO_DISABLE_GLM_FALLBACK === true) return false;
-                return true;
+                if (window.OAO_ENABLE_GLM_FALLBACK === true) return true;
+                return !isOaoLocalPreview();
             }
 
             /** @deprecated 别名，与 useCloudGlmAi 相同 */
@@ -7466,9 +7467,7 @@
                         webDurationSec = ((performance.now() - webStarted) / 1000).toFixed(1);
                     } catch (webErr) {
                         console.warn('[OAO-AI] 联网搜索失败:', webErr);
-                        webAnswer = currentLang === 'zh'
-                            ? '联网搜索暂时不可用。'
-                            : 'Web search is temporarily unavailable.';
+                        webAnswer = getWebSearchUnavailableHint();
                     }
                     removeTypingIndicator(webTypingDiv);
                     const webContent = formatSourceSectionHeader('web') + webAnswer;
@@ -7541,10 +7540,18 @@
             };
 
             async function resolveAnythingLLMWorkspaceSlug(baseUrl, forceRefresh) {
-                if (!forceRefresh && window.__oaoAnythingLLMWorkspace) {
-                    return window.__oaoAnythingLLMWorkspace;
-                }
                 const url = String(baseUrl || await resolveAnythingLLMBaseUrl(false)).replace(/\/$/, '');
+                if (!forceRefresh && window.__oaoAnythingLLMWorkspace) {
+                    try {
+                        const res = await fetch(`${url}/api/v1/workspace/${encodeURIComponent(window.__oaoAnythingLLMWorkspace)}`, {
+                            headers: buildAnythingLLMHeaders(false),
+                            cache: 'no-store'
+                        });
+                        if (res.ok) return window.__oaoAnythingLLMWorkspace;
+                    } catch (_) {}
+                    window.__oaoAnythingLLMWorkspace = undefined;
+                    window.__oaoAnythingLLMWorkspaceName = undefined;
+                }
                 const hint = getAnythingLLMWorkspaceHint();
                 const hintNorm = String(hint).toLowerCase().replace(/\s+/g, '');
 
@@ -7613,10 +7620,20 @@
             }
 
             async function probeAnythingLLMBase(baseUrl) {
+                const url = baseUrl.replace(/\/$/, '');
                 const controller = new AbortController();
                 const timer = setTimeout(() => controller.abort(), 4500);
                 try {
-                    const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/v1/system`, {
+                    const pingRes = await fetch(`${url}/api/ping`, {
+                        method: 'GET',
+                        signal: controller.signal,
+                        cache: 'no-store'
+                    });
+                    if (pingRes.ok) {
+                        clearTimeout(timer);
+                        return true;
+                    }
+                    const res = await fetch(`${url}/api/v1/system`, {
                         method: 'GET',
                         headers: buildAnythingLLMHeaders(false),
                         signal: controller.signal,
@@ -7799,10 +7816,34 @@
                 return !!(aiWebSearchToggle && aiWebSearchToggle.checked);
             }
 
+            function getNoKbWebSearchHint() {
+                return currentLang === 'zh'
+                    ? '本问题不在本地知识库中。请勾选下方「联网搜索」，或点击回复中的「联网搜索」按钮获取实时信息。'
+                    : 'Not in the local knowledge base. Enable "Web search" below or use the button in the reply.';
+            }
+
+            function getKbUnavailableShortHint() {
+                return currentLang === 'zh'
+                    ? '知识库检索暂不可用，以下为 Ollama 通用回答（非知识库）。'
+                    : 'KB retrieval unavailable. Ollama general answer below (not from KB).';
+            }
+
             function getNoKbAnswerText() {
                 return currentLang === 'zh'
                     ? '当前知识库中暂无相关信息。'
                     : 'No relevant information in the current knowledge base.';
+            }
+
+            function getWebSearchUnavailableHint() {
+                const hasPaidKey = !!(WEB_SEARCH_CONFIG.tavilyApiKey || WEB_SEARCH_CONFIG.serperApiKey || WEB_SEARCH_CONFIG.braveApiKey || WEB_SEARCH_CONFIG.proxyUrl);
+                if (hasPaidKey) {
+                    return currentLang === 'zh'
+                        ? '联网搜索暂时不可用，请稍后重试或检查 API Key 配置。'
+                        : 'Web search unavailable. Retry later or check API keys.';
+                }
+                return currentLang === 'zh'
+                    ? '联网搜索暂时不可用（已尝试 Wikipedia / DuckDuckGo 等免费源）。请检查网络后重试；如需更强检索可配置 Tavily 免费额度（local-config.js）。'
+                    : 'Web search unavailable (tried Wikipedia/DuckDuckGo). Check network or add Tavily key in local-config.js.';
             }
 
             function normalizeNoKbAnswer(answer) {
@@ -8450,9 +8491,7 @@
                         }
                         const ollamaDurationSec = ((performance.now() - ollamaStarted) / 1000).toFixed(1);
                         removeTypingIndicator(typingDiv);
-                        const notice = currentLang === 'zh'
-                            ? `${setupHint}\n\n【以下为 Ollama 通用回答，非知识库检索】\n\n`
-                            : `${setupHint}\n\n[Ollama general answer — not from KB]\n\n`;
+                        const notice = `${getKbUnavailableShortHint()}\n\n`;
                         const ollamaMeta = {
                             source: 'ollama',
                             timestamp: Date.now(),
@@ -8486,9 +8525,7 @@
                             webDurationSec = ((performance.now() - webStarted) / 1000).toFixed(1);
                         } catch (webErr) {
                             console.warn('[OAO-AI] 联网搜索失败:', webErr);
-                            webAnswer = currentLang === 'zh'
-                                ? '联网搜索暂时不可用。请配置 Tavily / Serper API Key，或部署 OAO_WEB_SEARCH_PROXY 代理。'
-                                : 'Web search is temporarily unavailable. Configure Tavily/Serper API keys or OAO_WEB_SEARCH_PROXY.';
+                            webAnswer = getWebSearchUnavailableHint();
                         }
                         removeTypingIndicator(webTypingDiv);
 
@@ -8520,9 +8557,7 @@
 
                     if (kbHasNoAnswer) {
                         finalAnswer = normalizeNoKbAnswer(finalAnswer);
-                        finalAnswer = currentLang === 'zh'
-                            ? `${finalAnswer}\n\n提示：可勾选「联网搜索」，将同时返回网络实时内容与本地知识库回答。`
-                            : `${finalAnswer}\n\nTip: Enable "Web search" to get both live web results and local knowledge base answers.`;
+                        finalAnswer = `${finalAnswer}\n\n${getNoKbWebSearchHint()}`;
                     }
 
                     const aiMeta = {
@@ -14580,7 +14615,7 @@ ${emptyHint}`;
                 aiHomeLoginText: '登录后可使用本地知识库或智谱 AI',
                 aiHomeStatusReady: '本地知识库 · AnythingLLM',
                 aiHomeStatusLocked: '登录后启用 AI 对话',
-                aiHomeStatusSearching: '正在检索本地知识库…',
+                aiHomeStatusSearching: '正在检索本地知识库（首次约 30–60 秒）…',
                 aiHomeStatusWeb: '正在联网搜索…',
                 aiHomeStatusError: '本地 AI 服务异常',
                 kbUploadTitle: '上传至知识库',
@@ -14772,7 +14807,7 @@ ${emptyHint}`;
                 aiHomeLoginText: 'Login to use local KB or Zhipu AI',
                 aiHomeStatusReady: 'Local KB · AnythingLLM',
                 aiHomeStatusLocked: 'Login to enable AI chat',
-                aiHomeStatusSearching: 'Searching local knowledge base…',
+                aiHomeStatusSearching: 'Searching local KB (first query may take 30–60s)…',
                 aiHomeStatusWeb: 'Searching the web…',
                 aiHomeStatusError: 'Local AI service error',
                 kbUploadTitle: 'Upload to Knowledge Base',
