@@ -1,4 +1,4 @@
-# OAO GitHub upload — called by batch file
+﻿# OAO GitHub upload — called by batch file
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location -LiteralPath $Root

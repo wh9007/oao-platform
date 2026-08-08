@@ -1,4 +1,4 @@
-# 在此粘贴 GitHub Personal Access Token（一行，不要引号）
+﻿# 在此粘贴 GitHub Personal Access Token（一行，不要引号）
 # 支持 Classic Token（ghp_ 开头）或 Fine-grained Token（github_pat_ 开头）
 # 获取地址: https://github.com/settings/tokens/new?scopes=repo
 # Classic Token 请务必勾选 repo 权限

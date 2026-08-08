@@ -1,4 +1,4 @@
-export type ProviderName = "ollama" | "openai" | "google" | "azure" | "deepl" | "gemini" | "claude" | "relay";
+﻿export type ProviderName = "ollama" | "openai" | "google" | "azure" | "deepl" | "gemini" | "claude" | "relay";
 
 export interface TranslationLanguages {
   source: string;

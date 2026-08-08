@@ -1,4 +1,4 @@
-# 本地 wrangler 开发用 — 复制为 .dev.vars（已在 .gitignore）
+﻿# 本地 wrangler 开发用 — 复制为 .dev.vars（已在 .gitignore）
 # 切勿提交真实 Key
 ZHIPU_API_KEY=在此粘贴智谱APIKey
 ZHIPU_MODEL=glm-4.7-flash

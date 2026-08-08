@@ -1,4 +1,4 @@
-
+﻿
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -33,7 +33,7 @@
     <script>
         // ========== OAO 个人使用说明 ==========
         // 1. 本地测试：双击「打开OAO.bat」
-        // 2. 外网远程本机 AI：双击「OAO服务器.bat」（Tunnel + Ollama + AnythingLLM）
+        // 2. 外网远程本机 AI：双击「启动远程AI.bat」（每次运行即可）
         // 3. 版本发布：双击「一键上传GitHub.bat」
         // 4. 外网站点：https://wh9007.github.io/oao-platform/
         // 5. AI：本地 AnythingLLM + Ollama 优先；Tunnel 经 Worker；智谱 GLM 备援
@@ -44,6 +44,13 @@
         // window.OAO_SERPER_API_KEY = 'xxxxxxxx';
         // window.OAO_BRAVE_SEARCH_API_KEY = 'BSA-xxxxxxxx';
         // window.OAO_WEB_SEARCH_PROXY = 'https://oao-ai.wh529007.workers.dev/web-search';
+        // 外网 GitHub Pages 默认（无 local-config.js 时）
+        (function () {
+            var h = location.hostname || '';
+            if (h.indexOf('github.io') === -1 && h.indexOf('wh9007.github.io') === -1) return;
+            if (!window.OAO_WORKER_URL) window.OAO_WORKER_URL = 'https://oao-ai.wh529007.workers.dev';
+            if (!window.OAO_ANYTHINGLLM_WORKSPACE) window.OAO_ANYTHINGLLM_WORKSPACE = 'oaoeth';
+        })();
     </script>
     <script src="local-config.js" onerror="void 0"></script>
     <script src="oao-translate/embed/lib/stt-browser.js"></script>

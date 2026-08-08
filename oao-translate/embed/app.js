@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   "use strict";
 
   const { toCode, toLabel, resolveSourceCode, translateOnline, LANG_CODES } = window.OAOTranslate;

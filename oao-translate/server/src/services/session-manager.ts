@@ -1,4 +1,4 @@
-import { createProvider } from "../providers/factory";
+﻿import { createProvider } from "../providers/factory";
 import type {
   ProviderName,
   TranslationLanguages,

@@ -1,4 +1,4 @@
-# 复制本文件为 local-config.js（与 OAO.html 同目录）
+﻿# 复制本文件为 local-config.js（与 OAO.html 同目录）
 
 
 

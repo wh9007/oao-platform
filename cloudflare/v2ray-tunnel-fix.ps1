@@ -1,0 +1,30 @@
+﻿# V2Ray / Xray 与 OAO Tunnel 共存 — 路由规则说明
+# 你的电脑检测到 xray_tun 接口，会拦截 Cloudflare Tunnel 的 DNS(SRV) 查询导致 Tunnel 无法连接。
+
+Write-Host ''
+Write-Host '=== V2Ray 用户：请添加 Cloudflare 直连规则 ===' -ForegroundColor Yellow
+Write-Host ''
+Write-Host '在 V2Ray / v2rayN / Clash 等客户端中，将以下域名设为「直连 Direct」：'
+Write-Host '  argotunnel.com'
+Write-Host '  cloudflare.com'
+Write-Host '  workers.dev'
+Write-Host '  dpdns.org'
+Write-Host '  wh9007.dpdns.org'
+Write-Host '  wh529007.workers.dev'
+Write-Host ''
+Write-Host 'v2rayN 操作示例：'
+Write-Host '  设置 -> 路由设置 -> 域名直连 -> 添加上述域名'
+Write-Host '  或：参数设置 -> 启用「绕过大陆」并添加 cloudflare 域名到直连'
+Write-Host ''
+Write-Host 'Clash 规则示例（rules 段添加）：'
+Write-Host '  DOMAIN-SUFFIX,argotunnel.com,DIRECT'
+Write-Host '  DOMAIN-SUFFIX,cloudflare.com,DIRECT'
+Write-Host '  DOMAIN-SUFFIX,workers.dev,DIRECT'
+Write-Host '  DOMAIN-SUFFIX,dpdns.org,DIRECT'
+Write-Host ''
+Write-Host '修改后：重启 V2Ray，再运行 OAO服务器.bat 选 1'
+Write-Host ''
+Write-Host '临时方案：启动 Tunnel 前暂时关闭 V2Ray，看到 Registered tunnel connection 后再开'
+Write-Host ''
+
+Read-Host '按回车关闭'

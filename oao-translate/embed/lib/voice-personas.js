@@ -1,4 +1,4 @@
-(function (global) {
+﻿(function (global) {
   "use strict";
 
   const FEMALE_HINT = /huihui|xiaoxiao|xiaoyi|yaoyao|meijia|tingting|lili|susan|zira|samantha|victoria|linda|helen|anna|maria|yuki|sora|female|woman|girl|jenny|aria|晓晓|小艺|慧慧|女/i;

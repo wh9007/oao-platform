@@ -1,4 +1,4 @@
-name = "oao-ai"
+﻿name = "oao-ai"
 main = "oao-ai-worker.js"
 compatibility_date = "2024-01-01"
 

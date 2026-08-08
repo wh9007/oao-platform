@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 rem OAO 脚本公共库 — 由打开OAO.bat / OAO服务器.bat 调用
 rem 用法: call "%~dp0scripts\lib.cmd" <子程序名> [参数...]
 if "%~1"=="" exit /b 1
@@ -62,5 +62,5 @@ powershell -NoProfile -Command "try{(Invoke-WebRequest -Uri 'http://127.0.0.1:11
 exit /b %ERRORLEVEL%
 
 :CheckAnythingLLMPort
-powershell -NoProfile -Command "try{(Invoke-WebRequest -Uri 'http://127.0.0.1:3001/api/v1/system' -UseBasicParsing -TimeoutSec 2).StatusCode; exit 0}catch{exit 1}" >nul 2>&1
+powershell -NoProfile -Command "try{(Invoke-WebRequest -Uri 'http://127.0.0.1:3001/api/ping' -UseBasicParsing -TimeoutSec 3).StatusCode; exit 0}catch{exit 1}" >nul 2>&1
 exit /b %ERRORLEVEL%
