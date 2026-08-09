@@ -1,4 +1,8 @@
 ﻿# GitHub 一键上传 - 中文界面
+param(
+    [switch]$NoPause
+)
+
 $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
 
@@ -8,64 +12,80 @@ $LogFile = Join-Path $Root 'upload-log.txt'
 
 Write-Host ''
 Write-Host ' ============================================================' -ForegroundColor Cyan
-Write-Host '   OAO 一键上传 GitHub（版本更新）' -ForegroundColor Cyan
+Write-Host '   OAO 一键上传 GitHub（快速部署）' -ForegroundColor Cyan
 Write-Host ' ============================================================' -ForegroundColor Cyan
 Write-Host ''
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Write-Host ' [缺少 Git] 请先安装: https://git-scm.com/download/win' -ForegroundColor Red
-    Read-Host '按回车关闭'
+    if (-not $NoPause) { Read-Host '按回车关闭' }
     exit 1
 }
+
+Set-Location -LiteralPath $Root
 
 if (-not (Test-Path $TokenFile)) {
     New-Item -ItemType File -Path $TokenFile -Force | Out-Null
 }
 
-$hasToken = $false
-if (Test-Path $TokenFile) {
-    $lines = Get-Content $TokenFile -ErrorAction SilentlyContinue
-    foreach ($line in $lines) {
-        if ($line -match '^(ghp_|github_pat_)') { $hasToken = $true; break }
+function Test-TokenInFile {
+    param([string]$Path)
+    if (-not (Test-Path $Path)) { return $false }
+    foreach ($line in (Get-Content $Path -ErrorAction SilentlyContinue)) {
+        if ($line -match '^(ghp_|github_pat_)') { return $true }
     }
+    return $false
 }
+
+$hasToken = Test-TokenInFile $TokenFile
 
 if (-not $hasToken) {
     Write-Host ' 正在打开记事本，请粘贴 Token（一行，ghp_ 或 github_pat_ 开头），保存后关闭。'
     Write-Host ' 获取地址: https://github.com/settings/tokens/new?scopes=repo'
     Write-Host ' 请勾选 repo 权限（Classic Token 推荐）'
+    Write-Host ' 脚本将自动检测 Token（最多等待 2 分钟）…'
     Write-Host ''
     Start-Process notepad $TokenFile
-    Start-Sleep -Seconds 2
-    $hasToken = $false
-    $lines = Get-Content $TokenFile -ErrorAction SilentlyContinue
-    foreach ($line in $lines) {
-        if ($line -match '^(ghp_|github_pat_)') { $hasToken = $true; break }
+    for ($i = 0; $i -lt 60; $i++) {
+        Start-Sleep -Seconds 2
+        if (Test-TokenInFile $TokenFile) {
+            $hasToken = $true
+            Write-Host ' 已检测到 Token，继续上传…' -ForegroundColor Green
+            break
+        }
     }
 }
 
 if (-not $hasToken) {
-    Write-Host ' [错误] 记事本里没有有效的 Token，请重新运行。' -ForegroundColor Red
-    Read-Host '按回车关闭'
+    Write-Host ' [错误] 未检测到有效 Token。请写入 git-token.txt 后重新运行。' -ForegroundColor Red
+    if (-not $NoPause) { Read-Host '按回车关闭' }
     exit 1
 }
 
-Write-Host ' 正在上传，请稍候（约 10~60 秒）...'
+$proxyHint = Join-Path $Root 'upload-proxy.txt'
+if (-not (Test-Path $proxyHint)) {
+    $proxyExample = Join-Path $Root 'upload-proxy.txt.example'
+    if (Test-Path $proxyExample) {
+        Write-Host ' 提示: 若 GitHub 连接失败，可复制 upload-proxy.txt.example -> upload-proxy.txt 并填写代理' -ForegroundColor DarkYellow
+    }
+}
+
+Write-Host ' 正在上传，请稍候…'
 Write-Host " 详细过程见: upload-log.txt"
 Write-Host ''
 
 $uploadScript = Join-Path $Root 'do-upload.ps1'
-& powershell -NoProfile -ExecutionPolicy Bypass -File $uploadScript
+& $uploadScript
 $ok = $LASTEXITCODE
 
 Write-Host ''
-if (Test-Path $LogFile) { Get-Content $LogFile }
+if (Test-Path $LogFile) { Get-Content $LogFile -Tail 30 }
 Write-Host ''
 
 if ($ok -eq 0) {
     Write-Host ' ============================================================' -ForegroundColor Green
     Write-Host '  [上传成功]'
-    Write-Host '  约 2 分钟后访问: https://wh9007.github.io/oao-platform/'
+    Write-Host '  约 1~2 分钟后访问: https://wh9007.github.io/oao-platform/'
     Write-Host '  若页面仍是旧版，请按 Ctrl+F5 强制刷新'
     Write-Host ' ============================================================' -ForegroundColor Green
     Start-Process 'https://wh9007.github.io/oao-platform/'
@@ -92,5 +112,14 @@ if ($ok -eq 0) {
 }
 
 Write-Host ''
-Write-Host ' 看完结果后按回车关闭。'
-Read-Host
+if ($NoPause) {
+    if ($ok -eq 0) {
+        Write-Host ' 3 秒后自动关闭…'
+        Start-Sleep -Seconds 3
+    }
+} else {
+    Write-Host ' 看完结果后按回车关闭。'
+    Read-Host
+}
+
+exit $ok

@@ -110,7 +110,7 @@ if ($status) {
 
 $authUrl = $RepoUrl -replace 'https://', "https://${token}@"
 
-Write-UploadLog 'git fetch / pull --rebase'
+Write-UploadLog 'git fetch'
 $code = Invoke-GitWithRetry -GitArgs @('fetch', $authUrl) -ProxyUrl $proxy -Label 'fetch'
 if ($code -ne 0) {
     if (Test-AuthFailure) { Write-UploadLog 'ERROR: Token 无效或权限不足（需 repo 权限）'; exit 3 }
@@ -118,6 +118,19 @@ if ($code -ne 0) {
     exit 2
 }
 
+if (-not $status) {
+    $ErrorActionPreference = 'Continue'
+    $behind = [int](git rev-list --count HEAD..FETCH_HEAD 2>$null)
+    $ahead = [int](git rev-list --count FETCH_HEAD..HEAD 2>$null)
+    $ErrorActionPreference = 'Stop'
+    if ($behind -eq 0 -and $ahead -eq 0) {
+        Write-UploadLog 'Already up to date with GitHub — 无需 push'
+        Write-UploadLog 'SUCCESS'
+        exit 0
+    }
+}
+
+Write-UploadLog 'git pull --rebase'
 $code = Invoke-GitWithRetry -GitArgs @('pull', '--rebase', $authUrl, 'main') -ProxyUrl $proxy -Label 'pull'
 if ($code -ne 0) {
     Invoke-Git @('pull', $authUrl, 'main', '--allow-unrelated-histories', '--no-edit') -ProxyUrl $proxy | Out-Null

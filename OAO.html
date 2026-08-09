@@ -35,7 +35,7 @@
         // 2. 外网远程本机 AI：双击「OAO服务器.bat」（保持窗口打开）
         // 3. 版本发布：双击「一键上传GitHub.bat」
         // 4. 外网站点：https://wh9007.github.io/oao-platform/
-        // 5. AI：AnythingLLM 知识库 + Ollama；联网搜索：SearXNG（Worker /web-search）+ Ollama 总结
+        // 5. AI：AnythingLLM 知识库 + Ollama；AI联网：SearXNG（Worker /web-search）+ Ollama 总结
         // 8. 视频会议信令：window.OAO_MEETING_SIGNAL_URL = 'wss://oao-ai.wh529007.workers.dev/meeting';
         // 7. OAO翻译（可选覆盖云端地址）：window.OAO_TRANSLATE_URL = 'https://your-translate-host/oao-translate/embed/index.html';
         // 联网搜索默认经 Worker → Tunnel → 本机 SearXNG；可选 Tavily/Serper Key 增强
@@ -7743,7 +7743,7 @@
                                 <div class="ai-home-toolbar">
                                     <label id="aiWebSearchLabel" class="ai-home-web-toggle disabled">
                                         <input type="checkbox" id="aiWebSearchToggle" disabled>
-                                        <span id="aiWebSearchText">联网搜索</span>
+                                        <span id="aiWebSearchText">AI联网</span>
                                     </label>
                                     <span id="aiHomeStatus" class="ai-home-status">本地知识库 · AnythingLLM</span>
                                 </div>
@@ -9366,8 +9366,8 @@
 
             function getNoKbWebSearchHint() {
                 return currentLang === 'zh'
-                    ? '本问题不在本地知识库中。请勾选下方「联网搜索」，或点击回复中的「联网搜索」按钮获取实时信息。'
-                    : 'Not in the local knowledge base. Enable "Web search" below or use the button in the reply.';
+                    ? '本问题不在本地知识库中。请勾选下方「AI联网」，或点击回复中的「AI联网」按钮获取实时信息。'
+                    : 'Not in the local knowledge base. Enable "AI Web" below or use the button in the reply.';
             }
 
             function getKbUnavailableShortHint() {
@@ -9395,9 +9395,9 @@
 
             function formatSourceSectionHeader(kind) {
                 if (currentLang === 'zh') {
-                    return kind === 'web' ? '【联网实时】\n\n' : '【本地知识库】\n\n';
+                    return kind === 'web' ? '【AI联网】\n\n' : '【本地知识库】\n\n';
                 }
-                return kind === 'web' ? '[Web · Live]\n\n' : '[Local Knowledge Base]\n\n';
+                return kind === 'web' ? '[AI Web]\n\n' : '[Local Knowledge Base]\n\n';
             }
 
             function appendAiReplyToHistory(content, meta) {
@@ -9426,7 +9426,7 @@
                 btn.type = 'button';
                 btn.className = 'ai-web-search-btn';
                 btn.textContent = translations[currentLang]?.aiWebSearchBtn
-                    || (currentLang === 'zh' ? '联网搜索' : 'Web Search');
+                    || (currentLang === 'zh' ? 'AI联网' : 'AI Web');
                 btn.addEventListener('click', () => handleInlineWebSearch(query, btn, messageTextEl));
                 actionRow.appendChild(btn);
                 const metaEl = messageTextEl.querySelector('.ai-message-meta');
@@ -9443,7 +9443,7 @@
                 const searchingLabel = translations[currentLang]?.aiWebSearchBtnSearching
                     || (currentLang === 'zh' ? '搜索中…' : 'Searching…');
                 const defaultLabel = translations[currentLang]?.aiWebSearchBtn
-                    || (currentLang === 'zh' ? '联网搜索' : 'Web Search');
+                    || (currentLang === 'zh' ? 'AI联网' : 'AI Web');
 
                 btn.disabled = true;
                 btn.textContent = searchingLabel;
@@ -9476,7 +9476,7 @@
                     btn.textContent = defaultLabel;
                     setAiHomeStatus(translations[currentLang].aiHomeStatusError);
                     showConnectionToast?.(
-                        currentLang === 'zh' ? '联网搜索失败，请稍后重试' : 'Web search failed, please try again',
+                        currentLang === 'zh' ? 'AI联网失败，请稍后重试' : 'AI Web failed, please try again',
                         'error'
                     );
                 }
@@ -9572,7 +9572,7 @@
 
             function getSourceLabel(source) {
                 if (source === 'web') {
-                    return currentLang === 'zh' ? '联网搜索' : 'Web Search';
+                    return currentLang === 'zh' ? 'AI联网' : 'AI Web';
                 }
                 if (source === 'glm') {
                     return currentLang === 'zh' ? '智谱云端' : 'Zhipu Cloud';
@@ -10860,42 +10860,237 @@
             }
 
             /**
-             * 联网搜索并调用 Ollama 生成回答
+             * AI 联网：查询增强、结果排序、Ollama 专业总结
              */
+            const WEB_SEARCH_LOW_QUALITY = /wikipedia\.org|wikimedia\.org|baike\.baidu\.com|duckduckgo\.com\/\?|translate\.google/i;
+            const WEB_SEARCH_NEWS_BOOST = /(?:^|\.)((?:sina|sohu|163|ifeng|thepaper|caixin|bbc|reuters|cnbc|cnn|nytimes|bloomberg|xinhuanet|people|cctv|chinanews|toutiao|36kr|cls|wallstreetcn|eastmoney|stcn|yicai|jiemian|zaobao|scmp|apnews|npr|gov|peopleapp|news)[.]|[\w-]+\.(?:com|cn|net|org))/i;
+
+            function decodeDisplayUrl(url) {
+                const raw = String(url || '').trim();
+                if (!raw) return '';
+                try {
+                    const parsed = new URL(raw);
+                    parsed.pathname = decodeURIComponent(parsed.pathname);
+                    if (parsed.search) {
+                        parsed.search = parsed.search.split('&').map((part) => {
+                            const eq = part.indexOf('=');
+                            if (eq < 0) return part;
+                            const key = part.slice(0, eq);
+                            const val = part.slice(eq + 1);
+                            try { return `${key}=${decodeURIComponent(val)}`; } catch (_) { return part; }
+                        }).join('&');
+                    }
+                    return parsed.href;
+                } catch (_) {
+                    try { return decodeURIComponent(raw); } catch (e) { return raw; }
+                }
+            }
+
+            function getUrlDomain(url) {
+                try { return new URL(url).hostname.replace(/^www\./i, ''); } catch (_) { return ''; }
+            }
+
+            function analyzeWebSearchIntent(query) {
+                const originalQuery = String(query || '').trim();
+                const isZh = currentLang === 'zh';
+                const now = new Date();
+                const dateStr = now.toLocaleDateString(isZh ? 'zh-CN' : 'en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+                });
+                const preferNews = /(?:新闻|头条|快讯|今日|今天|今早|昨夜|热点|时事|要闻|资讯|latest|breaking|headline|news\b|today)/i.test(originalQuery)
+                    && !/(?:是什么|什么是|百科|定义|who is|what is|wiki)/i.test(originalQuery);
+                const allowWiki = /(?:是什么|什么是|介绍|百科|定义|who is|what is|wiki|人物简介)/i.test(originalQuery)
+                    && !preferNews;
+
+                let searchQuery = originalQuery;
+                let categories = 'general';
+                if (preferNews) {
+                    categories = 'news';
+                    if (!/(新闻|news)/i.test(originalQuery)) {
+                        searchQuery = isZh
+                            ? `${originalQuery} 新闻 ${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`
+                            : `${originalQuery} news ${dateStr}`;
+                    }
+                }
+
+                return {
+                    originalQuery,
+                    searchQuery,
+                    categories,
+                    preferNews,
+                    allowWiki,
+                    dateStr,
+                    timeRange: preferNews ? 'day' : ''
+                };
+            }
+
             function optimizeQueryForWebSearch(query) {
-                return String(query || '').trim();
+                return analyzeWebSearchIntent(query).searchQuery;
+            }
+
+            function scoreSearchResult(item, intent) {
+                let score = 0;
+                const url = String(item.url || '').toLowerCase();
+                const title = String(item.title || '');
+                const content = String(item.content || '');
+                const blob = `${title} ${content}`.toLowerCase();
+                const terms = intent.originalQuery.split(/[\s,，。！？!?]+/).filter((w) => w.length > 1);
+
+                if (WEB_SEARCH_LOW_QUALITY.test(url)) {
+                    score -= intent.preferNews ? 100 : 20;
+                }
+                if (intent.preferNews && WEB_SEARCH_NEWS_BOOST.test(url)) score += 45;
+                if (intent.preferNews && /(?:报道|讯|消息|发布|宣布|news|report|breaking)/i.test(blob)) score += 18;
+                if (content.length > 50) score += 8;
+                if (title.length > 8) score += 5;
+                terms.forEach((term) => {
+                    if (blob.includes(term.toLowerCase())) score += 12;
+                });
+                return score;
+            }
+
+            function rankSearchResults(results, intent) {
+                return dedupeSearchResults(results)
+                    .map((item) => ({ ...item, _score: scoreSearchResult(item, intent) }))
+                    .filter((item) => (intent.preferNews ? item._score > -40 : item._score > -60))
+                    .sort((a, b) => b._score - a._score)
+                    .slice(0, WEB_SEARCH_CONFIG.maxResults);
             }
 
             async function summarizeWebWithOllama(prompt, options = {}) {
                 return callOllama(prompt, options);
             }
 
-            async function searchWebAndAnswer(query) {
-                const searchQuery = optimizeQueryForWebSearch(query);
-                const snippets = await fetchWebSearchResults(searchQuery);
-                if (snippets.length === 0) {
-                    return currentLang === 'zh'
-                        ? '未能从 SearXNG 检索到有效信息。请确认 OAO服务器.bat 已启动、Tunnel 路由 search.* → :8080，并运行 cloudflare\\setup-remote-access.ps1 部署 Worker。'
-                        : 'No SearXNG results. Ensure OAO服务器.bat, Tunnel search route, and Worker SEARXNG_ORIGIN are configured.';
-                }
-
-                const contextBlock = snippets.map((item, index) =>
-                    `[${index + 1}] ${item.title}\n${item.content}\n来源: ${item.url}`
-                ).join('\n\n');
-                const prompt = currentLang === 'zh'
-                    ? `${getOaoSystemDatetimeContext()}\n\n你是 OAO 助手。请基于以下**最新网络检索结果**（SearXNG）回答用户问题，优先使用较新、权威的信息；若信息不足请明确说明。回答需简洁准确，可引用序号 [1][2]。\n\n用户问题：${query}\n\n网络检索结果：\n${contextBlock}\n\n请给出中文回答：`
-                    : `${getOaoSystemDatetimeContext()}\n\nYou are the OAO assistant. Answer using these **SearXNG web results**. Cite [1][2] when helpful.\n\nQuestion: ${query}\n\nWeb results:\n${contextBlock}\n\nAnswer:`;
-
-                const answer = await summarizeWebWithOllama(prompt);
-                return appendWebSearchReferences(answer, snippets);
+            function buildWebSearchContextBlock(snippets) {
+                return snippets.map((item, index) => {
+                    const url = decodeDisplayUrl(item.url);
+                    const domain = getUrlDomain(url);
+                    return `[${index + 1}] ${item.title || domain}\n摘要：${item.content || '（无摘要）'}\n来源域名：${domain}\nURL：${url}`;
+                }).join('\n\n');
             }
 
-            function appendWebSearchReferences(answer, snippets) {
-                const refs = snippets.slice(0, 4).map((item, index) =>
-                    `[${index + 1}] ${item.title} — ${item.url}`
-                ).join('\n');
-                const label = currentLang === 'zh' ? '参考来源' : 'References';
-                return `${answer}\n\n${label}：\n${refs}`;
+            function buildWebSearchSummaryPrompt(query, contextBlock, intent) {
+                if (currentLang === 'zh') {
+                    if (intent.preferNews) {
+                        return `${getOaoSystemDatetimeContext()}
+
+你是 OAO 专业信息助手。用户已开启「AI联网」，请**仅依据**下方检索摘要回答，以**结果为导向**，不要编造。
+
+**输出格式（必须遵守）：**
+## 要点摘要
+- 3～5 条 bullet，每条含：时间 / 主体 / 核心事件（若摘要中有）
+## 详细说明
+- 补充背景、影响或关联信息；无则写「检索结果信息有限」
+## 信息说明
+- 若摘要不足以回答「${query}」，明确写「当前检索未找到可靠新闻报道」，并建议用户查看下方来源链接
+
+**规则：**
+1. 优先采用新闻媒体摘要，**禁止**把维基百科当作新闻来源
+2. 引用事实时在句末标注 [1][2] 等序号（对应下方摘要编号）
+3. 不要输出未出现在摘要中的 URL
+4. 今天是 ${intent.dateStr}
+
+用户问题：${query}
+
+检索摘要：
+${contextBlock}
+
+请用中文输出：`;
+                    }
+                    return `${getOaoSystemDatetimeContext()}
+
+你是 OAO 专业信息助手。用户已开启「AI联网」，请基于下方检索摘要作答，结构清晰、结论先行，引用处标注 [1][2]。
+
+用户问题：${query}
+
+检索摘要：
+${contextBlock}
+
+请用中文输出：`;
+                }
+
+                if (intent.preferNews) {
+                    return `${getOaoSystemDatetimeContext()}
+
+You are the OAO assistant. Answer ONLY from the web snippets below. Use:
+## Key points (bullets with time/subject/event)
+## Details
+## Coverage note (if insufficient data)
+
+Cite [1][2]. Do not use Wikipedia as a news source. Today: ${intent.dateStr}
+
+Question: ${query}
+
+Snippets:
+${contextBlock}
+
+Answer in English:`;
+                }
+                return `${getOaoSystemDatetimeContext()}
+
+Answer from these web snippets. Cite [1][2] when helpful.
+
+Question: ${query}
+
+Snippets:
+${contextBlock}
+
+Answer:`;
+            }
+
+            async function searchWebAndAnswer(query) {
+                const intent = analyzeWebSearchIntent(query);
+                const snippets = await fetchWebSearchResults(query);
+                if (snippets.length === 0) {
+                    return currentLang === 'zh'
+                        ? '未能检索到有效网页结果。\n\n请确认：\n1. 本机 OAO服务器.bat 已运行（SearXNG :8080 + Tunnel）\n2. Worker 已配置 SEARXNG_ORIGIN\n3. 控制台执行 OAO_Diagnostic.testWebSearch() 验证\n\n若为实时新闻，请稍后重试或更换更具体的关键词。'
+                        : 'No web results. Check OAO服务器.bat, SEARXNG_ORIGIN, and OAO_Diagnostic.testWebSearch().';
+                }
+
+                const contextBlock = buildWebSearchContextBlock(snippets);
+                const prompt = buildWebSearchSummaryPrompt(query, contextBlock, intent);
+                const answer = await summarizeWebWithOllama(prompt);
+                return appendWebSearchReferences(answer, snippets, intent);
+            }
+
+            function extractCitedSnippetIndexes(answer, maxIndex) {
+                const cited = new Set();
+                const matches = String(answer || '').match(/\[(\d+)\]/g) || [];
+                matches.forEach((token) => {
+                    const n = parseInt(token.replace(/\D/g, ''), 10);
+                    if (n >= 1 && n <= maxIndex) cited.add(n - 1);
+                });
+                return cited;
+            }
+
+            function appendWebSearchReferences(answer, snippets, intent = {}) {
+                const cited = extractCitedSnippetIndexes(answer, snippets.length);
+                let refItems = snippets.map((item, index) => ({ item, index }));
+
+                if (cited.size > 0) {
+                    refItems = refItems.filter(({ index }) => cited.has(index));
+                } else {
+                    refItems = refItems
+                        .filter(({ item }) => {
+                            const url = item.url || '';
+                            if (intent.preferNews && WEB_SEARCH_LOW_QUALITY.test(url)) return false;
+                            return true;
+                        })
+                        .slice(0, 4);
+                }
+
+                if (!refItems.length) {
+                    refItems = snippets.slice(0, 3).map((item, index) => ({ item, index }));
+                }
+
+                const lines = refItems.map(({ item, index }) => {
+                    const url = decodeDisplayUrl(item.url);
+                    const domain = getUrlDomain(url);
+                    const title = (item.title || domain || '来源').trim();
+                    return `[${index + 1}] ${title} · ${domain}\n${url}`;
+                });
+                const label = currentLang === 'zh' ? '参考来源（可点击打开原文）' : 'Sources (open original links)';
+                return `${answer}\n\n${label}：\n${lines.join('\n')}`;
             }
 
             function dedupeSearchResults(results) {
@@ -10908,14 +11103,21 @@
                 });
             }
 
-            async function fetchWebSearchViaProxy(query) {
+            async function fetchWebSearchViaProxy(query, options = {}) {
                 const proxyUrl = WEB_SEARCH_CONFIG.proxyUrl;
                 if (!proxyUrl) return [];
                 try {
                     const controller = new AbortController();
                     const timer = setTimeout(() => controller.abort(), WEB_SEARCH_CONFIG.timeout);
+                    const params = new URLSearchParams();
+                    params.set('q', query);
+                    if (options.categories) params.set('categories', options.categories);
+                    if (options.time_range) params.set('time_range', options.time_range);
+                    if (options.engines) params.set('engines', options.engines);
+                    if (options.exclude) params.set('exclude', options.exclude);
+                    params.set('lang', currentLang === 'zh' ? 'zh-CN' : 'en-US');
                     const sep = proxyUrl.includes('?') ? '&' : '?';
-                    const res = await fetch(`${proxyUrl}${sep}q=${encodeURIComponent(query)}`, {
+                    const res = await fetch(`${proxyUrl}${sep}${params.toString()}`, {
                         signal: controller.signal,
                         cache: 'no-store'
                     });
@@ -10929,7 +11131,7 @@
                     return items.map((item) => ({
                         title: item.title || item.name || query,
                         content: item.content || item.snippet || item.description || '',
-                        url: item.url || item.link || ''
+                        url: decodeDisplayUrl(item.url || item.link || '')
                     })).filter((item) => item.url);
                 } catch (error) {
                     console.warn('[OAO-AI] 搜索代理失败:', error);
@@ -11080,33 +11282,57 @@
             }
 
             async function fetchWebSearchResults(query) {
-                const searxResults = await fetchWebSearchViaProxy(query);
-                if (searxResults.length > 0) {
-                    return dedupeSearchResults(searxResults).slice(0, WEB_SEARCH_CONFIG.maxResults);
+                const intent = analyzeWebSearchIntent(query);
+                const proxyOptions = {
+                    categories: intent.categories,
+                    time_range: intent.timeRange,
+                    exclude: intent.preferNews ? 'wiki' : ''
+                };
+
+                let merged = await fetchWebSearchViaProxy(intent.searchQuery, proxyOptions);
+
+                if (intent.preferNews && merged.length < 3) {
+                    const retry = await fetchWebSearchViaProxy(intent.originalQuery, {
+                        categories: 'news',
+                        time_range: 'week',
+                        engines: 'google,bing',
+                        exclude: 'wiki'
+                    });
+                    merged = [...merged, ...retry];
+                }
+
+                let ranked = rankSearchResults(merged, intent);
+                if (ranked.length > 0) {
+                    return ranked;
                 }
 
                 const providers = [];
                 if (WEB_SEARCH_CONFIG.tavilyApiKey) {
-                    providers.push(fetchTavilyResults(query));
+                    providers.push(fetchTavilyResults(intent.searchQuery));
                 }
                 if (WEB_SEARCH_CONFIG.serperApiKey) {
-                    providers.push(fetchSerperResults(query));
+                    providers.push(fetchSerperResults(intent.searchQuery));
                 }
                 if (WEB_SEARCH_CONFIG.braveApiKey) {
-                    providers.push(fetchBraveResults(query));
+                    providers.push(fetchBraveResults(intent.searchQuery));
                 }
-                providers.push(fetchWikipediaResults(query));
-                providers.push(fetchDuckDuckGoResults(query));
+                if (intent.allowWiki) {
+                    providers.push(fetchWikipediaResults(intent.originalQuery));
+                }
+                if (!intent.preferNews) {
+                    providers.push(fetchDuckDuckGoResults(intent.originalQuery));
+                }
 
                 const settled = await Promise.allSettled(providers);
-                const merged = [];
+                const fallbackMerged = [...merged];
                 settled.forEach((result) => {
                     if (result.status === 'fulfilled' && Array.isArray(result.value)) {
-                        merged.push(...result.value);
+                        fallbackMerged.push(...result.value);
                     }
                 });
 
-                return dedupeSearchResults(merged).slice(0, WEB_SEARCH_CONFIG.maxResults);
+                ranked = rankSearchResults(fallbackMerged, intent);
+                return ranked;
             }
 
             async function callOllama(prompt) {
@@ -17460,15 +17686,15 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                 oaoMeetingNoticeContactPh: '姓名',
                 oaoMeetingNoticePhonePh: '手机或座机',
                 oaoMeetingNoticeRemarksPh: '例如：请提前 5 分钟入会，携带相关材料',
-                aiWebSearchText: '联网搜索',
-                aiWebSearchBtn: '联网搜索',
-                aiWebSearchBtnSearching: '搜索中…',
-                aiWebSearchNeedEnable: '请先勾选「联网搜索」',
+                aiWebSearchText: 'AI联网',
+                aiWebSearchBtn: 'AI联网',
+                aiWebSearchBtnSearching: '检索中…',
+                aiWebSearchNeedEnable: '请先勾选「AI联网」',
                 aiHomeLoginText: '登录后可使用本地知识库或智谱 AI',
                 aiHomeStatusReady: '本地知识库 · AnythingLLM',
                 aiHomeStatusLocked: '登录后启用 AI 对话',
                 aiHomeStatusSearching: '正在检索本地知识库（首次约 30–60 秒）…',
-                aiHomeStatusWeb: '正在联网搜索…',
+                aiHomeStatusWeb: 'AI联网检索中…',
                 aiHomeStatusError: '本地 AI 服务异常',
                 kbUploadTitle: '上传至知识库',
                 kbTabFile: '文件上传',
@@ -17687,15 +17913,15 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                 oaoMeetingNoticeContactPh: 'Name',
                 oaoMeetingNoticePhonePh: 'Mobile or landline',
                 oaoMeetingNoticeRemarksPh: 'e.g. Join 5 minutes early, bring materials',
-                aiWebSearchText: 'Web search',
-                aiWebSearchBtn: 'Web Search',
+                aiWebSearchText: 'AI Web',
+                aiWebSearchBtn: 'AI Web',
                 aiWebSearchBtnSearching: 'Searching…',
-                aiWebSearchNeedEnable: 'Please enable web search first',
+                aiWebSearchNeedEnable: 'Please enable AI Web first',
                 aiHomeLoginText: 'Login to use local KB or Zhipu AI',
                 aiHomeStatusReady: 'Local KB · AnythingLLM',
                 aiHomeStatusLocked: 'Login to enable AI chat',
                 aiHomeStatusSearching: 'Searching local KB (first query may take 30–60s)…',
-                aiHomeStatusWeb: 'Searching the web…',
+                aiHomeStatusWeb: 'AI Web searching…',
                 aiHomeStatusError: 'Local AI service error',
                 kbUploadTitle: 'Upload to Knowledge Base',
                 kbTabFile: 'File Upload',

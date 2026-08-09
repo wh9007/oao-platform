@@ -45,13 +45,19 @@ export async function handleWebSearch(request, env, corsHeaders) {
 
   const lang = url.searchParams.get('lang') || 'zh-CN';
   const engines = (url.searchParams.get('engines') || '').trim();
+  const categories = (url.searchParams.get('categories') || 'general').trim() || 'general';
+  const timeRange = (url.searchParams.get('time_range') || '').trim();
+  const excludeWiki = url.searchParams.get('exclude') === 'wiki';
   const searxUrl = new URL('/search', origin);
   searxUrl.searchParams.set('q', query);
   searxUrl.searchParams.set('format', 'json');
   searxUrl.searchParams.set('language', lang);
-  searxUrl.searchParams.set('categories', 'general');
+  searxUrl.searchParams.set('categories', categories);
   if (engines) {
     searxUrl.searchParams.set('engines', engines);
+  }
+  if (timeRange) {
+    searxUrl.searchParams.set('time_range', timeRange);
   }
 
   try {
@@ -86,14 +92,20 @@ export async function handleWebSearch(request, env, corsHeaders) {
       return json({ error: 'invalid_searxng_json', detail: text.slice(0, 200) }, 502, corsHeaders);
     }
 
-    const results = normalizeSearxResults(data).slice(0, 10);
+    let results = normalizeSearxResults(data);
+    if (excludeWiki) {
+      results = results.filter((item) => !/wikipedia\.org|wikimedia\.org|baike\.baidu\.com/i.test(item.url || ''));
+    }
+    results = results.slice(0, 12);
     return json({
       ok: true,
       query,
       engine: 'searxng',
       count: results.length,
       results,
-      engines: engines || 'general',
+      engines: engines || categories,
+      categories,
+      time_range: timeRange || null,
     }, 200, corsHeaders);
   } catch (error) {
     return json({
