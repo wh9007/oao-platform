@@ -107,9 +107,16 @@ function Ensure-SearXNGService {
     }
     try {
         . $searxScript
-        return (Ensure-SearXNG)
+        $ok = Ensure-SearXNG
+        if (-not $ok) {
+            Write-Host '  (提示) SearXNG 未就绪 — AI联网 将不可用或质量较差' -ForegroundColor Yellow
+            Write-Host '         1) 打开 Docker Desktop  2) 双击 searxng\启动SearXNG.bat' -ForegroundColor Yellow
+            Write-Host '         3) 或配置 Serper Key: local-config.js → OAO_SERPER_API_KEY' -ForegroundColor Yellow
+        }
+        return $ok
     } catch {
         Write-Host "  (警告) SearXNG 启动异常: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host '         请打开 Docker Desktop 后运行 searxng\启动SearXNG.bat' -ForegroundColor Yellow
         return $false
     }
 }

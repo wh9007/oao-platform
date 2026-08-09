@@ -9334,8 +9334,11 @@
                 get braveApiKey() { return window.OAO_BRAVE_SEARCH_API_KEY || ''; },
                 get proxyUrl() { return resolveWebSearchProxyUrl(); },
                 maxResults: 8,
-                timeout: 25000
+                timeout: 35000
             };
+
+            let lastWebSearchProxyError = '';
+            let lastWebSearchProxyHint = '';
 
             const NO_KB_ANSWER_PATTERNS = [
                 /no relevant information in this workspace/i,
@@ -9383,9 +9386,21 @@
             }
 
             function getWebSearchUnavailableHint() {
+                const err = lastWebSearchProxyError;
+                const hint = lastWebSearchProxyHint;
+                if (err === 'searxng_tunnel_offline') {
+                    return currentLang === 'zh'
+                        ? 'AI联网失败：SearXNG 未连通。\n\n请按顺序检查：\n1. 打开 Docker Desktop\n2. 双击 searxng\\启动SearXNG.bat（等到显示启动成功）\n3. 双击 OAO服务器.bat 并保持窗口打开\n4. 浏览器打开 http://127.0.0.1:8080/search?q=test&format=json 应有 JSON\n\n可选加速：在 local-config.js 配置 OAO_SERPER_API_KEY（Google 搜索 API，免费额度）\n或在 Worker 执行: npx wrangler secret put SERPER_API_KEY'
+                        : 'AI Web failed: SearXNG tunnel offline. Start Docker, searxng\\启动SearXNG.bat, OAO服务器.bat.';
+                }
+                if (err === 'searxng_not_configured' || err === 'searxng_unreachable') {
+                    return currentLang === 'zh'
+                        ? 'AI联网失败：本机 SearXNG 未运行。\n\n' + (hint || '请启动 Docker + searxng\\启动SearXNG.bat')
+                        : 'AI Web failed: SearXNG not running.';
+                }
                 return currentLang === 'zh'
-                    ? '联网搜索暂时不可用。\n\n请确认：\n1. 本机已运行 OAO服务器.bat（SearXNG :8080 + Tunnel）\n2. Cloudflare Tunnel 已配置 search.* → http://127.0.0.1:8080\n3. Worker 变量 SEARXNG_ORIGIN 已部署（cloudflare\\setup-remote-access.ps1）\n4. 浏览器可打开 ' + resolveWebSearchProxyUrl() + '?q=test 应返回 JSON\n\n诊断：OAO_Diagnostic.testWebSearch()'
-                    : 'Web search unavailable. Run OAO服务器.bat, route search.* to :8080, deploy SEARXNG_ORIGIN. Try OAO_Diagnostic.testWebSearch().';
+                    ? 'AI联网暂不可用。\n\n' + (hint || '请确认 Docker/SearXNG(:8080)、OAO服务器.bat、Worker 已部署。\n诊断：OAO_Diagnostic.testWebSearch()')
+                    : 'AI Web unavailable. Run OAO_Diagnostic.testWebSearch().';
             }
 
             function normalizeNoKbAnswer(answer) {
@@ -11040,11 +11055,11 @@ Answer:`;
 
             async function searchWebAndAnswer(query) {
                 const intent = analyzeWebSearchIntent(query);
+                lastWebSearchProxyError = '';
+                lastWebSearchProxyHint = '';
                 const snippets = await fetchWebSearchResults(query);
                 if (snippets.length === 0) {
-                    return currentLang === 'zh'
-                        ? '未能检索到有效网页结果。\n\n请确认：\n1. 本机 OAO服务器.bat 已运行（SearXNG :8080 + Tunnel）\n2. Worker 已配置 SEARXNG_ORIGIN\n3. 控制台执行 OAO_Diagnostic.testWebSearch() 验证\n\n若为实时新闻，请稍后重试或更换更具体的关键词。'
-                        : 'No web results. Check OAO服务器.bat, SEARXNG_ORIGIN, and OAO_Diagnostic.testWebSearch().';
+                    return getWebSearchUnavailableHint();
                 }
 
                 const contextBlock = buildWebSearchContextBlock(snippets);
@@ -11124,9 +11139,13 @@ Answer:`;
                     clearTimeout(timer);
                     const data = await res.json().catch(() => ({}));
                     if (!res.ok || data.error) {
-                        console.warn('[OAO-AI] SearXNG 代理错误:', data.error || res.status, data.hint || '');
+                        lastWebSearchProxyError = data.error || String(res.status);
+                        lastWebSearchProxyHint = data.hint || '';
+                        console.warn('[OAO-AI] SearXNG 代理错误:', lastWebSearchProxyError, lastWebSearchProxyHint);
                         return [];
                     }
+                    lastWebSearchProxyError = data.searx_warning || '';
+                    lastWebSearchProxyHint = '';
                     const items = data.results || data.items || data.organic || [];
                     return items.map((item) => ({
                         title: item.title || item.name || query,
@@ -11134,6 +11153,7 @@ Answer:`;
                         url: decodeDisplayUrl(item.url || item.link || '')
                     })).filter((item) => item.url);
                 } catch (error) {
+                    lastWebSearchProxyError = error?.name === 'AbortError' ? 'timeout' : 'network';
                     console.warn('[OAO-AI] 搜索代理失败:', error);
                     return [];
                 }
@@ -11167,31 +11187,41 @@ Answer:`;
                 }
             }
 
-            async function fetchSerperResults(query) {
+            async function fetchSerperResults(query, options = {}) {
                 const apiKey = WEB_SEARCH_CONFIG.serperApiKey;
                 if (!apiKey) return [];
+                const isZh = currentLang === 'zh';
                 try {
+                    const body = {
+                        q: query,
+                        num: 8,
+                        gl: isZh ? 'cn' : 'us',
+                        hl: isZh ? 'zh-cn' : 'en'
+                    };
+                    if (options.preferNews) {
+                        body.type = 'news';
+                    }
                     const res = await fetch('https://google.serper.dev/search', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-API-KEY': apiKey
                         },
-                        body: JSON.stringify({ q: query, num: 6 })
+                        body: JSON.stringify(body)
                     });
                     if (!res.ok) return [];
                     const data = await res.json();
+                    const news = (data.news || []).map((item) => ({
+                        title: item.title,
+                        content: item.snippet || item.title,
+                        url: item.link
+                    }));
                     const organic = (data.organic || []).map((item) => ({
                         title: item.title,
                         content: item.snippet,
                         url: item.link
                     }));
-                    const news = (data.news || []).slice(0, 2).map((item) => ({
-                        title: item.title,
-                        content: item.snippet || item.title,
-                        url: item.link
-                    }));
-                    return [...organic, ...news].filter((item) => item.url);
+                    return [...news, ...organic].filter((item) => item.url);
                 } catch (error) {
                     console.warn('[OAO-AI] Serper 搜索失败:', error);
                     return [];
@@ -11289,49 +11319,45 @@ Answer:`;
                     exclude: intent.preferNews ? 'wiki' : ''
                 };
 
-                let merged = await fetchWebSearchViaProxy(intent.searchQuery, proxyOptions);
-
-                if (intent.preferNews && merged.length < 3) {
-                    const retry = await fetchWebSearchViaProxy(intent.originalQuery, {
+                const tasks = [
+                    fetchWebSearchViaProxy(intent.searchQuery, proxyOptions),
+                    fetchWebSearchViaProxy(intent.originalQuery, {
                         categories: 'news',
-                        time_range: 'week',
-                        engines: 'google,bing',
+                        time_range: intent.preferNews ? 'day' : 'week',
                         exclude: 'wiki'
-                    });
-                    merged = [...merged, ...retry];
+                    })
+                ];
+                if (WEB_SEARCH_CONFIG.serperApiKey) {
+                    tasks.push(fetchSerperResults(intent.searchQuery, { preferNews: intent.preferNews }));
                 }
+                if (WEB_SEARCH_CONFIG.tavilyApiKey) {
+                    tasks.push(fetchTavilyResults(intent.searchQuery));
+                }
+                if (WEB_SEARCH_CONFIG.braveApiKey) {
+                    tasks.push(fetchBraveResults(intent.searchQuery));
+                }
+
+                const settled = await Promise.all(tasks);
+                let merged = [];
+                settled.forEach((batch) => {
+                    if (Array.isArray(batch)) merged.push(...batch);
+                });
 
                 let ranked = rankSearchResults(merged, intent);
                 if (ranked.length > 0) {
                     return ranked;
                 }
 
-                const providers = [];
-                if (WEB_SEARCH_CONFIG.tavilyApiKey) {
-                    providers.push(fetchTavilyResults(intent.searchQuery));
-                }
-                if (WEB_SEARCH_CONFIG.serperApiKey) {
-                    providers.push(fetchSerperResults(intent.searchQuery));
-                }
-                if (WEB_SEARCH_CONFIG.braveApiKey) {
-                    providers.push(fetchBraveResults(intent.searchQuery));
-                }
                 if (intent.allowWiki) {
-                    providers.push(fetchWikipediaResults(intent.originalQuery));
+                    const wiki = await fetchWikipediaResults(intent.originalQuery);
+                    merged.push(...wiki);
                 }
                 if (!intent.preferNews) {
-                    providers.push(fetchDuckDuckGoResults(intent.originalQuery));
+                    const ddg = await fetchDuckDuckGoResults(intent.originalQuery);
+                    merged.push(...ddg);
                 }
 
-                const settled = await Promise.allSettled(providers);
-                const fallbackMerged = [...merged];
-                settled.forEach((result) => {
-                    if (result.status === 'fulfilled' && Array.isArray(result.value)) {
-                        fallbackMerged.push(...result.value);
-                    }
-                });
-
-                ranked = rankSearchResults(fallbackMerged, intent);
+                ranked = rankSearchResults(merged, intent);
                 return ranked;
             }
 

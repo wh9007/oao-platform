@@ -1,22 +1,24 @@
-﻿# 复制本文件为 local-config.js（与 OAO.html 同目录）
-
-
-
-// 工作区名称（与 AnythingLLM 一致，默认 OAOeth）
-
-window.OAO_ANYTHINGLLM_WORKSPACE = 'OAOeth';
-
-window.OAO_AI_BASE_URL = 'http://127.0.0.1:3001';
-
-
-
-// AnythingLLM → Settings → API Keys → 生成后粘贴：
-
-window.OAO_ANYTHINGLLM_API_KEY = '你的-AnythingLLM-API-Key';
-
-
-
-// Cloudflare Worker（外网 Tunnel + 智谱备援）
-
-// window.OAO_WORKER_URL = 'https://oao-ai.wh529007.workers.dev';
-
+﻿# 复制本文件为 local-config.js（与 OAO.html 同目录）
+
+// 工作区名称（与 AnythingLLM 一致，默认 OAOeth）
+window.OAO_ANYTHINGLLM_WORKSPACE = 'OAOeth';
+window.OAO_AI_BASE_URL = 'http://127.0.0.1:3001';
+
+// AnythingLLM → Settings → API Keys → 生成后粘贴：
+window.OAO_ANYTHINGLLM_API_KEY = '你的-AnythingLLM-API-Key';
+
+// Cloudflare Worker（外网 Tunnel）
+// window.OAO_WORKER_URL = 'https://oao-ai.wh529007.workers.dev';
+
+// ========== AI联网 增强（推荐，SearXNG/Docker 不可用时仍可用）==========
+// Serper — Google 搜索 API，免费约 2500 次/月
+// 注册: https://serper.dev  →  Dashboard 复制 API Key
+// window.OAO_SERPER_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+
+// 也可在 Worker 配置（外网 GitHub Pages 用户推荐）：
+//   cd cloudflare
+//   npx wrangler secret put SERPER_API_KEY
+
+// Tavily（可选）https://tavily.com
+// window.OAO_TAVILY_API_KEY = 'tvly-xxxxxxxx';
+
