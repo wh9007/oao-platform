@@ -1,0 +1,405 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAO 管理面板</title>
+    <link rel="stylesheet" href="../assets/css/oao-design-tokens.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
+        h1 { font-size: 1.4rem; margin: 0 0 8px; }
+        .sub { opacity: .7; font-size: 13px; margin-bottom: 20px; }
+        .card { background: #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 16px; border: 1px solid #334155; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+        .stat { background: #0f172a; border-radius: 10px; padding: 14px; }
+        .stat b { display: block; font-size: 1.4rem; color: #38bdf8; }
+        .stat span { font-size: 12px; opacity: .75; }
+        input, button, select { font: inherit; }
+        input[type=password], input[type=text] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; }
+        button { padding: 10px 16px; border-radius: 8px; border: none; background: #2563eb; color: #fff; cursor: pointer; }
+        button.secondary { background: #334155; }
+        button:disabled { opacity: .55; cursor: not-allowed; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #334155; vertical-align: top; }
+        th { opacity: .75; font-weight: 600; }
+        .addr { font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; }
+        .badge-block { background: #7f1d1d; color: #fecaca; }
+        .badge-ok { background: #14532d; color: #bbf7d0; }
+        .badge-warn { background: #78350f; color: #fde68a; }
+        .hidden { display: none !important; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .err { color: #fca5a5; font-size: 13px; margin-top: 8px; }
+        .alert-box { background: #451a03; border: 1px solid #92400e; color: #fde68a; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; }
+        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
+        canvas { max-height: 280px; }
+        a { color: #93c5fd; }
+        .login-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+        .login-tab { background: #334155; }
+        .login-tab.active { background: #2563eb; }
+    </style>
+    <script>
+        if (!window.OAO_WORKER_URL) window.OAO_WORKER_URL = 'https://oao-ai.wh529007.workers.dev';
+    </script>
+    <script src="../assets/js/oao-platform-api.js"></script>
+</head>
+<body>
+    <div class="wrap">
+        <h1>OAO 管理面板</h1>
+        <p class="sub">GLM 用量监控 · 限流记录 · 用户管理 · 鉴权存于 Worker Secrets</p>
+
+        <section id="loginPanel" class="card">
+            <div class="login-tabs">
+                <button type="button" class="login-tab active" id="tabWallet">钱包登录</button>
+                <button type="button" class="login-tab" id="tabPassword">密码登录</button>
+            </div>
+            <div id="walletLogin">
+                <p style="font-size:13px;opacity:.8;margin:0 0 10px;">使用管理员白名单钱包签名登录（Secret: <code>OAO_ADMIN_WALLETS</code>）</p>
+                <div class="row">
+                    <button id="walletLoginBtn" type="button">连接钱包并签名</button>
+                </div>
+                <p id="walletLoginStatus" style="font-size:13px;opacity:.75;margin-top:8px;"></p>
+            </div>
+            <div id="passwordLogin" class="hidden">
+                <div class="row">
+                    <input type="password" id="adminPassword" placeholder="管理员密码" autocomplete="current-password">
+                    <button id="loginBtn" type="button">登录</button>
+                </div>
+            </div>
+            <p class="err" id="loginErr"></p>
+        </section>
+
+        <section id="dashPanel" class="hidden">
+            <div id="alertBanner"></div>
+            <div class="row" style="justify-content:space-between;margin-bottom:12px;">
+                <div class="row">
+                    <button id="refreshBtn" type="button">刷新</button>
+                    <select id="daysSelect">
+                        <option value="7">近 7 天</option>
+                        <option value="14" selected>近 14 天</option>
+                        <option value="30">近 30 天</option>
+                    </select>
+                </div>
+                <button id="logoutBtn" type="button" class="secondary">退出</button>
+            </div>
+
+            <div class="grid" id="statGrid"></div>
+
+            <div class="charts" style="margin-top:16px;">
+                <div class="card">
+                    <h2 style="margin:0 0 12px;font-size:1rem;">GLM 调用趋势</h2>
+                    <canvas id="usageChart"></canvas>
+                </div>
+                <div class="card">
+                    <h2 style="margin:0 0 12px;font-size:1rem;">按来源占比</h2>
+                    <canvas id="sourceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 style="margin:0 0 12px;font-size:1rem;">Top 调用钱包</h2>
+                <table>
+                    <thead><tr><th>钱包</th><th>调用次数</th></tr></thead>
+                    <tbody id="topWalletsBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2 style="margin:0 0 12px;font-size:1rem;">限流触发记录</h2>
+                <table>
+                    <thead><tr><th>时间</th><th>标识</th><th>类型</th><th>原因</th></tr></thead>
+                    <tbody id="rateLimitBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2 style="margin:0 0 12px;font-size:1rem;">用户列表</h2>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr><th>地址</th><th>ENS</th><th>登录</th><th>最近活跃</th><th>状态</th><th>操作</th></tr>
+                        </thead>
+                        <tbody id="usersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const ADMIN_TOKEN_KEY = 'oao_admin_worker_token';
+        let chartInstance = null;
+        let sourceChartInstance = null;
+
+        function workerUrl(path) {
+            return OAOPlatform.resolveWorkerBaseUrl() + path;
+        }
+
+        function getAdminToken() {
+            try { return localStorage.getItem(ADMIN_TOKEN_KEY) || ''; } catch (_) { return ''; }
+        }
+
+        function setAdminToken(token) {
+            try {
+                if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
+                else localStorage.removeItem(ADMIN_TOKEN_KEY);
+            } catch (_) {}
+        }
+
+        async function adminFetch(path, options) {
+            options = options || {};
+            const headers = { 'Content-Type': 'application/json' };
+            const token = getAdminToken();
+            if (token) headers.Authorization = 'Bearer ' + token;
+            const res = await fetch(workerUrl(path), {
+                method: options.method || 'GET',
+                headers,
+                body: options.body ? JSON.stringify(options.body) : undefined,
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message || data.error || ('HTTP ' + res.status));
+            return data;
+        }
+
+        function showDash(show) {
+            document.getElementById('loginPanel').classList.toggle('hidden', show);
+            document.getElementById('dashPanel').classList.toggle('hidden', !show);
+        }
+
+        async function loginWithPassword() {
+            document.getElementById('loginErr').textContent = '';
+            const password = document.getElementById('adminPassword').value;
+            const data = await adminFetch('/admin/login', { method: 'POST', body: { password } });
+            setAdminToken(data.token);
+            showDash(true);
+            await refreshAll();
+        }
+
+        async function loginWithWallet() {
+            document.getElementById('loginErr').textContent = '';
+            const statusEl = document.getElementById('walletLoginStatus');
+            statusEl.textContent = '请在钱包中确认签名…';
+            if (!window.ethereum) throw new Error('未检测到 MetaMask 等 Web3 钱包');
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send('eth_requestAccounts', []);
+            const signer = provider.getSigner();
+            const address = await signer.getAddress();
+            const message = 'OAO Admin Login\nAddress: ' + address.toLowerCase() + '\nTime: ' + new Date().toISOString();
+            const signature = await signer.signMessage(message);
+            const data = await adminFetch('/admin/login/wallet', {
+                method: 'POST',
+                body: { address, message, signature },
+            });
+            setAdminToken(data.token);
+            statusEl.textContent = '已登录：' + address;
+            showDash(true);
+            await refreshAll();
+        }
+
+        function renderAlerts(alerts) {
+            const box = document.getElementById('alertBanner');
+            if (!alerts || !alerts.length) {
+                box.innerHTML = '';
+                return;
+            }
+            box.innerHTML = alerts.map((a) => (
+                '<div class="alert-box">' +
+                '<strong>' + escapeHtml(a.level || 'warning') + '</strong> · ' + escapeHtml(a.message) +
+                ' <button type="button" data-alert-id="' + a.id + '" style="margin-left:8px;padding:4px 8px;">知道了</button>' +
+                '</div>'
+            )).join('');
+        }
+
+        function renderStats(stats) {
+            const totals = {};
+            (stats.totals || []).forEach((row) => { totals[row.action] = row.total; });
+            const glmLegacy = (totals.glm_chat || 0) + (totals.glm_minutes || 0);
+            const glm = stats.glmSuccess?.total || glmLegacy;
+            document.getElementById('statGrid').innerHTML = [
+                ['用户总数', stats.userCount || 0],
+                ['已拉黑', stats.blockedCount || 0],
+                ['GLM 调用', glm],
+                ['GLM 成功率', stats.glmSuccess?.total ? Math.round((stats.glmSuccess.success / stats.glmSuccess.total) * 100) + '%' : '—'],
+                ['平均耗时', stats.glmSuccess?.avgMs ? stats.glmSuccess.avgMs + 'ms' : '—'],
+                ['限流事件', (stats.rateLimitEvents || []).length],
+            ].map(([label, val]) => (
+                '<div class="stat"><b>' + val + '</b><span>' + label + '</span></div>'
+            )).join('');
+        }
+
+        function renderUsageChart(stats) {
+            const daily = stats.daily || [];
+            const days = [...new Set(daily.map((d) => d.day))].sort();
+            const actions = [...new Set(daily.map((d) => d.action))];
+            const datasets = actions.map((action, i) => {
+                const colors = ['#38bdf8', '#a78bfa', '#34d399', '#fbbf24'];
+                return {
+                    label: action,
+                    data: days.map((day) => {
+                        const row = daily.find((d) => d.day === day && d.action === action);
+                        return row ? row.total : 0;
+                    }),
+                    borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length] + '33',
+                    tension: 0.3,
+                };
+            });
+            const ctx = document.getElementById('usageChart');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels: days, datasets },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' }, beginAtZero: true },
+                    },
+                },
+            });
+        }
+
+        function renderSourceChart(stats) {
+            const breakdown = stats.sourceBreakdown || [];
+            const labels = breakdown.map((r) => r.source || 'unknown');
+            const values = breakdown.map((r) => r.total || 0);
+            const ctx = document.getElementById('sourceChart');
+            if (sourceChartInstance) sourceChartInstance.destroy();
+            sourceChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#38bdf8', '#a78bfa', '#34d399', '#fbbf24', '#f87171'],
+                    }],
+                },
+                options: {
+                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                },
+            });
+        }
+
+        function renderTopWallets(rows) {
+            document.getElementById('topWalletsBody').innerHTML = (rows || []).map((r) => (
+                '<tr><td class="addr">' + escapeHtml(r.wallet_address) + '</td><td>' + (r.total || 0) + '</td></tr>'
+            )).join('') || '<tr><td colspan="2">暂无数据</td></tr>';
+        }
+
+        function renderRateLimits(rows) {
+            document.getElementById('rateLimitBody').innerHTML = (rows || []).map((r) => (
+                '<tr><td>' + escapeHtml(fmt(r.created_at)) + '</td>' +
+                '<td class="addr">' + escapeHtml(r.identifier) + '</td>' +
+                '<td>' + escapeHtml(r.identifier_type) + '</td>' +
+                '<td>' + escapeHtml(r.reason) + '</td></tr>'
+            )).join('') || '<tr><td colspan="4">暂无限流记录</td></tr>';
+        }
+
+        function renderUsers(users) {
+            document.getElementById('usersBody').innerHTML = (users || []).map((u) => {
+                const blocked = u.is_blocked ? 1 : 0;
+                return '<tr>' +
+                    '<td class="addr">' + escapeHtml(u.wallet_address) + '</td>' +
+                    '<td>' + escapeHtml(u.ens_name || '—') + '</td>' +
+                    '<td>' + (u.login_count || 0) + '</td>' +
+                    '<td>' + escapeHtml(fmt(u.last_login_at)) + '</td>' +
+                    '<td>' + (blocked
+                        ? '<span class="badge badge-block">已拉黑</span>'
+                        : '<span class="badge badge-ok">正常</span>') + '</td>' +
+                    '<td>' + (blocked
+                        ? '<button type="button" data-action="unblock" data-addr="' + escapeAttr(u.wallet_address) + '">解除</button>'
+                        : '<button type="button" data-action="block" data-addr="' + escapeAttr(u.wallet_address) + '">拉黑</button>') + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+        }
+        function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
+        function fmt(iso) {
+            if (!iso) return '—';
+            try { return new Date(iso).toLocaleString('zh-CN'); } catch (_) { return iso; }
+        }
+
+        async function refreshAll() {
+            const days = parseInt(document.getElementById('daysSelect').value, 10) || 14;
+            const [stats, usersData] = await Promise.all([
+                adminFetch('/admin/api/stats?days=' + days),
+                adminFetch('/admin/api/users'),
+            ]);
+            renderAlerts(stats.alerts || []);
+            renderStats(stats);
+            renderUsageChart(stats);
+            renderSourceChart(stats);
+            renderTopWallets(stats.topWallets || []);
+            renderRateLimits(stats.rateLimitEvents || []);
+            renderUsers(usersData.users || []);
+        }
+
+        document.getElementById('tabWallet').addEventListener('click', () => {
+            document.getElementById('tabWallet').classList.add('active');
+            document.getElementById('tabPassword').classList.remove('active');
+            document.getElementById('walletLogin').classList.remove('hidden');
+            document.getElementById('passwordLogin').classList.add('hidden');
+        });
+        document.getElementById('tabPassword').addEventListener('click', () => {
+            document.getElementById('tabPassword').classList.add('active');
+            document.getElementById('tabWallet').classList.remove('active');
+            document.getElementById('passwordLogin').classList.remove('hidden');
+            document.getElementById('walletLogin').classList.add('hidden');
+        });
+
+        document.getElementById('walletLoginBtn').addEventListener('click', () => {
+            loginWithWallet().catch((e) => {
+                document.getElementById('loginErr').textContent = e.message || '钱包登录失败';
+            });
+        });
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            loginWithPassword().catch((e) => {
+                document.getElementById('loginErr').textContent = e.message || '登录失败';
+            });
+        });
+        document.getElementById('adminPassword').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginBtn').click();
+        });
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            setAdminToken('');
+            showDash(false);
+        });
+        document.getElementById('refreshBtn').addEventListener('click', () => refreshAll().catch((e) => alert(e.message)));
+        document.getElementById('daysSelect').addEventListener('change', () => refreshAll().catch((e) => alert(e.message)));
+        document.getElementById('alertBanner').addEventListener('click', async (e) => {
+            const btn = e.target.closest('button[data-alert-id]');
+            if (!btn) return;
+            try {
+                await adminFetch('/admin/api/alerts/ack', { method: 'POST', body: { id: parseInt(btn.dataset.alertId, 10) } });
+                await refreshAll();
+            } catch (err) { alert(err.message); }
+        });
+        document.getElementById('usersBody').addEventListener('click', async (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const reason = btn.dataset.action === 'block' ? (prompt('拉黑原因（可选）') || '') : '';
+            try {
+                await adminFetch('/admin/api/users/' + btn.dataset.action, {
+                    method: 'POST',
+                    body: { address: btn.dataset.addr, reason },
+                });
+                await refreshAll();
+            } catch (err) { alert(err.message || '操作失败'); }
+        });
+
+        if (getAdminToken()) {
+            showDash(true);
+            refreshAll().catch(() => { setAdminToken(''); showDash(false); });
+        }
+    </script>
+</body>
+</html>

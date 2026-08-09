@@ -7,6 +7,11 @@ compatibility_date = "2024-01-01"
 
 # account_id = "你的 Cloudflare Account ID"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "oao-platform"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
 [durable_objects]
 bindings = [
   { name = "MEETING_ROOM", class_name = "MeetingRoom" }
@@ -18,7 +23,10 @@ new_classes = ["MeetingRoom"]
 
 [vars]
 ZHIPU_MODEL = "glm-4.7-flash"
-# 可选 — 本机 Tunnel（本地 AnythingLLM / Ollama 外网访问）
+# 可选 — 限流阈值（也可设为 Secret）
+# OAO_RATE_WALLET_PER_MIN = "10"
+# OAO_RATE_ANON_PER_MIN = "3"
+# OAO_GLM_DAILY_ALERT = "500"
 # LLM_ORIGIN = "https://llm.你的域名.com"
 # OLLAMA_ORIGIN = "https://ollama.你的域名.com"
 # ANYTHINGLLM_API_KEY = "（可选，仅 Tunnel 代理 AnythingLLM 时使用）"

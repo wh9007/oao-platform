@@ -1093,6 +1093,10 @@
     if (changed) {
       renderLines();
       maybeAutoSpeakLine(line);
+      if (window.OAOPlatform?.recordTranslate) {
+        const chars = (line.source || '').length + line.translations.reduce((n, t) => n + (t.text || '').length, 0);
+        void window.OAOPlatform.recordTranslate(chars);
+      }
       for (const item of line.translations) {
         pushShareEvent("translation", {
           text: item.text,

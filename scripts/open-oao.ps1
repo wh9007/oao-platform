@@ -31,7 +31,7 @@ Write-Host ' ============================================================' -Fore
 Write-Host " 主页: $Url"
 Write-Host ''
 Write-Host ' 用途: 本地功能测试（AI / 小O会议 / OAO翻译）'
-Write-Host ' 外网远程 AI: 请使用「OAO服务器.bat」'
+Write-Host ' 外网远程 AI: 请使用「启动远程AI.bat」'
 Write-Host ' 版本发布: 请使用「一键上传GitHub.bat」'
 Write-Host ''
 

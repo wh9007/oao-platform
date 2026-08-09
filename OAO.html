@@ -54,6 +54,10 @@
     </script>
     <script src="local-config.js" onerror="void 0"></script>
     <script src="oao-translate/embed/lib/stt-browser.js"></script>
+    <script src="oao-translate/embed/lib/oao-meeting-speakers.js"></script>
+    <script src="assets/js/oao-platform-api.js"></script>
+    <script src="assets/js/oao-meeting-minutes-ai.js"></script>
+    <script src="assets/js/oao-meeting-kb.js"></script>
     <style>
         * {
             margin: 0;
@@ -4435,8 +4439,8 @@
         }
 
         .oao-meeting-modal .oao-meeting-content {
-            width: min(960px, 96vw);
-            max-width: 960px;
+            width: min(1120px, 98vw);
+            max-width: 1120px;
             max-height: 92vh;
             padding: 20px 24px 28px;
             display: flex;
@@ -4828,6 +4832,307 @@
             font-size: 12px;
             font-family: inherit;
             max-width: 168px;
+        }
+
+        .oao-meeting-control-deck {
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--panel-bg);
+        }
+
+        .oao-meeting-control-deck-inner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px 16px;
+        }
+
+        .oao-meeting-control-deck .oao-meeting-audio-wave {
+            flex: 0 1 200px;
+            max-width: 240px;
+            margin-left: 0;
+        }
+
+        .oao-meeting-control-groups {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 22px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .oao-meeting-control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .oao-meeting-control-group-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            opacity: 0.55;
+        }
+
+        .oao-meeting-controls-primary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .oao-meeting-playback-bar {
+            width: 100%;
+            padding: 0 2px;
+        }
+
+        .oao-meeting-playback-bar.hidden {
+            display: none;
+        }
+
+        .oao-meeting-playback-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--panel-bg);
+        }
+
+        .oao-meeting-playback-icon {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: rgba(255, 94, 0, 0.12);
+            color: var(--accent-color);
+            font-size: 11px;
+        }
+
+        .oao-meeting-playback-bar audio {
+            flex: 1;
+            min-width: 140px;
+            max-width: 100%;
+            height: 34px;
+        }
+
+        .oao-meeting-playback-hint {
+            font-size: 12px;
+            opacity: 0.62;
+            line-height: 1.4;
+            max-width: 220px;
+        }
+
+        @media (max-width: 720px) {
+            .oao-meeting-playback-hint {
+                display: none;
+            }
+        }
+
+        .xo-meeting-split {
+            display: grid;
+            grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+            gap: 14px;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+
+        @media (max-width: 860px) {
+            .xo-meeting-split {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .oao-meeting-panel-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 0;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--panel-bg);
+            overflow: hidden;
+        }
+
+        .xo-meeting-panel-head-pro {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px 12px;
+            padding: 12px 14px 0;
+        }
+
+        .xo-meeting-panel-head-pro h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .oao-meeting-panel-card .oao-meeting-speaker-bar {
+            margin: 0 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="dark"] .oao-meeting-panel-card .oao-meeting-speaker-bar {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .oao-meeting-panel-card .oao-meeting-transcript,
+        .oao-meeting-panel-card .oao-meeting-minutes {
+            margin: 0;
+            border-radius: 0;
+            max-height: none;
+        }
+
+        .oao-meeting-panel-card .oao-meeting-export-row {
+            padding: 0 14px 12px;
+        }
+
+        .oao-meeting-minutes-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 0 14px;
+        }
+
+        .oao-meeting-minutes-actions .oao-meeting-btn-primary {
+            flex: 1 1 140px;
+        }
+
+        .oao-meeting-btn-kb {
+            flex: 1 1 140px;
+        }
+
+        .oao-meeting-btn-kb.is-archived {
+            border-color: rgba(16, 185, 129, 0.45);
+            color: #059669;
+            background: rgba(16, 185, 129, 0.08);
+            cursor: default;
+        }
+
+        [data-theme="dark"] .oao-meeting-btn-kb.is-archived {
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.12);
+        }
+
+        .oao-meeting-transcript-empty {
+            opacity: 0.5;
+            font-style: italic;
+            padding: 4px 0;
+        }
+
+        .oao-meeting-transcript-ts {
+            display: inline-block;
+            min-width: 52px;
+            margin-right: 6px;
+            font-family: ui-monospace, monospace;
+            font-size: 12px;
+            opacity: 0.62;
+            user-select: none;
+        }
+
+        .oao-meeting-transcript-line.is-seekable {
+            cursor: pointer;
+            border-radius: 6px;
+            padding: 2px 4px;
+        }
+
+        .oao-meeting-transcript-line.is-seekable:hover {
+            background: rgba(255, 94, 0, 0.08);
+        }
+
+        .oao-meeting-transcript-line.is-active {
+            background: rgba(255, 94, 0, 0.14);
+            box-shadow: inset 3px 0 0 var(--accent-color, #ff5e00);
+        }
+
+        .oao-meeting-kb-panel {
+            margin: 0 2px 4px;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: linear-gradient(180deg, var(--panel-bg) 0%, var(--bg-color) 100%);
+        }
+
+        .oao-meeting-kb-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .oao-meeting-kb-panel-head strong {
+            font-size: 13px;
+            letter-spacing: 0.02em;
+        }
+
+        .oao-meeting-kb-panel-desc {
+            margin: 0 0 10px;
+            font-size: 12px;
+            line-height: 1.5;
+            opacity: 0.62;
+        }
+
+        .oao-meeting-kb-search-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .oao-meeting-kb-search-row input {
+            flex: 1;
+            min-width: 180px;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 13px;
+        }
+
+        .oao-meeting-kb-result {
+            margin-top: 10px;
+            padding: 10px 12px;
+            font-size: 13px;
+            line-height: 1.65;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+        }
+
+        .oao-meeting-kb-result.is-loading {
+            opacity: 0.72;
+            font-style: italic;
+            border-style: dashed;
+        }
+
+        .oao-meeting-kb-result:empty {
+            display: none;
+        }
+
+        .oao-meeting-kb-sources {
+            margin-top: 8px;
+            padding: 8px 10px;
+            font-size: 12px;
+            line-height: 1.55;
+            opacity: 0.78;
+            border-radius: 8px;
+            background: rgba(255, 94, 0, 0.05);
+        }
+
+        .oao-meeting-kb-sources:empty {
+            display: none;
         }
 
         .oao-meeting-btn {
@@ -5246,8 +5551,107 @@
 
         .oao-meeting-transcript-line .speaker-tag {
             font-weight: 600;
-            opacity: 0.85;
+            opacity: 0.92;
             margin-right: 4px;
+        }
+
+        .oao-meeting-speaker-bar {
+            padding: 8px 18px 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(26, 86, 219, 0.03);
+        }
+
+        [data-theme="dark"] .oao-meeting-speaker-bar {
+            background: rgba(26, 86, 219, 0.08);
+            border-bottom-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .oao-meeting-speaker-bar-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.78;
+        }
+
+        .oao-meeting-speaker-diar-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .oao-meeting-speaker-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .oao-meeting-speaker-empty {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.55;
+        }
+
+        .oao-meeting-speaker-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 6px 4px 4px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: var(--bg-color);
+        }
+
+        .oao-meeting-speaker-chip.is-active {
+            border-color: var(--speaker-color, #1a56db);
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--speaker-color, #1a56db) 35%, transparent);
+        }
+
+        .oao-meeting-speaker-select {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: none;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .oao-meeting-speaker-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--speaker-color, #1a56db);
+            flex-shrink: 0;
+        }
+
+        .oao-meeting-speaker-label {
+            color: var(--speaker-color, #1a56db);
+        }
+
+        .oao-meeting-speaker-rename {
+            width: 88px;
+            max-width: 28vw;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 12px;
+        }
+
+        [data-theme="dark"] .oao-meeting-speaker-chip {
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .oao-meeting-guest-overlay {
@@ -5564,6 +5968,19 @@
         .oao-meeting-subtitle-bar.size-md { font-size: 18px; }
         .oao-meeting-subtitle-bar.size-lg { font-size: 22px; }
 
+        .oao-minutes-section { margin-bottom: 14px; }
+        .oao-minutes-section-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--accent-color);
+        }
+        .oao-minutes-list {
+            margin: 0;
+            padding-left: 1.2em;
+            line-height: 1.55;
+        }
+        .oao-minutes-list li { margin-bottom: 4px; }
+
         .oao-meeting-subtitle-bar .subtitle-current {
             color: var(--accent-color);
             font-weight: 600;
@@ -5725,11 +6142,15 @@
 
         /* ========== 小O会议 · 商务专业版 ========== */
         .oao-meeting-modal .oao-meeting-content {
-            width: min(1280px, 98vw);
-            max-width: 1280px;
-            max-height: 94vh;
+            width: min(1480px, 96vw);
+            max-width: 1480px;
+            height: min(900px, 92vh);
+            min-height: 660px;
+            max-height: 92vh;
             padding: 0;
             gap: 0;
+            display: flex;
+            flex-direction: column;
             border-radius: 14px;
             overflow: hidden;
             border: 1px solid rgba(0, 0, 0, 0.08);
@@ -5995,30 +6416,193 @@
         }
 
         .oao-meeting-btn-primary {
-            background: #1a56db;
+            background: #ff5e00;
             color: #fff;
-            border-color: #1a56db;
+            border-color: #ff5e00;
         }
 
         .oao-meeting-btn-primary:hover:not(:disabled) {
-            background: #1648b8;
+            background: #e55400;
+            border-color: #e55400;
+            color: #fff;
         }
 
         .xo-meeting-split {
             flex: 1;
             min-height: 0;
             display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 0;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 14px;
             overflow: hidden;
+            align-items: stretch;
         }
 
         .xo-meeting-split-main,
-        .xo-meeting-split-side {
+        .xo-meeting-split-side,
+        .oao-meeting-panel-card {
             display: flex;
             flex-direction: column;
             min-height: 0;
             overflow: hidden;
+        }
+
+        .oao-meeting-panel-scroll {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .oao-meeting-panel-scroll .oao-meeting-speaker-bar {
+            flex-shrink: 0;
+        }
+
+        .oao-meeting-panel-footer {
+            flex-shrink: 0;
+            background: #fafbfc;
+            border-top: 1px solid rgba(255, 94, 0, 0.14);
+        }
+
+        [data-theme="dark"] .oao-meeting-panel-footer {
+            background: #161616;
+            border-top-color: rgba(255, 94, 0, 0.2);
+        }
+
+        .oao-meeting-panel-footer .oao-meeting-export-row {
+            border-top: none;
+            background: transparent;
+        }
+
+        .oao-meeting-panel-scroll .oao-meeting-transcript,
+        .oao-meeting-panel-scroll .oao-meeting-minutes {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        .oao-meeting-minutes-scroll {
+            min-height: 120px;
+        }
+
+        .oao-meeting-transcript {
+            padding-bottom: 20px;
+        }
+
+        .oao-meeting-transcript .oao-meeting-transcript-line {
+            padding: 6px 8px;
+            margin: 0 -8px 4px;
+            border-radius: 6px;
+        }
+
+        .oao-meeting-transcript .oao-meeting-transcript-line.is-seekable {
+            cursor: pointer;
+        }
+
+        .oao-meeting-transcript .oao-meeting-transcript-line.is-seekable:hover {
+            background: rgba(255, 94, 0, 0.06);
+        }
+
+        .oao-meeting-transcript .oao-meeting-transcript-line.is-active {
+            background: rgba(255, 94, 0, 0.14);
+        }
+
+        .oao-meeting-transcript-footer .oao-meeting-export-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            padding: 12px 16px 16px;
+        }
+
+        .oao-meeting-minutes-footer .oao-meeting-export-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            padding: 10px 16px 14px;
+        }
+
+        .oao-meeting-panel-footer .oao-meeting-export-row .oao-meeting-btn {
+            width: 100%;
+            min-width: 0;
+            padding: 7px 10px;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .oao-meeting-minutes-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px 16px 10px;
+            border-bottom: 1px solid rgba(255, 94, 0, 0.1);
+        }
+
+        .oao-meeting-minutes-actions .oao-meeting-btn {
+            flex: 1 1 calc(50% - 5px);
+            min-height: 38px;
+            padding: 9px 12px;
+        }
+
+        .oao-meeting-wave-playback {
+            flex: 1 1 220px;
+            min-width: 176px;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 94, 0, 0.22);
+            border-radius: 10px;
+            background: rgba(255, 94, 0, 0.05);
+        }
+
+        .oao-meeting-wave-visual {
+            width: 100%;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .oao-meeting-wave-visual canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .oao-meeting-wave-playback.is-playback-ready .oao-meeting-wave-visual {
+            height: 22px;
+            opacity: 0.88;
+        }
+
+        .oao-meeting-playback-inline {
+            width: 100%;
+        }
+
+        .oao-meeting-playback-inline.hidden {
+            display: none;
+        }
+
+        .oao-meeting-playback-inline audio {
+            width: 100%;
+            height: 28px;
+            display: block;
+        }
+
+        .oao-meeting-playback-hint {
+            font-size: 10px;
+            line-height: 1.35;
+            opacity: 0.62;
+        }
+
+        .oao-meeting-playback-hint.hidden {
+            display: none;
+        }
+
+        .oao-meeting-control-deck-inner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+            gap: 12px 16px;
+            width: 100%;
         }
 
         .xo-meeting-split-main {
@@ -6050,7 +6634,7 @@
         .oao-meeting-transcript,
         .oao-meeting-minutes {
             flex: 1;
-            min-height: 280px;
+            min-height: 0;
             max-height: none;
             margin: 0;
             border: none;
@@ -6124,14 +6708,14 @@
         .oao-meeting-transcript-line.interim {
             opacity: 0.62;
             font-style: italic;
-            border-left: 3px solid #1a56db;
+            border-left: 3px solid #ff5e00;
             padding-left: 10px;
             margin-left: -2px;
         }
 
         .oao-meeting-export-row {
             padding: 10px 18px 14px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            border-top: 1px solid rgba(255, 94, 0, 0.1);
             background: #fafbfc;
         }
 
@@ -6221,6 +6805,99 @@
             }
         }
 
+        /* ========== 小O会议 · 橙色主题统一 ========== */
+        .oao-meeting-modal {
+            --oao-meeting-accent: #ff5e00;
+            --oao-meeting-accent-hover: #e55400;
+            --oao-meeting-accent-soft: rgba(255, 94, 0, 0.1);
+            --oao-meeting-accent-border: rgba(255, 94, 0, 0.38);
+        }
+
+        .oao-meeting-modal .oao-meeting-btn {
+            border: 2px solid var(--oao-meeting-accent-border);
+            background: var(--oao-meeting-accent-soft);
+            color: #c2410c;
+        }
+
+        [data-theme="dark"] .oao-meeting-modal .oao-meeting-btn {
+            color: #fb923c;
+            background: rgba(255, 94, 0, 0.14);
+        }
+
+        .oao-meeting-modal .oao-meeting-btn:hover:not(:disabled) {
+            background: var(--oao-meeting-accent);
+            color: #fff;
+            border-color: var(--oao-meeting-accent);
+            box-shadow: 0 4px 14px rgba(255, 94, 0, 0.28);
+            transform: translateY(-1px);
+        }
+
+        .oao-meeting-modal .oao-meeting-btn:disabled {
+            opacity: 0.42;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .oao-meeting-modal .oao-meeting-btn-primary,
+        .oao-meeting-modal .oao-meeting-btn.oao-meeting-btn-primary {
+            background: var(--oao-meeting-accent);
+            color: #fff;
+            border-color: var(--oao-meeting-accent);
+        }
+
+        .oao-meeting-modal .oao-meeting-btn-primary:hover:not(:disabled),
+        .oao-meeting-modal .oao-meeting-btn.oao-meeting-btn-primary:hover:not(:disabled) {
+            background: var(--oao-meeting-accent-hover);
+            border-color: var(--oao-meeting-accent-hover);
+            color: #fff;
+        }
+
+        .oao-meeting-modal .oao-meeting-btn-kb.is-archived {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.45);
+            color: #059669;
+        }
+
+        .oao-meeting-modal .oao-meeting-btn-kb.is-archived:hover:not(:disabled) {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: rgba(16, 185, 129, 0.55);
+            color: #047857;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .oao-meeting-nav-btn.is-active {
+            background: rgba(255, 94, 0, 0.1);
+            box-shadow: inset 3px 0 0 var(--oao-meeting-accent);
+        }
+
+        [data-theme="dark"] .oao-meeting-nav-btn.is-active {
+            background: rgba(255, 94, 0, 0.16);
+        }
+
+        .oao-meeting-modal .oao-meeting-stt-select-wrap select:focus,
+        .oao-meeting-modal .oao-meeting-audio-download select:focus,
+        .oao-meeting-kb-search-row input:focus {
+            outline: none;
+            border-color: var(--oao-meeting-accent);
+            box-shadow: 0 0 0 2px rgba(255, 94, 0, 0.18);
+        }
+
+        .oao-meeting-panel-card .oao-meeting-transcript,
+        .oao-meeting-panel-card .oao-meeting-minutes {
+            max-height: none;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .oao-meeting-speaker-bar {
+            background: rgba(255, 94, 0, 0.04);
+        }
+
+        [data-theme="dark"] .oao-meeting-speaker-bar {
+            background: rgba(255, 94, 0, 0.08);
+        }
+
         [data-theme="dark"] .oao-desktop-app:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.06);
         }
@@ -6271,10 +6948,207 @@
             color: var(--accent-color);
         }
 
-        .oao-local-setup-actions {
+        .oao-meeting-local-setup-actions {
             display: flex;
             justify-content: flex-end;
             gap: 8px;
+        }
+
+        /* ========== 小O会议 · 布局优化（大窗口 / 双栏间距 / 纪要区最大化） ========== */
+        .oao-meeting-modal .oao-meeting-content {
+            width: min(1480px, 96vw);
+            max-width: 1480px;
+            height: min(900px, 92vh);
+            min-height: 660px;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .oao-meeting-modal .oao-meeting-shell {
+            flex: 1;
+            min-height: 0;
+            min-height: unset;
+        }
+
+        .oao-meeting-modal .oao-meeting-main {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .oao-meeting-modal #oaoMeetingModuleWorkspace {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .oao-meeting-modal .oao-meeting-control-deck {
+            flex-shrink: 0;
+            margin: 0 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 94, 0, 0.12);
+            background: rgba(255, 94, 0, 0.03);
+        }
+
+        .oao-meeting-modal #oaoMeetingMainBody {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            gap: 10px;
+            padding: 12px 16px 14px;
+        }
+
+        .oao-meeting-modal #oaoMeetingLayout {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            gap: 0;
+        }
+
+        .oao-meeting-modal .xo-meeting-split {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+            gap: 14px;
+            padding: 0;
+            overflow: hidden;
+            align-items: stretch;
+        }
+
+        .oao-meeting-modal .xo-meeting-split-main,
+        .oao-meeting-modal .xo-meeting-split-side {
+            min-height: 0;
+            border: 1px solid rgba(255, 94, 0, 0.14);
+            border-radius: 12px;
+            background: var(--bg-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .oao-meeting-modal .xo-meeting-split-main {
+            border-right: none;
+        }
+
+        [data-theme="dark"] .oao-meeting-modal .xo-meeting-split-main,
+        [data-theme="dark"] .oao-meeting-modal .xo-meeting-split-side {
+            border-color: rgba(255, 94, 0, 0.22);
+            box-shadow: none;
+        }
+
+        .oao-meeting-modal .oao-meeting-panel-card {
+            gap: 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .oao-meeting-modal .oao-meeting-panel-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .oao-meeting-modal .oao-meeting-minutes-scroll {
+            min-height: 0;
+            flex: 1 1 auto;
+        }
+
+        .oao-meeting-modal .oao-meeting-transcript,
+        .oao-meeting-modal .oao-meeting-minutes {
+            flex: 1;
+            min-height: 0;
+            max-height: none;
+            padding: 14px 16px 18px;
+        }
+
+        .oao-meeting-modal .oao-meeting-minutes.has-form-layout {
+            padding: 10px 12px 14px;
+        }
+
+        .oao-meeting-modal .xo-meeting-panel-head-pro {
+            flex-shrink: 0;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 94, 0, 0.1);
+            background: rgba(255, 94, 0, 0.03);
+        }
+
+        .oao-meeting-modal .oao-meeting-minutes-head {
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 8px 12px;
+        }
+
+        .oao-meeting-modal .oao-meeting-minutes-head-title {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .oao-meeting-modal .oao-meeting-minutes-head-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .oao-meeting-modal .oao-meeting-btn-compact {
+            padding: 6px 12px;
+            font-size: 12px;
+            min-height: 32px;
+            border-radius: 8px;
+        }
+
+        .oao-meeting-modal .oao-meeting-minutes-head-actions .oao-meeting-btn-compact {
+            min-width: 88px;
+        }
+
+        .oao-meeting-modal .oao-meeting-panel-footer {
+            flex-shrink: 0;
+            border-top: 1px solid rgba(255, 94, 0, 0.1);
+        }
+
+        .oao-meeting-modal .oao-meeting-minutes-footer .oao-meeting-export-row-compact {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px;
+            padding: 8px 12px 10px;
+        }
+
+        .oao-meeting-modal .oao-meeting-transcript-footer .oao-meeting-export-row {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            padding: 8px 12px 10px;
+        }
+
+        .oao-meeting-modal .oao-meeting-kb-panel {
+            flex-shrink: 0;
+            margin: 0;
+        }
+
+        @media (max-width: 960px) {
+            .oao-meeting-modal .oao-meeting-content {
+                width: 98vw;
+                height: 94vh;
+                min-height: 520px;
+            }
+
+            .oao-meeting-modal .xo-meeting-split {
+                grid-template-columns: 1fr;
+                overflow-y: auto;
+            }
+
+            .oao-meeting-modal .xo-meeting-split-main,
+            .oao-meeting-modal .xo-meeting-split-side {
+                min-height: 320px;
+            }
         }
     </style>
     <link rel="stylesheet" href="assets/css/oao-design-tokens.css">
@@ -6299,6 +7173,7 @@
             <div id="userMenuContainer" class="user-menu-container">
                 <span id="userAddress" class="user-address"></span>
                 <div id="userDropdown" class="user-dropdown">
+                    <a id="userProfileLink" class="dropdown-item" href="profile.html">个人中心</a>
                     <button id="logoutButton" class="dropdown-item">退出登录</button>
                 </div>
             </div>
@@ -6791,6 +7666,15 @@
                         <span id="oaoMeetingTimer" class="oao-meeting-timer">00:00:00</span>
                     </div>
                     <label class="oao-meeting-stt-select-wrap">
+                        <span id="oaoMeetingSttSensitivityLabel">识别灵敏度</span>
+                        <select id="oaoMeetingSttSensitivity" aria-label="识别灵敏度">
+                            <option value="1">低 · 单人</option>
+                            <option value="2">标准</option>
+                            <option value="3" selected>高 · 多人</option>
+                            <option value="4">最高 · 近距离多人</option>
+                        </select>
+                    </label>
+                    <label class="oao-meeting-stt-select-wrap">
                         <span id="oaoMeetingSttModeLabel">转写引擎</span>
                         <select id="oaoMeetingSttMode" aria-label="转写引擎">
                             <option value="auto" selected>自动（推荐）</option>
@@ -6822,20 +7706,38 @@
                 <div class="oao-meeting-main">
                     <div id="oaoMeetingModuleWorkspace" class="oao-meeting-module" data-module="workspace">
                         <div class="oao-meeting-control-deck">
-                            <div id="oaoMeetingAudioWave" class="oao-meeting-audio-wave" aria-hidden="true">
-                                <canvas id="oaoMeetingAudioWaveCanvas"></canvas>
-                            </div>
-                            <div class="oao-meeting-controls">
-                                <button type="button" id="oaoMeetingStartBtn" class="oao-meeting-btn oao-meeting-btn-primary">开始录音</button>
-                                <button type="button" id="oaoMeetingPauseBtn" class="oao-meeting-btn" disabled>暂停</button>
-                                <button type="button" id="oaoMeetingResumeBtn" class="oao-meeting-btn" disabled hidden>继续</button>
-                                <button type="button" id="oaoMeetingStopBtn" class="oao-meeting-btn" disabled>停止</button>
-                                <div class="oao-meeting-audio-download">
-                                    <select id="oaoMeetingAudioFormat" aria-label="音频格式">
-                                        <option value="wav" selected>WAV（可拖动进度）</option>
-                                        <option value="webm">WebM（原始）</option>
-                                    </select>
-                                    <button type="button" id="oaoMeetingDownloadBtn" class="oao-meeting-btn" disabled>下载音频</button>
+                            <div class="oao-meeting-control-deck-inner">
+                                <div id="oaoMeetingWavePlayback" class="oao-meeting-wave-playback">
+                                    <div id="oaoMeetingAudioWave" class="oao-meeting-wave-visual" aria-hidden="true">
+                                        <canvas id="oaoMeetingAudioWaveCanvas"></canvas>
+                                    </div>
+                                    <div id="oaoMeetingPlaybackBar" class="oao-meeting-playback-inline hidden" aria-label="会议录音回放">
+                                        <audio id="oaoMeetingPlayback" controls preload="metadata"></audio>
+                                    </div>
+                                    <span id="oaoMeetingPlaybackHint" class="oao-meeting-playback-hint hidden">点击转录行可定位播放</span>
+                                </div>
+                                <div class="oao-meeting-control-groups">
+                                    <div class="oao-meeting-control-group">
+                                        <span class="oao-meeting-control-group-label" id="oaoMeetingControlRecordLabel">录音控制</span>
+                                        <div class="oao-meeting-controls oao-meeting-controls-primary">
+                                            <button type="button" id="oaoMeetingStartBtn" class="oao-meeting-btn oao-meeting-btn-primary">开始录音</button>
+                                            <button type="button" id="oaoMeetingPauseBtn" class="oao-meeting-btn" disabled>暂停</button>
+                                            <button type="button" id="oaoMeetingResumeBtn" class="oao-meeting-btn" disabled hidden>继续</button>
+                                            <button type="button" id="oaoMeetingStopBtn" class="oao-meeting-btn" disabled>停止</button>
+                                        </div>
+                                    </div>
+                                    <div class="oao-meeting-control-group">
+                                        <span class="oao-meeting-control-group-label" id="oaoMeetingControlAudioLabel">音频文件</span>
+                                        <div class="oao-meeting-controls oao-meeting-audio-download">
+                                            <input type="file" id="oaoMeetingAudioUploadInput" accept="audio/*,.webm,.wav,.mp3,.m4a,.ogg,.mp4,.aac,.flac" hidden>
+                                            <button type="button" id="oaoMeetingUploadBtn" class="oao-meeting-btn">上传录音转写</button>
+                                            <select id="oaoMeetingAudioFormat" aria-label="音频格式">
+                                                <option value="wav" selected>WAV（可拖动进度）</option>
+                                                <option value="webm">WebM（原始）</option>
+                                            </select>
+                                            <button type="button" id="oaoMeetingDownloadBtn" class="oao-meeting-btn" disabled>下载音频</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -6845,37 +7747,75 @@
                         <div id="oaoMeetingMainBody" class="oao-meeting-main-body">
                             <div id="oaoMeetingLayout" class="oao-meeting-layout">
                                 <div class="xo-meeting-split">
-                                    <div class="xo-meeting-split-main">
+                                    <div class="xo-meeting-split-main oao-meeting-panel-card">
                                         <div class="xo-meeting-panel-head-pro">
                                             <h3 id="oaoMeetingTranscriptTitle">实时转录</h3>
                                         </div>
-                                        <div id="oaoMeetingTranscript" class="oao-meeting-transcript"></div>
-                                        <div class="oao-meeting-export-row">
-                                            <button type="button" id="oaoMeetingCopyTranscript" class="oao-meeting-btn">复制转录</button>
-                                            <button type="button" id="oaoMeetingExportTranscriptTxt" class="oao-meeting-btn">导出 TXT</button>
-                                            <button type="button" id="oaoMeetingExportTranscriptDoc" class="oao-meeting-btn">导出 Word</button>
+                                        <div class="oao-meeting-panel-scroll">
+                                            <div id="oaoMeetingSpeakerBar" class="oao-meeting-speaker-bar">
+                                                <div class="oao-meeting-speaker-bar-head">
+                                                    <span id="oaoMeetingSpeakerBarTitle">发言人识别</span>
+                                                    <label class="oao-meeting-speaker-diar-toggle">
+                                                        <input type="checkbox" id="oaoMeetingSpeakerDiarization" checked>
+                                                        <span id="oaoMeetingSpeakerDiarizationLabel">多人声纹识别</span>
+                                                    </label>
+                                                </div>
+                                                <div id="oaoMeetingSpeakerList" class="oao-meeting-speaker-list"></div>
+                                            </div>
+                                            <div id="oaoMeetingTranscript" class="oao-meeting-transcript" role="log" aria-live="polite"></div>
+                                        </div>
+                                        <div class="oao-meeting-panel-footer oao-meeting-transcript-footer">
+                                            <div class="oao-meeting-export-row oao-meeting-export-row-compact">
+                                                <button type="button" id="oaoMeetingCopyTranscript" class="oao-meeting-btn oao-meeting-btn-compact">复制</button>
+                                                <button type="button" id="oaoMeetingExportTranscriptTxt" class="oao-meeting-btn oao-meeting-btn-compact">TXT</button>
+                                                <button type="button" id="oaoMeetingExportTranscriptDoc" class="oao-meeting-btn oao-meeting-btn-compact">Word</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="xo-meeting-split-side">
-                                        <div class="xo-meeting-panel-head-pro">
-                                            <h3 id="oaoMeetingMinutesTitle">会议纪要</h3>
-                                            <label class="oao-meeting-minutes-realtime-toggle">
-                                                <span id="oaoMeetingRealtimeMinutesLabel">实时纪要</span>
-                                                <select id="oaoMeetingRealtimeMinutes">
-                                                    <option value="off" selected>关闭</option>
-                                                    <option value="on">开启</option>
-                                                </select>
-                                            </label>
+                                    <div class="xo-meeting-split-side oao-meeting-panel-card">
+                                        <div class="xo-meeting-panel-head-pro oao-meeting-minutes-head">
+                                            <div class="oao-meeting-minutes-head-title">
+                                                <h3 id="oaoMeetingMinutesTitle">会议纪要</h3>
+                                                <label class="oao-meeting-minutes-realtime-toggle">
+                                                    <span id="oaoMeetingRealtimeMinutesLabel">实时纪要</span>
+                                                    <select id="oaoMeetingRealtimeMinutes">
+                                                        <option value="off" selected>关闭</option>
+                                                        <option value="on">开启</option>
+                                                    </select>
+                                                </label>
+                                            </div>
+                                            <div class="oao-meeting-minutes-head-actions">
+                                                <button type="button" id="oaoMeetingGenerateBtn" class="oao-meeting-btn oao-meeting-btn-primary oao-meeting-btn-compact" disabled>生成纪要</button>
+                                                <button type="button" id="oaoMeetingArchiveKbBtn" class="oao-meeting-btn oao-meeting-btn-kb oao-meeting-btn-compact" disabled>存入知识库</button>
+                                            </div>
                                         </div>
-                                        <button type="button" id="oaoMeetingGenerateBtn" class="oao-meeting-btn oao-meeting-btn-primary" disabled style="margin:0 18px 8px;width:calc(100% - 36px);">生成纪要</button>
-                                        <div id="oaoMeetingMinutes" class="oao-meeting-minutes"></div>
-                                        <div class="oao-meeting-export-row">
-                                            <button type="button" id="oaoMeetingCopyMinutes" class="oao-meeting-btn">复制纪要</button>
-                                            <button type="button" id="oaoMeetingExportMinutesTxt" class="oao-meeting-btn">导出 TXT</button>
-                                            <button type="button" id="oaoMeetingExportMinutesDoc" class="oao-meeting-btn">导出 Word</button>
-                                            <button type="button" id="oaoMeetingExportMinutesPdf" class="oao-meeting-btn">导出 PDF</button>
+                                        <div class="oao-meeting-panel-scroll oao-meeting-minutes-scroll">
+                                            <div id="oaoMeetingMinutes" class="oao-meeting-minutes"></div>
+                                        </div>
+                                        <div class="oao-meeting-panel-footer oao-meeting-minutes-footer">
+                                            <div class="oao-meeting-export-row oao-meeting-export-row-compact">
+                                                <button type="button" id="oaoMeetingCopyMinutes" class="oao-meeting-btn oao-meeting-btn-compact">复制</button>
+                                                <button type="button" id="oaoMeetingExportMinutesTxt" class="oao-meeting-btn oao-meeting-btn-compact">TXT</button>
+                                                <button type="button" id="oaoMeetingExportMinutesDoc" class="oao-meeting-btn oao-meeting-btn-compact">Word</button>
+                                                <button type="button" id="oaoMeetingExportMinutesPdf" class="oao-meeting-btn oao-meeting-btn-compact">PDF</button>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            <div id="oaoMeetingKbPanel" class="oao-meeting-kb-panel">
+                                <div class="oao-meeting-kb-panel-head">
+                                    <strong id="oaoMeetingKbSearchTitle">跨会议检索</strong>
+                                    <button type="button" id="oaoMeetingKbSearchToggle" class="oao-meeting-btn">展开</button>
+                                </div>
+                                <p id="oaoMeetingKbSearchDesc" class="oao-meeting-kb-panel-desc">检索已归档至 AnythingLLM 的历史会议纪要与转录</p>
+                                <div id="oaoMeetingKbSearchBody" class="hidden">
+                                    <div class="oao-meeting-kb-search-row">
+                                        <input type="search" id="oaoMeetingKbSearchInput" placeholder="例如：上次关于预算的会议定了什么？">
+                                        <button type="button" id="oaoMeetingKbSearchBtn" class="oao-meeting-btn oao-meeting-btn-primary">检索</button>
+                                    </div>
+                                    <div id="oaoMeetingKbSearchResult" class="oao-meeting-kb-result"></div>
+                                    <div id="oaoMeetingKbSearchSources" class="oao-meeting-kb-sources"></div>
                                 </div>
                             </div>
                         </div>
@@ -8970,8 +9910,12 @@
                         err.code = 'GLM_NOT_CONFIGURED';
                         throw err;
                     }
+                    if (json.error === 'user_blocked' && window.OAOPlatform?.blockedMessage) {
+                        throw new Error(window.OAOPlatform.blockedMessage({ status: 403, data: json }));
+                    }
                 } catch (parseErr) {
                     if (parseErr.code === 'GLM_NOT_CONFIGURED') throw parseErr;
+                    if (parseErr instanceof Error && parseErr.message && parseErr.message.indexOf('GLM API') === -1) throw parseErr;
                 }
                 throw new Error(`GLM API [${response.status}]: ${detail || response.statusText}`);
             }
@@ -8991,7 +9935,8 @@
                             messages,
                             stream: false,
                             temperature: options.temperature ?? GLM_CONFIG.temperature,
-                            max_tokens: options.max_tokens ?? 4096
+                            max_tokens: options.max_tokens ?? 4096,
+                            _oaoMeta: window.OAOPlatform?.buildGlmMeta?.('glm_prompt')
                         }),
                         signal: abortController.signal
                     });
@@ -9046,7 +9991,8 @@
                             messages,
                             stream: false,
                             temperature: GLM_CONFIG.temperature,
-                            max_tokens: 4096
+                            max_tokens: 4096,
+                            _oaoMeta: window.OAOPlatform?.buildGlmMeta?.('glm_chat')
                         }),
                         signal: abortController.signal
                     });
@@ -9063,8 +10009,8 @@
                 }
             }
 
-            async function streamZhipuMinutes(prompt, onChunk) {
-                const streamTimeoutMs = Math.max(
+            async function streamZhipuMinutes(prompt, onChunk, options = {}) {
+                const streamTimeoutMs = options.timeout ?? Math.max(
                     GLM_CONFIG.timeout,
                     120000,
                     Math.min(360000, 90000 + Math.floor((prompt || '').length / 8))
@@ -9080,7 +10026,8 @@
                             messages: [{ role: 'user', content: prompt }],
                             stream: true,
                             temperature: 0.1,
-                            max_tokens: 8192
+                            max_tokens: 8192,
+                            _oaoMeta: window.OAOPlatform?.buildGlmMeta?.('glm_minutes')
                         }),
                         signal: abortController.signal
                     });
@@ -9209,7 +10156,7 @@
                 const abortController = new AbortController();
                 const timeoutTimer = setTimeout(() => {
                     abortController.abort();
-                }, LLM_CONFIG.timeout);
+                }, options.timeout ?? LLM_CONFIG.timeout);
                 const startedAt = performance.now();
                 
                 try {
@@ -10292,6 +11239,8 @@
             const oaoMeetingResumeBtn = document.getElementById('oaoMeetingResumeBtn');
             const oaoMeetingStopBtn = document.getElementById('oaoMeetingStopBtn');
             const oaoMeetingDownloadBtn = document.getElementById('oaoMeetingDownloadBtn');
+            const oaoMeetingUploadBtn = document.getElementById('oaoMeetingUploadBtn');
+            const oaoMeetingAudioUploadInput = document.getElementById('oaoMeetingAudioUploadInput');
             const oaoMeetingAudioFormat = document.getElementById('oaoMeetingAudioFormat');
             const oaoMeetingTranscript = document.getElementById('oaoMeetingTranscript');
             const oaoMeetingMinutes = document.getElementById('oaoMeetingMinutes');
@@ -10353,6 +11302,24 @@
             let meetingRecordedMimeType = 'audio/webm';
             let meetingRecognition = null;
             let meetingTranscriptLines = [];
+            let meetingTranscriptEntries = [];
+            let meetingActiveTranscriptIndex = -1;
+            let meetingPlaybackObjectUrl = null;
+            let meetingPlaybackHighlightTimer = null;
+            let meetingKbArchivedId = '';
+            let meetingMinutesStructuredCache = null;
+            let meetingArchiveInProgress = false;
+            const oaoMeetingPlaybackBar = document.getElementById('oaoMeetingPlaybackBar');
+            const oaoMeetingPlayback = document.getElementById('oaoMeetingPlayback');
+            const oaoMeetingPlaybackHint = document.getElementById('oaoMeetingPlaybackHint');
+            const oaoMeetingWavePlayback = document.getElementById('oaoMeetingWavePlayback');
+            const oaoMeetingArchiveKbBtn = document.getElementById('oaoMeetingArchiveKbBtn');
+            const oaoMeetingKbSearchBody = document.getElementById('oaoMeetingKbSearchBody');
+            const oaoMeetingKbSearchToggle = document.getElementById('oaoMeetingKbSearchToggle');
+            const oaoMeetingKbSearchInput = document.getElementById('oaoMeetingKbSearchInput');
+            const oaoMeetingKbSearchBtn = document.getElementById('oaoMeetingKbSearchBtn');
+            const oaoMeetingKbSearchResult = document.getElementById('oaoMeetingKbSearchResult');
+            const oaoMeetingKbSearchSources = document.getElementById('oaoMeetingKbSearchSources');
             let meetingInterimLine = '';
             let meetingState = 'idle';
             let meetingTimerInterval = null;
@@ -10362,8 +11329,15 @@
             let meetingRecognitionRetries = 0;
             const MEETING_MAX_RECO_RETRIES = 12;
             let meetingCurrentPhrase = '';
+            let meetingCurrentPhraseStartMs = 0;
+            let meetingRecordedDurationMs = 0;
             let meetingSilenceTimer = null;
-            const MEETING_SENTENCE_BREAK_MS = 1100;
+            let meetingRawAudioStream = null;
+            let meetingMicProcessCtx = null;
+            let meetingMicSourceNode = null;
+            let meetingMicGainNode = null;
+            const MEETING_STT_SENSITIVITY_STORAGE = 'oao-meeting-stt-sensitivity';
+            const oaoMeetingSttSensitivity = document.getElementById('oaoMeetingSttSensitivity');
             let meetingSessionId = 0;
             let meetingSessionTranscriptSnapshot = '';
             let meetingSessionStartLabel = '';
@@ -10372,9 +11346,12 @@
             let meetingRealtimeMinutesActiveRunId = 0;
             const MEETING_REALTIME_MINUTES_DEBOUNCE_MS = 6000;
             const MEETING_REALTIME_MINUTES_MIN_CHARS = 12;
+            const MEETING_UPLOAD_MAX_BYTES = 100 * 1024 * 1024;
+            const MEETING_UPLOAD_TRANSCRIBE_TIMEOUT_MS = 180000;
+            let meetingUploadInProgress = false;
             const MEETING_RECO_SESSION_REFRESH_MS = 55000;
-            const MEETING_RECO_STALE_MS = 4500;
-            const MEETING_RECO_HEARTBEAT_MS = 1800;
+            let meetingRecoStaleMs = 7200;
+            const MEETING_RECO_HEARTBEAT_MS = 1200;
             const MEETING_RECO_RESUME_DELAY_MS = 80;
             const MEETING_TRANSCRIPT_RENDER_DEBOUNCE_MS = 40;
             const MEETING_MINUTES_PROMPT_MAX_CHARS = 16000;
@@ -10388,6 +11365,269 @@
             let meetingTranscriptRenderTimer = null;
             let meetingTranscriptRenderedCount = 0;
             let meetingTranscriptInterimEl = null;
+            const oaoMeetingSpeakerList = document.getElementById('oaoMeetingSpeakerList');
+            const oaoMeetingSpeakerDiarization = document.getElementById('oaoMeetingSpeakerDiarization');
+            let meetingInterimCommitMs = 1800;
+            let meetingSpeakerDiarizer = null;
+
+            function getMeetingSttSensitivityLevel() {
+                const fromUi = parseInt(oaoMeetingSttSensitivity?.value, 10);
+                if (fromUi >= 1 && fromUi <= 4) return fromUi;
+                try {
+                    const saved = parseInt(localStorage.getItem(MEETING_STT_SENSITIVITY_STORAGE), 10);
+                    if (saved >= 1 && saved <= 4) return saved;
+                } catch (_) {}
+                return 3;
+            }
+
+            function getMeetingSttSensitivityPreset(level) {
+                level = level || getMeetingSttSensitivityLevel();
+                const presets = {
+                    1: {
+                        sentenceBreakMs: 950,
+                        interimCommitMs: 2600,
+                        recoStaleMs: 7500,
+                        micGain: 1.0,
+                        vadRms: 0.014,
+                        matchDistance: 0.38,
+                        minSpeechMs: 220,
+                        minSegmentSamples: 3200,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        maxAlternatives: 8
+                    },
+                    2: {
+                        sentenceBreakMs: 800,
+                        interimCommitMs: 2200,
+                        recoStaleMs: 6800,
+                        micGain: 1.35,
+                        vadRms: 0.010,
+                        matchDistance: 0.42,
+                        minSpeechMs: 180,
+                        minSegmentSamples: 2800,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        maxAlternatives: 10
+                    },
+                    3: {
+                        sentenceBreakMs: 650,
+                        interimCommitMs: 1800,
+                        recoStaleMs: 7200,
+                        micGain: 1.85,
+                        vadRms: 0.0065,
+                        matchDistance: 0.50,
+                        minSpeechMs: 120,
+                        minSegmentSamples: 2200,
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        maxAlternatives: 12
+                    },
+                    4: {
+                        sentenceBreakMs: 520,
+                        interimCommitMs: 1300,
+                        recoStaleMs: 8200,
+                        micGain: 2.5,
+                        vadRms: 0.0035,
+                        matchDistance: 0.58,
+                        minSpeechMs: 90,
+                        minSegmentSamples: 1800,
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        maxAlternatives: 12
+                    }
+                };
+                return presets[level] || presets[3];
+            }
+
+            function getMeetingSentenceBreakMs() {
+                return getMeetingSttSensitivityPreset().sentenceBreakMs;
+            }
+
+            function getMeetingAudioConstraints() {
+                const preset = getMeetingSttSensitivityPreset();
+                return {
+                    audio: {
+                        echoCancellation: preset.echoCancellation,
+                        noiseSuppression: preset.noiseSuppression,
+                        autoGainControl: true,
+                        channelCount: 1
+                    }
+                };
+            }
+
+            function applyMeetingSttSensitivity(options) {
+                options = options || {};
+                const level = getMeetingSttSensitivityLevel();
+                const preset = getMeetingSttSensitivityPreset(level);
+                meetingInterimCommitMs = preset.interimCommitMs;
+                meetingRecoStaleMs = preset.recoStaleMs;
+                if (meetingMicGainNode) {
+                    meetingMicGainNode.gain.value = preset.micGain;
+                }
+                meetingSpeakerDiarizer?.setSensitivity({
+                    vadRms: preset.vadRms,
+                    matchDistance: preset.matchDistance,
+                    minSpeechMs: preset.minSpeechMs,
+                    minSegmentSamples: preset.minSegmentSamples
+                });
+                if (options.toast && level >= 3) {
+                    const msg = meetingState === 'recording'
+                        ? (currentLang === 'zh'
+                            ? '灵敏度已更新：音量增强立即生效；降噪设置需停止后重新开始录音'
+                            : 'Sensitivity updated: gain applies now; noise settings need restart recording')
+                        : (currentLang === 'zh'
+                            ? '已启用高灵敏度：关闭降噪/回声消除，便于识别旁边的人声'
+                            : 'High sensitivity: noise suppression off for nearby speakers');
+                    showConnectionToast(msg, 'info');
+                }
+            }
+
+            function initMeetingSttSensitivitySettings() {
+                try {
+                    const saved = localStorage.getItem(MEETING_STT_SENSITIVITY_STORAGE);
+                    if (saved && oaoMeetingSttSensitivity) {
+                        oaoMeetingSttSensitivity.value = saved;
+                    }
+                } catch (_) {}
+                applyMeetingSttSensitivity();
+            }
+
+            async function buildMeetingProcessedAudioStream(rawStream) {
+                teardownMeetingMicProcessing();
+                if (!rawStream?.getAudioTracks?.().length) return rawStream;
+                const preset = getMeetingSttSensitivityPreset();
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return rawStream;
+                    meetingMicProcessCtx = new AudioCtx();
+                    meetingMicSourceNode = meetingMicProcessCtx.createMediaStreamSource(rawStream);
+                    meetingMicGainNode = meetingMicProcessCtx.createGain();
+                    meetingMicGainNode.gain.value = preset.micGain;
+                    const dest = meetingMicProcessCtx.createMediaStreamDestination();
+                    meetingMicSourceNode.connect(meetingMicGainNode);
+                    meetingMicGainNode.connect(dest);
+                    if (meetingMicProcessCtx.state === 'suspended') {
+                        await meetingMicProcessCtx.resume();
+                    }
+                    return dest.stream;
+                } catch (error) {
+                    console.warn('[OAO Meeting] Mic gain pipeline failed:', error);
+                    teardownMeetingMicProcessing();
+                    return rawStream;
+                }
+            }
+
+            function teardownMeetingMicProcessing() {
+                try { meetingMicSourceNode?.disconnect(); } catch (_) {}
+                try { meetingMicGainNode?.disconnect(); } catch (_) {}
+                meetingMicSourceNode = null;
+                meetingMicGainNode = null;
+                if (meetingMicProcessCtx) {
+                    meetingMicProcessCtx.close().catch(() => {});
+                    meetingMicProcessCtx = null;
+                }
+            }
+
+            function stopMeetingAudioTracks() {
+                [meetingAudioStream, meetingRawAudioStream].forEach((stream) => {
+                    stream?.getTracks?.().forEach((track) => {
+                        try { track.stop(); } catch (_) {}
+                    });
+                });
+                meetingAudioStream = null;
+                meetingRawAudioStream = null;
+            }
+
+            async function acquireMeetingAudioStream() {
+                const constraints = getMeetingAudioConstraints();
+                if (meetingVideoEnabled) {
+                    await ensureMeetingVideoLocalMedia();
+                    await rebuildMixedMeetingAudioStream();
+                    if (!meetingAudioStream && meetingVideoLocalStream) {
+                        meetingRawAudioStream = new MediaStream(meetingVideoLocalStream.getAudioTracks());
+                    } else {
+                        meetingRawAudioStream = meetingAudioStream;
+                    }
+                } else {
+                    meetingRawAudioStream = await navigator.mediaDevices.getUserMedia(constraints);
+                }
+                meetingAudioStream = await buildMeetingProcessedAudioStream(meetingRawAudioStream);
+                return meetingAudioStream;
+            }
+
+            function initMeetingSpeakerDiarization() {
+                if (!window.OAOMeetingSpeakers) return;
+                if (!meetingSpeakerDiarizer) {
+                    meetingSpeakerDiarizer = new window.OAOMeetingSpeakers({
+                        onChange: () => renderMeetingSpeakerPanel()
+                    });
+                }
+                meetingSpeakerDiarizer.setLanguage(currentLang);
+                try {
+                    const saved = localStorage.getItem('oao-meeting-speaker-diarization');
+                    if (saved === 'off' && oaoMeetingSpeakerDiarization) {
+                        oaoMeetingSpeakerDiarization.checked = false;
+                    }
+                } catch (_) {}
+                if (oaoMeetingSpeakerDiarization) {
+                    meetingSpeakerDiarizer.setEnabled(oaoMeetingSpeakerDiarization.checked);
+                }
+                if (oaoMeetingSpeakerList) {
+                    meetingSpeakerDiarizer.bindPanel(oaoMeetingSpeakerList);
+                }
+                applyMeetingSttSensitivity();
+                renderMeetingSpeakerPanel();
+            }
+
+            function renderMeetingSpeakerPanel() {
+                if (!meetingSpeakerDiarizer || !oaoMeetingSpeakerList) return;
+                const isZh = currentLang === 'zh';
+                oaoMeetingSpeakerList.__oaoLabels = {
+                    lang: currentLang,
+                    emptyHint: isZh
+                        ? '开始录音后，系统将按声纹自动区分发言人 A/B/C…'
+                        : 'Start recording to auto-detect Speaker A/B/C by voice…',
+                    disabledHint: isZh
+                        ? '已关闭多人声纹识别'
+                        : 'Multi-speaker voice ID is off',
+                    selectHint: isZh ? '指定当前发言人' : 'Set active speaker'
+                };
+                meetingSpeakerDiarizer.renderPanel(oaoMeetingSpeakerList, oaoMeetingSpeakerList.__oaoLabels);
+            }
+
+            function getMeetingSpeakerColorByLabel(label) {
+                if (!meetingSpeakerDiarizer || !label) return '';
+                for (const sp of meetingSpeakerDiarizer.speakers.values()) {
+                    if (meetingSpeakerDiarizer.getDisplayName(sp.id) === label) {
+                        return sp.color;
+                    }
+                }
+                return '';
+            }
+
+            function resolveMeetingTranscriptSpeaker(commitAudio = true) {
+                if (meetingVideoUseSpeakerLabels) {
+                    return getMeetingCurrentSpeakerName();
+                }
+                if (meetingSpeakerDiarizer?.enabledSetting) {
+                    const name = commitAudio
+                        ? meetingSpeakerDiarizer.commitSpeaker()
+                        : meetingSpeakerDiarizer.getActiveDisplayName();
+                    if (name) return name;
+                    return currentLang === 'zh' ? '发言人A' : 'Speaker A';
+                }
+                if (getMeetingNameVocabulary().length > 0) {
+                    return getMeetingCurrentSpeakerName();
+                }
+                return '';
+            }
+
+            function formatMeetingPendingTranscriptLine(text) {
+                const body = (text || '').trim();
+                if (!body) return '';
+                if (!getMeetingSpeakerLabelEnabled()) return body;
+                return formatMeetingTranscriptEntry(resolveMeetingTranscriptSpeaker(false), body);
+            }
 
             const oaoMeetingSttMode = document.getElementById('oaoMeetingSttMode');
             const oaoMeetingSttStatus = document.getElementById('oaoMeetingSttStatus');
@@ -10788,6 +12028,7 @@
 
             function getMeetingSpeakerLabelEnabled() {
                 if (meetingVideoUseSpeakerLabels) return true;
+                if (meetingSpeakerDiarizer?.enabledSetting) return true;
                 return getMeetingNameVocabulary().length > 0;
             }
 
@@ -10869,14 +12110,22 @@
             function pushMeetingTranscriptLine(rawText, speaker) {
                 const corrected = correctMeetingTranscriptNames(formatSentenceEnd((rawText || '').trim()));
                 if (!corrected) return '';
-                const entry = formatMeetingTranscriptEntry(
-                    getMeetingSpeakerLabelEnabled() ? resolveMeetingParticipantName(speaker || getMeetingCurrentSpeakerName()) : '',
+                const resolvedSpeaker = speaker || resolveMeetingTranscriptSpeaker(true);
+                const formatted = formatMeetingTranscriptEntry(
+                    getMeetingSpeakerLabelEnabled() ? resolveMeetingParticipantName(resolvedSpeaker) : '',
                     corrected
                 );
-                if (!entry) return '';
-                const last = meetingTranscriptLines[meetingTranscriptLines.length - 1];
-                if (last !== entry) meetingTranscriptLines.push(entry);
-                return entry;
+                if (!formatted) return '';
+                const startMs = meetingCurrentPhraseStartMs > 0
+                    ? meetingCurrentPhraseStartMs
+                    : Math.max(0, getMeetingElapsedMs() - 1500);
+                const entry = createMeetingTranscriptEntry(formatted, 'live', startMs);
+                meetingCurrentPhraseStartMs = 0;
+                if (meetingTranscriptEntries.length && meetingTranscriptEntries[meetingTranscriptEntries.length - 1].text === entry.text) {
+                    return '';
+                }
+                pushMeetingTranscriptEntry(entry);
+                return entry.text;
             }
 
             function updateMeetingVideoUI() {
@@ -11346,13 +12595,353 @@
 
             window.updateMeetingVideoUI = updateMeetingVideoUI;
 
+            function formatMeetingTimestamp(ms) {
+                const totalSec = Math.max(0, Math.floor((Number(ms) || 0) / 1000));
+                const h = Math.floor(totalSec / 3600);
+                const m = Math.floor((totalSec % 3600) / 60);
+                const s = totalSec % 60;
+                if (h > 0) {
+                    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                }
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+
+            function parseMeetingTranscriptEntryText(formatted) {
+                const raw = String(formatted || '').trim();
+                const speakerMatch = raw.match(/^\[([^\]]+)\]\s*([\s\S]*)$/);
+                if (speakerMatch) {
+                    return {
+                        speaker: speakerMatch[1],
+                        body: speakerMatch[2] || '',
+                        text: raw,
+                    };
+                }
+                return { speaker: '', body: raw, text: raw };
+            }
+
+            function createMeetingTranscriptEntry(formatted, source, startMs) {
+                const parsed = parseMeetingTranscriptEntryText(formatted);
+                return {
+                    id: `t-${meetingSessionId}-${meetingTranscriptEntries.length}-${Date.now()}`,
+                    text: parsed.text,
+                    body: parsed.body,
+                    speaker: parsed.speaker,
+                    startMs: Math.max(0, Math.floor(startMs ?? getMeetingElapsedMs() ?? 0)),
+                    endMs: null,
+                    source: source || 'live',
+                };
+            }
+
+            function pushMeetingTranscriptEntry(entry) {
+                if (!entry?.text) return '';
+                const last = meetingTranscriptEntries[meetingTranscriptEntries.length - 1];
+                if (last?.text === entry.text) return entry.text;
+
+                const lastBody = last?.body || (last ? stripMeetingTranscriptSpeakerPrefix(last.text) : '');
+                const newBody = entry.body || stripMeetingTranscriptSpeakerPrefix(entry.text);
+                const sameSpeaker = !last || !entry.speaker || !last.speaker || entry.speaker === last.speaker;
+
+                if (last && sameSpeaker && isTranscriptPrefixExtension(lastBody, newBody)) {
+                    last.text = entry.text;
+                    last.body = newBody;
+                    last.speaker = entry.speaker || last.speaker;
+                    last.endMs = null;
+                    meetingTranscriptLines[meetingTranscriptLines.length - 1] = entry.text;
+                    return entry.text;
+                }
+                if (last && sameSpeaker && isTranscriptPrefixExtension(newBody, lastBody)) {
+                    return last.text;
+                }
+
+                if (last && last.endMs == null) last.endMs = entry.startMs;
+                meetingTranscriptEntries.push(entry);
+                meetingTranscriptLines.push(entry.text);
+                return entry.text;
+            }
+
+            function finalizeMeetingTranscriptEndMs() {
+                const durationMs = getMeetingTranscriptEndMs();
+                meetingTranscriptEntries.forEach((entry, index) => {
+                    if (entry.endMs != null) return;
+                    const next = meetingTranscriptEntries[index + 1];
+                    entry.endMs = next ? next.startMs : durationMs;
+                });
+            }
+
+            function getMeetingTranscriptEndMs() {
+                if (meetingRecordedDurationMs > 0) return meetingRecordedDurationMs;
+                return getMeetingElapsedMs() || 0;
+            }
+
+            function getMeetingTranscriptExportPlain({ withTimestamps = true } = {}) {
+                if (meetingSessionTranscriptSnapshot && !meetingTranscriptEntries.length) {
+                    return meetingSessionTranscriptSnapshot;
+                }
+                finalizeMeetingTranscriptEndMs();
+                if (meetingTranscriptEntries.length) {
+                    return meetingTranscriptEntries.map((entry) => {
+                        const ts = withTimestamps ? `[${formatMeetingTimestamp(entry.startMs)}] ` : '';
+                        return `${ts}${entry.text}`;
+                    }).join('\n').trim();
+                }
+                return meetingTranscriptLines.join('\n').trim();
+            }
+
+            function getMeetingArchiveSessionId() {
+                return `oao-${meetingSessionId}-${meetingStartTs || Date.now()}`;
+            }
+
+            function teardownMeetingPlayback() {
+                if (meetingPlaybackHighlightTimer) {
+                    clearInterval(meetingPlaybackHighlightTimer);
+                    meetingPlaybackHighlightTimer = null;
+                }
+                if (meetingPlaybackObjectUrl) {
+                    URL.revokeObjectURL(meetingPlaybackObjectUrl);
+                    meetingPlaybackObjectUrl = null;
+                }
+                if (oaoMeetingPlayback) {
+                    try { oaoMeetingPlayback.pause(); } catch (_) {}
+                    oaoMeetingPlayback.removeAttribute('src');
+                    oaoMeetingPlayback.load();
+                }
+                oaoMeetingPlaybackBar?.classList.add('hidden');
+                oaoMeetingPlaybackHint?.classList.add('hidden');
+                oaoMeetingWavePlayback?.classList.remove('is-playback-ready');
+                meetingActiveTranscriptIndex = -1;
+                oaoMeetingTranscript?.querySelectorAll('.oao-meeting-transcript-line.is-active')
+                    .forEach((el) => el.classList.remove('is-active'));
+            }
+
+            async function refreshMeetingPlaybackPanel() {
+                if (!oaoMeetingPlaybackBar || !oaoMeetingPlayback) return;
+                if (meetingState === 'recording' || meetingState === 'paused') {
+                    oaoMeetingPlaybackBar.classList.add('hidden');
+                    oaoMeetingPlaybackHint?.classList.add('hidden');
+                    oaoMeetingWavePlayback?.classList.remove('is-playback-ready');
+                    return;
+                }
+                const source = getMeetingSourceAudioBlob();
+                if (!source) {
+                    oaoMeetingPlaybackBar.classList.add('hidden');
+                    oaoMeetingPlaybackHint?.classList.add('hidden');
+                    oaoMeetingWavePlayback?.classList.remove('is-playback-ready');
+                    return;
+                }
+                try {
+                    teardownMeetingPlayback();
+                    const blob = await getMeetingAudioBlobByFormat('webm').catch(() => source);
+                    if (!blob) {
+                        oaoMeetingPlaybackBar.classList.add('hidden');
+                        oaoMeetingPlaybackHint?.classList.add('hidden');
+                        oaoMeetingWavePlayback?.classList.remove('is-playback-ready');
+                        return;
+                    }
+                    meetingPlaybackObjectUrl = URL.createObjectURL(blob);
+                    oaoMeetingPlayback.src = meetingPlaybackObjectUrl;
+                    if (oaoMeetingPlaybackHint) {
+                        oaoMeetingPlaybackHint.textContent = meetingT('playbackHint');
+                        oaoMeetingPlaybackHint.classList.remove('hidden');
+                    }
+                    oaoMeetingPlaybackBar.classList.remove('hidden');
+                    oaoMeetingWavePlayback?.classList.add('is-playback-ready');
+                } catch (error) {
+                    console.warn('[OAO Meeting] Playback init failed:', error);
+                    oaoMeetingPlaybackBar.classList.add('hidden');
+                    oaoMeetingPlaybackHint?.classList.add('hidden');
+                    oaoMeetingWavePlayback?.classList.remove('is-playback-ready');
+                }
+            }
+
+            function highlightMeetingTranscriptAtMs(ms) {
+                if (!meetingTranscriptEntries.length || !oaoMeetingTranscript) return;
+                let index = meetingTranscriptEntries.length - 1;
+                for (let i = 0; i < meetingTranscriptEntries.length; i += 1) {
+                    const entry = meetingTranscriptEntries[i];
+                    const end = entry.endMs != null
+                        ? entry.endMs
+                        : (meetingTranscriptEntries[i + 1]?.startMs ?? getMeetingTranscriptEndMs());
+                    if (ms >= entry.startMs && ms < end) {
+                        index = i;
+                        break;
+                    }
+                }
+                if (index === meetingActiveTranscriptIndex) return;
+                meetingActiveTranscriptIndex = index;
+                oaoMeetingTranscript.querySelectorAll('.oao-meeting-transcript-line.is-active')
+                    .forEach((el) => el.classList.remove('is-active'));
+                const line = oaoMeetingTranscript.querySelector(`[data-entry-index="${index}"]`);
+                if (line) {
+                    line.classList.add('is-active');
+                    line.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+            }
+
+            function seekMeetingTranscriptToMs(ms) {
+                if (!oaoMeetingPlayback) return;
+                const maxMs = getMeetingTranscriptEndMs();
+                let targetMs = Math.max(0, Number(ms) || 0);
+                if (maxMs > 0) targetMs = Math.min(targetMs, maxMs);
+                oaoMeetingPlayback.currentTime = targetMs / 1000;
+                void oaoMeetingPlayback.play().catch(() => {});
+                highlightMeetingTranscriptAtMs(targetMs);
+            }
+
+            function startMeetingPlaybackHighlightLoop() {
+                if (meetingPlaybackHighlightTimer || !oaoMeetingPlayback) return;
+                meetingPlaybackHighlightTimer = setInterval(() => {
+                    if (!oaoMeetingPlayback || oaoMeetingPlayback.paused) return;
+                    highlightMeetingTranscriptAtMs(oaoMeetingPlayback.currentTime * 1000);
+                }, 220);
+            }
+
+            function updateMeetingArchiveKbButton() {
+                if (!oaoMeetingArchiveKbBtn) return;
+                const archived = meetingKbArchivedId && meetingKbArchivedId === getMeetingArchiveSessionId();
+                const hasMinutes = !!(meetingMinutesContentPlain || meetingMinutesPlainText);
+                oaoMeetingArchiveKbBtn.disabled = meetingArchiveInProgress || !hasMinutes || archived;
+                oaoMeetingArchiveKbBtn.textContent = archived
+                    ? meetingT('archiveKbDone')
+                    : meetingT('archiveKb');
+                oaoMeetingArchiveKbBtn.classList.toggle('is-archived', archived);
+            }
+
+            function formatMeetingKbSearchAnswer(text) {
+                const raw = String(text || '').trim();
+                if (!raw) {
+                    return `<span class="oao-meeting-transcript-empty">${escapeHtml(meetingT('kbSearchEmpty'))}</span>`;
+                }
+                return escapeHtml(raw).replace(/\n/g, '<br>');
+            }
+
+            function syncMeetingTranscriptEntriesFromLines() {
+                if (meetingTranscriptEntries.length || !meetingTranscriptLines.length) return;
+                const durationMs = getMeetingElapsedMs() || 0;
+                meetingTranscriptLines.forEach((line, index) => {
+                    const startMs = meetingTranscriptLines.length > 1
+                        ? Math.floor((index / meetingTranscriptLines.length) * durationMs)
+                        : 0;
+                    pushMeetingTranscriptEntry(createMeetingTranscriptEntry(line, 'legacy', startMs));
+                });
+            }
+
+            async function archiveMeetingToKnowledgeBase({ silent = false } = {}) {
+                if (meetingArchiveInProgress) return false;
+                if (!window.OAOMeetingKB) {
+                    if (!silent) showConnectionToast(meetingT('archiveKbUnavailable'), 'error');
+                    return false;
+                }
+                const health = await checkAnythingLLMHealth(true);
+                if (!health.ok || !LLM_CONFIG.apiKey) {
+                    if (!silent) showConnectionToast(getAnythingLLMSetupHint(health), 'error');
+                    return false;
+                }
+                const transcript = getMeetingTranscriptPlain();
+                const structured = meetingMinutesStructuredCache
+                    || window.OAOMeetingMinutesAI?.parseStructuredMinutes?.(
+                        meetingMinutesContentPlain || meetingMinutesPlainText,
+                        transcript,
+                        currentLang === 'en' ? 'en' : 'zh'
+                    );
+                if (!structured?.summary && !meetingMinutesContentPlain) {
+                    if (!silent) showConnectionToast(meetingT('needTranscript'), 'error');
+                    return false;
+                }
+                if (!silent) {
+                    const ok = window.confirm(meetingT('archiveKbConfirm'));
+                    if (!ok) return false;
+                }
+                meetingArchiveInProgress = true;
+                updateMeetingArchiveKbButton();
+                const meta = meetingMinutesMetaCache || getMeetingMinutesMeta(
+                    transcript,
+                    formatMeetingDuration(getMeetingElapsedMs() || 0),
+                    { startLabel: meetingSessionStartLabel || meetingT('stopped') }
+                );
+                const meetingId = getMeetingArchiveSessionId();
+                finalizeMeetingTranscriptEndMs();
+                const markdown = window.OAOMeetingKB.buildMeetingArchiveMarkdown({
+                    meta,
+                    structured,
+                    entries: meetingTranscriptEntries,
+                    sessionMeta: { startLabel: meetingSessionStartLabel || meta.time || '' },
+                    meetingId,
+                    wallet: typeof getOAOUserId === 'function' ? getOAOUserId() : '',
+                    durationSec: Math.floor((getMeetingElapsedMs() || 0) / 1000),
+                    lang: currentLang === 'en' ? 'en' : 'zh',
+                });
+                const docTitle = window.OAOMeetingKB.buildArchiveFilename(meta, meetingId);
+                const walletTag = typeof getOAOUserId === 'function' ? getOAOUserId() : '';
+                try {
+                    const uploaded = await uploadTextToLLM(docTitle, markdown, walletTag);
+                    if (!uploaded.success) {
+                        throw new Error(uploaded.error || 'upload failed');
+                    }
+                    meetingKbArchivedId = meetingId;
+                    updateMeetingArchiveKbButton();
+                    if (!silent) showConnectionToast(meetingT('archiveKbSuccess'), 'success');
+                    if (window.isOAOAuthenticated?.()) {
+                        void window.OAOPlatform?.saveMeetingRecord?.({
+                            title: meta.title || meetingT('minutesUntitled'),
+                            summary: (meetingMinutesPlainText || meetingMinutesContentPlain || structured.summary || '').slice(0, 8000),
+                            durationSec: Math.floor((getMeetingElapsedMs() || 0) / 1000),
+                            source: 'kb-archive',
+                            kbArchived: true,
+                            kbDocTitle: docTitle,
+                            meetingId,
+                        });
+                    }
+                    return true;
+                } catch (error) {
+                    console.error('[OAO Meeting] KB archive failed:', error);
+                    if (!silent) {
+                        showConnectionToast(`${meetingT('archiveKbFail')}${error?.message ? `：${error.message}` : ''}`, 'error');
+                    }
+                    return false;
+                } finally {
+                    meetingArchiveInProgress = false;
+                    updateMeetingArchiveKbButton();
+                }
+            }
+
+            async function queryPastMeetingsFromKb(question) {
+                const q = String(question || '').trim();
+                if (!q) return null;
+                const health = await checkAnythingLLMHealth(true);
+                if (!health.ok || !LLM_CONFIG.apiKey) {
+                    showConnectionToast(getAnythingLLMSetupHint(health), 'error');
+                    return null;
+                }
+                const lang = currentLang === 'en' ? 'en' : 'zh';
+                const prompt = window.OAOMeetingKB.buildPastMeetingsQueryPrompt(q, lang);
+                const llmResult = await callLLMAPI(prompt, {
+                    mode: 'query',
+                    temperature: 0.1,
+                    max_tokens: 4096,
+                    timeout: Math.max(LLM_CONFIG.timeout, 90000),
+                });
+                return window.OAOMeetingKB.formatSearchResult({
+                    answer: llmResult.answer,
+                    sources: llmResult.sources,
+                }, lang);
+            }
+
+            function formatMeetingTranscriptEntryHtml(entry) {
+                if (typeof entry === 'string') return formatMeetingTranscriptLineHtml(entry);
+                const ts = formatMeetingTimestamp(entry.startMs);
+                const bodyHtml = formatMeetingTranscriptLineHtml(entry.text);
+                return `<span class="oao-meeting-transcript-ts" aria-hidden="true">[${ts}]</span> ${bodyHtml}`;
+            }
+
             function formatMeetingTranscriptLineHtml(text) {
                 const raw = (text || '').trim();
                 if (!raw) return '';
                 const speakerMatch = raw.match(/^\[([^\]]+)\]\s*(.*)$/);
                 if (speakerMatch) {
                     const body = escapeHtml(speakerMatch[2] || '');
-                    return `<span class="speaker-tag">[${escapeHtml(speakerMatch[1])}]</span> ${body}`;
+                    const color = getMeetingSpeakerColorByLabel(speakerMatch[1]);
+                    const style = color ? ` style="color:${color}"` : '';
+                    return `<span class="speaker-tag"${style}>[${escapeHtml(speakerMatch[1])}]</span> ${body}`;
                 }
                 return escapeHtml(raw);
             }
@@ -11376,14 +12965,109 @@
                 return (text || '').replace(/^\[[^\]]+\]\s*/, '').trim();
             }
 
+            function normalizeTranscriptComparable(text) {
+                return stripMeetingTranscriptSpeakerPrefix(text)
+                    .replace(/[，,。！？\.!?；;：:\s]/gu, '')
+                    .toLowerCase();
+            }
+
+            function isTranscriptPrefixExtension(shorter, longer) {
+                const a = normalizeTranscriptComparable(shorter);
+                const b = normalizeTranscriptComparable(longer);
+                if (!a || !b) return false;
+                if (a === b) return false;
+                return b.startsWith(a) && b.length > a.length;
+            }
+
+            function mergeSpeechTranscriptFragment(base, incoming) {
+                const a = (base || '').trim();
+                const b = (incoming || '').trim();
+                if (!a) return b;
+                if (!b) return a;
+                if (a === b) return a;
+                const normA = normalizeTranscriptComparable(a);
+                const normB = normalizeTranscriptComparable(b);
+                if (normB.startsWith(normA) || b.startsWith(a.replace(/[。！？\.!?]\s*$/u, ''))) return b;
+                if (normA.startsWith(normB) || a.startsWith(b)) return a;
+                const baseTrim = a.replace(/[。！？\.!?]\s*$/u, '').trimEnd();
+                return joinPhraseParts([baseTrim, b]);
+            }
+
+            async function calibrateMeetingTranscriptTimestamps() {
+                if (!meetingTranscriptEntries.length) return;
+                const blob = getMeetingSourceAudioBlob();
+                if (!blob) return;
+
+                let audioDurationMs = 0;
+                try {
+                    const arrayBuffer = await blob.arrayBuffer();
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        const ctx = new AudioCtx();
+                        try {
+                            const buffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+                            audioDurationMs = Math.floor((buffer.duration || 0) * 1000);
+                        } finally {
+                            await ctx.close().catch(() => {});
+                        }
+                    }
+                } catch (_) {}
+
+                if (!audioDurationMs) {
+                    audioDurationMs = await new Promise((resolve) => {
+                        const url = URL.createObjectURL(blob);
+                        const audio = new Audio();
+                        audio.preload = 'metadata';
+                        audio.onloadedmetadata = () => {
+                            URL.revokeObjectURL(url);
+                            resolve(Math.max(0, Math.floor((audio.duration || 0) * 1000)));
+                        };
+                        audio.onerror = () => {
+                            URL.revokeObjectURL(url);
+                            resolve(getMeetingElapsedMs());
+                        };
+                        audio.src = url;
+                    });
+                }
+
+                if (!audioDurationMs) return;
+                meetingRecordedDurationMs = audioDurationMs;
+
+                const totalWeight = meetingTranscriptEntries.reduce((sum, entry) => {
+                    const body = entry.body || stripMeetingTranscriptSpeakerPrefix(entry.text);
+                    return sum + Math.max(body.length, 4);
+                }, 0) || meetingTranscriptEntries.length;
+
+                let cursor = 0;
+                meetingTranscriptEntries.forEach((entry, index) => {
+                    const body = entry.body || stripMeetingTranscriptSpeakerPrefix(entry.text);
+                    const weight = Math.max(body.length, 4);
+                    entry.startMs = Math.floor((cursor / totalWeight) * audioDurationMs);
+                    cursor += weight;
+                    entry.endMs = index === meetingTranscriptEntries.length - 1
+                        ? audioDurationMs
+                        : Math.floor((cursor / totalWeight) * audioDurationMs);
+                });
+
+                if (meetingState === 'stopped') {
+                    renderMeetingTranscript(true);
+                }
+            }
+
             function appendMeetingTranscriptEntry(speaker, text, { fromRemote = false } = {}) {
                 const canonicalSpeaker = resolveMeetingParticipantName(speaker);
                 const body = fromRemote ? stripMeetingTranscriptSpeakerPrefix(text) : text;
                 const formatted = formatMeetingTranscriptEntry(canonicalSpeaker, body);
                 if (!formatted) return;
-                const last = meetingTranscriptLines[meetingTranscriptLines.length - 1];
-                if (last === formatted) return;
-                meetingTranscriptLines.push(formatted);
+                const entry = createMeetingTranscriptEntry(
+                    formatted,
+                    fromRemote ? 'remote' : 'live',
+                    getMeetingElapsedMs()
+                );
+                if (meetingTranscriptEntries.length && meetingTranscriptEntries[meetingTranscriptEntries.length - 1].text === entry.text) {
+                    return;
+                }
+                pushMeetingTranscriptEntry(entry);
                 renderMeetingTranscript();
                 scheduleRealtimeMeetingMinutesUpdate();
                 if (!fromRemote && meetingVideoWs && meetingVideoWs.readyState === WebSocket.OPEN) {
@@ -11409,7 +13093,7 @@
             async function ensureMeetingVideoLocalMedia() {
                 if (meetingVideoLocalStream) return meetingVideoLocalStream;
                 meetingVideoLocalStream = await navigator.mediaDevices.getUserMedia({
-                    audio: true,
+                    audio: getMeetingAudioConstraints().audio,
                     video: { width: { ideal: 640 }, height: { ideal: 360 }, facingMode: 'user' }
                 });
                 meetingVideoLocalStream.getVideoTracks().forEach((track) => {
@@ -11794,10 +13478,10 @@
                     const text = pickBestSpeechTranscript(results[i]);
                     if (!text) continue;
                     if (results[i].isFinal) {
-                        const base = meetingCurrentPhrase.replace(/[。！？\.!?]\s*$/u, '').trimEnd();
-                        meetingCurrentPhrase = base
-                            ? joinPhraseParts([base, text])
-                            : text;
+                        if (!meetingCurrentPhrase.trim()) {
+                            meetingCurrentPhraseStartMs = Math.max(0, getMeetingElapsedMs() - 1200);
+                        }
+                        meetingCurrentPhrase = mergeSpeechTranscriptFragment(meetingCurrentPhrase, text);
                     } else {
                         interim = text;
                     }
@@ -11806,10 +13490,11 @@
             }
 
             function finalizeMeetingSentencePause() {
+                clearMeetingInterimCommitTimer();
                 const phrase = meetingCurrentPhrase.trim();
                 if (!phrase) return;
                 if (shouldBrowserCommitTranscriptLines()) {
-                    const speaker = getMeetingCurrentSpeakerName();
+                    const speaker = resolveMeetingTranscriptSpeaker(true);
                     const entry = pushMeetingTranscriptLine(phrase, speaker);
                     if (entry && meetingVideoWs && meetingVideoWs.readyState === WebSocket.OPEN) {
                         try {
@@ -11825,6 +13510,7 @@
                 }
                 meetingCurrentPhrase = '';
                 meetingInterimLine = '';
+                meetingCurrentPhraseStartMs = 0;
                 renderMeetingTranscript(true);
                 scheduleRealtimeMeetingMinutesUpdate();
             }
@@ -11832,36 +13518,44 @@
             function scheduleMeetingSentenceBreak() {
                 clearMeetingSilenceTimer();
                 if (meetingState !== 'recording') return;
-                meetingSilenceTimer = setTimeout(finalizeMeetingSentencePause, MEETING_SENTENCE_BREAK_MS);
+                meetingSilenceTimer = setTimeout(finalizeMeetingSentencePause, getMeetingSentenceBreakMs());
             }
 
             function getMeetingPendingDisplayText() {
                 const parts = [meetingCurrentPhrase.trim(), meetingInterimLine.trim()].filter(Boolean);
                 if (!parts.length) return '';
-                const merged = parts.length === 1 ? parts[0] : joinPhraseParts(parts);
+                const merged = parts.length === 1
+                    ? parts[0]
+                    : mergeSpeechTranscriptFragment(parts[0], parts[1]);
                 return correctMeetingTranscriptNames(merged);
             }
 
             function finalizeMeetingSessionTranscript() {
                 clearMeetingSilenceTimer();
-                const speaker = getMeetingCurrentSpeakerName();
+                clearMeetingInterimCommitTimer();
+                const speaker = resolveMeetingTranscriptSpeaker(true);
+                if (meetingInterimLine.trim() && meetingCurrentPhrase.trim()) {
+                    meetingCurrentPhrase = mergeSpeechTranscriptFragment(meetingCurrentPhrase, meetingInterimLine);
+                    meetingInterimLine = '';
+                } else if (meetingInterimLine.trim()) {
+                    meetingCurrentPhrase = meetingInterimLine;
+                    meetingInterimLine = '';
+                }
                 if (meetingCurrentPhrase.trim()) {
                     pushMeetingTranscriptLine(meetingCurrentPhrase, speaker);
                     meetingCurrentPhrase = '';
                 }
-                if (meetingInterimLine.trim()) {
-                    pushMeetingTranscriptLine(meetingInterimLine, speaker);
-                    meetingInterimLine = '';
-                }
+                meetingCurrentPhraseStartMs = 0;
                 renderMeetingTranscript();
-                meetingSessionTranscriptSnapshot = meetingTranscriptLines.join('\n').trim();
+                finalizeMeetingTranscriptEndMs();
+                meetingSessionTranscriptSnapshot = getMeetingTranscriptExportPlain({ withTimestamps: false });
             }
 
             function meetingT(key) {
                 const lang = currentLang === 'zh' ? 'zh' : 'en';
                 const dict = {
                     ready: { zh: '就绪', en: 'Ready' },
-                    recording: { zh: '录音中（约 1.1 秒停顿自动断句）', en: 'Recording (~1.1s pause auto-punctuates)' },
+                    recording: { zh: '录音中（自动断句）', en: 'Recording (auto-punctuates)' },
                     paused: { zh: '已暂停', en: 'Paused' },
                     stopped: { zh: '已停止', en: 'Stopped' },
                     noMic: { zh: '无法访问麦克风，请检查权限', en: 'Microphone access denied' },
@@ -11869,6 +13563,46 @@
                     audioConverting: { zh: '正在转换…', en: 'Converting…' },
                     audioExportFail: { zh: '音频导出失败，请重试或更换格式', en: 'Audio export failed. Retry or choose another format.' },
                     downloadAudio: { zh: '下载音频', en: 'Download Audio' },
+                    uploadAudio: { zh: '上传录音转写', en: 'Upload & Transcribe' },
+                    uploadTranscribing: { zh: '正在转写…', en: 'Transcribing…' },
+                    uploadMinutesPending: { zh: '转写完成，正在生成纪要…', en: 'Transcribed, generating minutes…' },
+                    uploadDone: { zh: '音频转写与纪要已完成', en: 'Upload transcribe and minutes complete' },
+                    uploadFail: { zh: '音频转写失败', en: 'Audio transcription failed' },
+                    uploadInvalidFile: { zh: '不支持的音频格式', en: 'Unsupported audio format' },
+                    uploadTooLarge: { zh: '文件过大（最大 100MB）', en: 'File too large (max 100MB)' },
+                    uploadNeedOllama: {
+                        zh: '上传转写需要本地 Ollama + Whisper 模型。请启动 Ollama 并执行：ollama pull whisper，然后用「打开OAO.bat」本地打开。',
+                        en: 'Upload transcription requires local Ollama + Whisper. Run: ollama pull whisper, then open OAO locally.'
+                    },
+                    uploadConfirmStop: {
+                        zh: '上传转写将停止当前录音并清空本次转录，是否继续？',
+                        en: 'Upload will stop recording and replace the current transcript. Continue?'
+                    },
+                    uploadEmptyResult: { zh: '转写结果为空，请检查音频是否含清晰人声', en: 'Empty transcription. Check audio has clear speech.' },
+                    playbackHint: { zh: '点击转录行可定位播放', en: 'Click a transcript line to seek playback' },
+                    seekAudio: { zh: '点击定位到此处', en: 'Click to seek here' },
+                    controlRecordLabel: { zh: '录音控制', en: 'Recording' },
+                    controlAudioLabel: { zh: '音频文件', en: 'Audio' },
+                    kbSearchDesc: {
+                        zh: '检索已归档至 AnythingLLM 的历史会议纪要与转录',
+                        en: 'Search archived meeting minutes and transcripts in AnythingLLM'
+                    },
+                    archiveKb: { zh: '存入 OAO 知识库', en: 'Save to OAO KB' },
+                    archiveKbDone: { zh: '已归档 ✓', en: 'Archived ✓' },
+                    archiveKbConfirm: {
+                        zh: '将把本次会议转录与纪要写入本地 AnythingLLM 知识库，请确认不含敏感内容。是否继续？',
+                        en: 'This will archive transcript and minutes to local AnythingLLM KB. Continue?'
+                    },
+                    archiveKbSuccess: { zh: '会议已存入 OAO 知识库', en: 'Meeting archived to OAO KB' },
+                    archiveKbFail: { zh: '知识库归档失败', en: 'KB archive failed' },
+                    archiveKbUnavailable: { zh: '知识库不可用，请配置 AnythingLLM 与 API Key', en: 'KB unavailable. Configure AnythingLLM + API Key' },
+                    kbSearchTitle: { zh: '跨会议检索', en: 'Cross-meeting search' },
+                    kbSearchExpand: { zh: '展开', en: 'Expand' },
+                    kbSearchCollapse: { zh: '收起', en: 'Collapse' },
+                    kbSearchPlaceholder: { zh: '例如：上次关于预算的会议定了什么？', en: 'e.g. What did we decide about budget last time?' },
+                    kbSearchBtn: { zh: '检索', en: 'Search' },
+                    kbSearchEmpty: { zh: '请输入检索问题', en: 'Enter a search question' },
+                    kbSearching: { zh: '正在检索历史会议…', en: 'Searching past meetings…' },
                     closeWarn: { zh: '会议进行中，确定关闭？', en: 'Meeting in progress. Close anyway?' },
                     closeConfirmTitle: { zh: '关闭小O会议？', en: 'Close Xiao O Meeting?' },
                     closeConfirmDesc: {
@@ -11970,7 +13704,7 @@
             function renderMeetingTranscript(forceFull = false) {
                 if (!oaoMeetingTranscript) return;
 
-                const pending = getMeetingPendingDisplayText();
+                const pending = formatMeetingPendingTranscriptLine(getMeetingPendingDisplayText());
                 if (forceFull || pending) {
                     if (meetingTranscriptRenderTimer) {
                         clearTimeout(meetingTranscriptRenderTimer);
@@ -11990,43 +13724,48 @@
             function paintMeetingTranscript(forceFull = false) {
                 meetingTranscriptRenderTimer = null;
                 if (!oaoMeetingTranscript) return;
+                syncMeetingTranscriptEntriesFromLines();
                 const container = oaoMeetingTranscript;
-                const pending = getMeetingPendingDisplayText();
+                const pending = formatMeetingPendingTranscriptLine(getMeetingPendingDisplayText());
 
-                if (forceFull || meetingTranscriptRenderedCount > meetingTranscriptLines.length) {
+                if (forceFull || meetingTranscriptRenderedCount > meetingTranscriptEntries.length) {
                     container.innerHTML = '';
                     meetingTranscriptRenderedCount = 0;
                     meetingTranscriptInterimEl = null;
                 }
 
-                if (!meetingTranscriptLines.length && !pending) {
+                if (!meetingTranscriptEntries.length && !pending) {
                     const hint = (meetingState === 'recording' || meetingState === 'paused')
                         ? meetingT('listeningTranscript')
                         : meetingT('emptyTranscript');
-                    container.innerHTML = `<span style="opacity:0.5">${hint}</span>`;
+                    container.innerHTML = `<div class="oao-meeting-transcript-empty">${escapeHtml(hint)}</div>`;
                     meetingTranscriptRenderedCount = 0;
                     meetingTranscriptInterimEl = null;
                     updateMeetingSubtitle();
                     return;
                 }
 
-                if (container.querySelector('span[style*="opacity:0.5"]')) {
+                if (container.querySelector('.oao-meeting-transcript-empty')) {
                     container.innerHTML = '';
                     meetingTranscriptRenderedCount = 0;
                     meetingTranscriptInterimEl = null;
                 }
 
-                for (let i = meetingTranscriptRenderedCount; i < meetingTranscriptLines.length; i++) {
+                for (let i = meetingTranscriptRenderedCount; i < meetingTranscriptEntries.length; i++) {
+                    const entry = meetingTranscriptEntries[i];
                     const lineEl = document.createElement('div');
-                    lineEl.className = 'oao-meeting-transcript-line';
-                    lineEl.innerHTML = formatMeetingTranscriptLineHtml(meetingTranscriptLines[i]);
+                    lineEl.className = 'oao-meeting-transcript-line is-seekable';
+                    lineEl.dataset.startMs = String(entry.startMs);
+                    lineEl.dataset.entryIndex = String(i);
+                    lineEl.title = meetingT('seekAudio');
+                    lineEl.innerHTML = formatMeetingTranscriptEntryHtml(entry);
                     if (meetingTranscriptInterimEl) {
                         container.insertBefore(lineEl, meetingTranscriptInterimEl);
                     } else {
                         container.appendChild(lineEl);
                     }
                 }
-                meetingTranscriptRenderedCount = meetingTranscriptLines.length;
+                meetingTranscriptRenderedCount = meetingTranscriptEntries.length;
 
                 if (pending) {
                     if (!meetingTranscriptInterimEl) {
@@ -12047,25 +13786,37 @@
             function buildLocalTranscriptDigest(text) {
                 const lines = (text || '')
                     .split('\n')
-                    .map((line) => line.replace(/^\[[^\]]+\]\s*/, '').trim())
-                    .filter((line) => line.length >= 6);
+                    .flatMap((line) => {
+                        const body = line.replace(/^\[[^\]]+\]\s*/, '').trim();
+                        if (!body || body.length < 6) return [];
+                        return body.split(/[。！？!?；;]+/).map((part) => part.trim()).filter((part) => part.length >= 6);
+                    });
                 if (!lines.length) {
                     return currentLang === 'zh' ? '（前期内容未提取到有效语句）' : '(No valid earlier content)';
                 }
-                const seen = new Set();
+                const MMAI = window.OAOMeetingMinutesAI;
+                const scored = lines.map((line, index) => ({
+                    line,
+                    score: MMAI?.scoreMinuteSentence
+                        ? MMAI.scoreMinuteSentence(line, index, lines.length)
+                        : Math.min(line.length, 80) * 0.05,
+                }));
+                scored.sort((a, b) => b.score - a.score);
                 const picks = [];
-                for (const line of lines) {
+                const seen = new Set();
+                scored.forEach(({ line }) => {
                     const key = line.slice(0, 96);
-                    if (seen.has(key)) continue;
+                    if (seen.has(key)) return;
                     seen.add(key);
                     picks.push(line);
-                    if (picks.length >= 60) break;
+                });
+                if (picks.length > 36) {
+                    picks.length = 36;
                 }
                 let digest = picks.join('\n');
                 const maxDigestLen = Math.max(2000, MEETING_MINUTES_PROMPT_MAX_CHARS - MEETING_MINUTES_RECENT_TAIL_CHARS - 600);
                 if (digest.length > maxDigestLen) {
-                    const step = Math.max(1, Math.ceil(picks.length / 36));
-                    digest = picks.filter((_, index) => index % step === 0).join('\n').slice(0, maxDigestLen);
+                    digest = picks.slice(0, 24).join('\n').slice(0, maxDigestLen);
                 }
                 return digest;
             }
@@ -12198,7 +13949,7 @@
                         refreshMeetingRecognitionSession();
                         return;
                     }
-                    if (now - meetingRecognitionLastResultAt >= MEETING_RECO_STALE_MS) {
+                    if (now - meetingRecognitionLastResultAt >= meetingRecoStaleMs) {
                         scheduleMeetingRecognitionResume(0);
                     }
                     if (meetingAudioAnalyserCtx?.state === 'suspended') {
@@ -12250,6 +14001,7 @@
             }
 
             function teardownMeetingAudioAnalyser() {
+                meetingSpeakerDiarizer?.stopCapture();
                 stopMeetingAudioWaveAnimation();
                 try { meetingAudioAnalyserSource?.disconnect(); } catch (_) {}
                 meetingAudioAnalyserSource = null;
@@ -12279,6 +14031,9 @@
                         await meetingAudioAnalyserCtx.resume();
                     }
                     startMeetingAudioWaveAnimation();
+                    if (meetingSpeakerDiarizer?.enabledSetting) {
+                        meetingSpeakerDiarizer.startCapture(stream, meetingAudioAnalyserCtx);
+                    }
                 } catch (error) {
                     console.warn('[OAO Meeting] Audio wave analyser failed:', error);
                     startMeetingAudioWaveAnimation();
@@ -12357,7 +14112,8 @@
                 if (!oaoMeetingAudioWaveCanvas) return;
                 startMeetingAudioWaveAnimation();
                 if (typeof ResizeObserver !== 'undefined') {
-                    const waveWrap = document.getElementById('oaoMeetingAudioWave');
+                    const waveWrap = document.getElementById('oaoMeetingAudioWave')
+                        || document.getElementById('oaoMeetingWavePlayback');
                     if (waveWrap && !waveWrap.dataset.waveObserved) {
                         waveWrap.dataset.waveObserved = '1';
                         new ResizeObserver(() => drawMeetingAudioWaveFrame()).observe(waveWrap);
@@ -12405,11 +14161,16 @@
                 if (oaoMeetingDownloadBtn) {
                     oaoMeetingDownloadBtn.disabled = !(meetingAudioBlob || (meetingState === 'stopped' && meetingAudioChunks.length > 0));
                 }
+                if (oaoMeetingUploadBtn) {
+                    oaoMeetingUploadBtn.disabled = meetingUploadInProgress || meetingState === 'recording' || meetingState === 'paused';
+                }
                 if (oaoMeetingGenerateBtn) {
                     const hasSnapshot = !!meetingSessionTranscriptSnapshot;
-                    const hasLive = !!(meetingTranscriptLines.length || meetingCurrentPhrase.trim() || meetingInterimLine.trim());
+                    const hasLive = !!(meetingTranscriptEntries.length || meetingTranscriptLines.length || meetingCurrentPhrase.trim() || meetingInterimLine.trim());
                     oaoMeetingGenerateBtn.disabled = isActive || (!hasSnapshot && !(isStopped && hasLive));
                 }
+                updateMeetingArchiveKbButton();
+                if (isStopped) void refreshMeetingPlaybackPanel();
                 updateMeetingSubtitle();
             }
 
@@ -12478,22 +14239,35 @@
                 oaoMeetingMinutes?.classList.add('streaming');
                 const prompt = buildMeetingMinutesPrompt(transcript, durationStr, sessionMeta);
                 let fullText = '';
-                const appendChunk = (chunk) => {
+                const appendChunk = (chunk, structuredPreview) => {
                     if (runId !== meetingRealtimeMinutesActiveRunId) return;
+                    if (structuredPreview) {
+                        renderMeetingMinutesDocument(meta, chunk, { structured: structuredPreview });
+                        return;
+                    }
                     fullText += chunk;
-                    updateMeetingMinutesContentCell(fullText);
+                    const preview = window.OAOMeetingMinutesAI?.tryStructuredStreamPreview(
+                        fullText,
+                        transcript,
+                        currentLang === 'en' ? 'en' : 'zh'
+                    );
+                    if (preview) {
+                        renderMeetingMinutesDocument(meta, preview.plain, { structured: preview.structured });
+                    }
                     if (oaoMeetingMinutes) oaoMeetingMinutes.scrollTop = oaoMeetingMinutes.scrollHeight;
                 };
 
                 try {
                     const resolved = await resolveMeetingMinutesContent(prompt, transcript, appendChunk);
                     if (runId !== meetingRealtimeMinutesActiveRunId) return;
-                    renderMeetingMinutesDocument(meta, resolved.text);
+                    renderMeetingMinutesDocument(meta, resolved.text, { structured: resolved.structured });
                 } catch (error) {
                     if (runId !== meetingRealtimeMinutesActiveRunId) return;
                     console.warn('[OAO Meeting] Realtime minutes update failed:', error);
                     if (final || !meetingMinutesContentPlain) {
-                        renderMeetingMinutesDocument(meta, buildLocalMeetingMinutesFallback(transcript));
+                        const lang = currentLang === 'en' ? 'en' : 'zh';
+                        const structured = window.OAOMeetingMinutesAI.buildLocalStructuredFallback(transcript, lang);
+                        renderMeetingMinutesDocument(meta, window.OAOMeetingMinutesAI.structuredToPlainText(structured, lang), { structured });
                     }
                 } finally {
                     if (runId === meetingRealtimeMinutesActiveRunId) {
@@ -12535,8 +14309,10 @@
 
             function getMeetingTranscriptPlain() {
                 if (meetingSessionTranscriptSnapshot) return meetingSessionTranscriptSnapshot;
-                const parts = [...meetingTranscriptLines];
-                const pending = getMeetingPendingDisplayText();
+                const parts = meetingTranscriptEntries.length
+                    ? meetingTranscriptEntries.map((entry) => entry.text)
+                    : [...meetingTranscriptLines];
+                const pending = formatMeetingPendingTranscriptLine(getMeetingPendingDisplayText());
                 if (pending) parts.push(pending);
                 return parts.join('\n').trim();
             }
@@ -12686,7 +14462,7 @@
                     getSpeechRecognitionLang(),
                     meetingSttChainIndex
                 ) || getSpeechRecognitionLang();
-                rec.maxAlternatives = provider?.maxAlternatives || 8;
+                rec.maxAlternatives = provider?.maxAlternatives || getMeetingSttSensitivityPreset().maxAlternatives || 8;
                 applyMeetingSpeechGrammar(rec);
 
                 rec.onstart = () => {
@@ -12704,20 +14480,22 @@
                     renderMeetingTranscript(true);
                     updateMeetingSubtitle();
                     updateMeetingSttProviderLabel();
-                    const pending = getMeetingPendingDisplayText();
+                    const pending = formatMeetingPendingTranscriptLine(getMeetingPendingDisplayText());
                     if (pending && shouldBrowserCommitTranscriptLines()) {
                         clearMeetingInterimCommitTimer();
                         meetingInterimCommitTimer = setTimeout(() => {
                             meetingInterimCommitTimer = null;
                             if (meetingState !== 'recording') return;
+                            clearMeetingSilenceTimer();
                             const phrase = getMeetingPendingDisplayText();
                             if (!phrase) return;
-                            pushMeetingTranscriptLine(phrase, getMeetingCurrentSpeakerName());
+                            pushMeetingTranscriptLine(phrase, resolveMeetingTranscriptSpeaker(true));
                             meetingCurrentPhrase = '';
                             meetingInterimLine = '';
+                            meetingCurrentPhraseStartMs = 0;
                             renderMeetingTranscript(true);
                             scheduleRealtimeMeetingMinutesUpdate();
-                        }, 2800);
+                        }, meetingInterimCommitMs);
                     }
                 };
 
@@ -12775,15 +14553,7 @@
                     return;
                 }
                 try {
-                    if (meetingVideoEnabled) {
-                        await ensureMeetingVideoLocalMedia();
-                        await rebuildMixedMeetingAudioStream();
-                        if (!meetingAudioStream && meetingVideoLocalStream) {
-                            meetingAudioStream = new MediaStream(meetingVideoLocalStream.getAudioTracks());
-                        }
-                    } else {
-                        meetingAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    }
+                    await acquireMeetingAudioStream();
                 } catch (e) {
                     showConnectionToast(meetingT('noMic'), 'error');
                     return;
@@ -12793,9 +14563,16 @@
                 meetingAudioBlob = null;
                 meetingAudioWavCache = null;
                 meetingTranscriptLines = [];
+                meetingTranscriptEntries = [];
                 meetingInterimLine = '';
                 meetingCurrentPhrase = '';
+                meetingCurrentPhraseStartMs = 0;
+                meetingRecordedDurationMs = 0;
                 meetingSessionTranscriptSnapshot = '';
+                meetingKbArchivedId = '';
+                meetingMinutesStructuredCache = null;
+                meetingSpeakerDiarizer?.reset();
+                renderMeetingSpeakerPanel();
                 clearMeetingSilenceTimer();
                 resetMeetingTranscriptRenderCache();
                 meetingSessionId += 1;
@@ -12826,7 +14603,10 @@
 
                 meetingMediaRecorder.onstop = () => {
                     finalizeMeetingAudioBlob();
-                    setMeetingUIState('stopped');
+                    void calibrateMeetingTranscriptTimestamps().then(() => {
+                        finalizeMeetingTranscriptEndMs();
+                        setMeetingUIState('stopped');
+                    });
                 };
 
                 meetingStartTs = Date.now();
@@ -12854,11 +14634,11 @@
                 meetingPauseStartTs = Date.now();
                 clearMeetingSilenceTimer();
                 if (meetingCurrentPhrase.trim()) {
-                    pushMeetingTranscriptLine(meetingCurrentPhrase, getMeetingCurrentSpeakerName());
+                    pushMeetingTranscriptLine(meetingCurrentPhrase, resolveMeetingTranscriptSpeaker(true));
                     meetingCurrentPhrase = '';
                 }
                 if (meetingInterimLine.trim()) {
-                    pushMeetingTranscriptLine(meetingInterimLine, getMeetingCurrentSpeakerName());
+                    pushMeetingTranscriptLine(meetingInterimLine, resolveMeetingTranscriptSpeaker(true));
                     meetingInterimLine = '';
                 }
                 renderMeetingTranscript();
@@ -12895,10 +14675,10 @@
                 updateMeetingTimerDisplay();
                 finalizeMeetingSessionTranscript();
                 stopMeetingMediaRecorderSafely();
-                if (meetingAudioStream && !meetingVideoEnabled) {
-                    meetingAudioStream.getTracks().forEach(t => t.stop());
-                    meetingAudioStream = null;
+                if (!meetingVideoEnabled) {
+                    stopMeetingAudioTracks();
                 }
+                teardownMeetingMicProcessing();
                 teardownMeetingAudioAnalyser();
                 startMeetingAudioWaveAnimation();
                 if (isMeetingRealtimeMinutesEnabled()) {
@@ -12914,6 +14694,270 @@
                 meetingAudioBlob = new Blob(meetingAudioChunks, { type: mime });
                 meetingAudioWavCache = null;
                 return meetingAudioBlob;
+            }
+
+            function isMeetingUploadFileAllowed(file) {
+                if (!file) return false;
+                const mime = String(file.type || '').toLowerCase();
+                const ext = String(file.name || '').split('.').pop()?.toLowerCase() || '';
+                const extOk = ['webm', 'wav', 'mp3', 'm4a', 'ogg', 'mp4', 'aac', 'flac', 'mpeg'].includes(ext);
+                return mime.startsWith('audio/') || mime === 'video/webm' || extOk;
+            }
+
+            function resolveMeetingUploadWhisperLanguage() {
+                if (currentLang === 'zh') return 'zh';
+                if (currentLang === 'en') return 'en';
+                return 'auto';
+            }
+
+            function getMeetingWhisperModel() {
+                return String(window.OAO_OLLAMA_WHISPER_MODEL || 'whisper').trim() || 'whisper';
+            }
+
+            async function probeMeetingOllamaTranscribe() {
+                const baseUrl = OLLAMA_CONFIG.baseUrl;
+                try {
+                    const res = await fetch(`${baseUrl}/api/tags`, {
+                        signal: AbortSignal.timeout(5000),
+                        cache: 'no-store',
+                    });
+                    return res.ok;
+                } catch (_) {
+                    return false;
+                }
+            }
+
+            function parseOllamaTranscribeResponse(data) {
+                if (!data || typeof data !== 'object') return '';
+                return String(data.text || data.response || data.transcript || '').trim();
+            }
+
+            async function transcribeMeetingUploadFile(file) {
+                const baseUrl = OLLAMA_CONFIG.baseUrl;
+                const model = getMeetingWhisperModel();
+                const language = resolveMeetingUploadWhisperLanguage();
+                const timeoutMs = Number(window.OAO_MEETING_UPLOAD_TIMEOUT_MS) || MEETING_UPLOAD_TRANSCRIBE_TIMEOUT_MS;
+                const fileName = file.name || 'upload.webm';
+                const mimeType = file.type || 'application/octet-stream';
+
+                const run = async () => {
+                    const form = new FormData();
+                    form.append('file', file, fileName);
+                    form.append('model', model);
+                    if (language && language !== 'auto') form.append('language', language);
+
+                    let response = await fetch(`${baseUrl}/api/transcribe`, {
+                        method: 'POST',
+                        body: form,
+                        signal: AbortSignal.timeout(timeoutMs),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const text = parseOllamaTranscribeResponse(data);
+                        if (text) return text;
+                    }
+
+                    if (file.size <= 25 * 1024 * 1024) {
+                        const buffer = await file.arrayBuffer();
+                        const bytes = new Uint8Array(buffer);
+                        const isWav = bytes.length > 12
+                            && String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]) === 'RIFF';
+                        const resolvedMime = mimeType !== 'application/octet-stream'
+                            ? mimeType
+                            : (isWav ? 'audio/wav' : 'audio/webm');
+                        let binary = '';
+                        const chunkSize = 0x8000;
+                        for (let i = 0; i < bytes.length; i += chunkSize) {
+                            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+                        }
+                        const base64 = btoa(binary);
+                        const dataUri = `data:${resolvedMime};base64,${base64}`;
+                        const attempts = [
+                            { model, file: dataUri, language },
+                            { model, file: base64, language },
+                            { model, prompt: '', file: dataUri },
+                        ];
+                        for (const body of attempts) {
+                            response = await fetch(`${baseUrl}/api/transcribe`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(body),
+                                signal: AbortSignal.timeout(timeoutMs),
+                            });
+                            if (!response.ok) continue;
+                            const data = await response.json();
+                            const text = parseOllamaTranscribeResponse(data);
+                            if (text) return text;
+                        }
+                    }
+
+                    const detail = response ? await response.text().catch(() => '') : '';
+                    throw new Error(`Whisper HTTP ${response?.status || 'error'} ${detail.slice(0, 120)}`);
+                };
+
+                if (window.OAOMeetingMinutesAI?.runOllamaQueued) {
+                    return window.OAOMeetingMinutesAI.runOllamaQueued(run);
+                }
+                return run();
+            }
+
+            async function estimateMeetingUploadDurationSec(file) {
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return 0;
+                    const ctx = new AudioCtx();
+                    const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+                    await ctx.close();
+                    return Math.max(0, Math.floor(audioBuffer.duration || 0));
+                } catch (_) {
+                    return 0;
+                }
+            }
+
+            function splitMeetingUploadTranscript(text) {
+                const normalized = String(text || '').replace(/\r\n/g, '\n').trim();
+                if (!normalized) return [];
+                const parts = [];
+                normalized.split('\n').forEach((line) => {
+                    line.split(/[。！？!?]+/).forEach((piece) => {
+                        const trimmed = piece.trim();
+                        if (trimmed.length >= 2) parts.push(trimmed);
+                    });
+                });
+                return parts.length ? parts : [normalized];
+            }
+
+            function importMeetingUploadTranscript(text) {
+                const segments = splitMeetingUploadTranscript(text);
+                const durationMs = getMeetingElapsedMs() || 0;
+                meetingTranscriptEntries = [];
+                meetingTranscriptLines = [];
+                segments.forEach((segment, index) => {
+                    const startMs = segments.length > 1
+                        ? Math.floor((index / segments.length) * durationMs)
+                        : 0;
+                    const formatted = formatMeetingTranscriptEntry('', segment);
+                    if (!formatted) return;
+                    pushMeetingTranscriptEntry(createMeetingTranscriptEntry(formatted, 'upload', startMs));
+                });
+                if (!meetingTranscriptEntries.length) {
+                    const fallback = formatMeetingTranscriptEntry('', String(text || '').trim());
+                    if (fallback) pushMeetingTranscriptEntry(createMeetingTranscriptEntry(fallback, 'upload', 0));
+                }
+                meetingInterimLine = '';
+                meetingCurrentPhrase = '';
+                finalizeMeetingTranscriptEndMs();
+                meetingSessionTranscriptSnapshot = getMeetingTranscriptExportPlain({ withTimestamps: false });
+                renderMeetingTranscript(true);
+                void calibrateMeetingTranscriptTimestamps().then(() => {
+                    finalizeMeetingTranscriptEndMs();
+                    void refreshMeetingPlaybackPanel();
+                });
+            }
+
+            async function prepareMeetingWorkspaceForUpload(file) {
+                cancelRealtimeMeetingMinutes();
+                stopMeetingStt();
+                stopMeetingTimerTick();
+                stopMeetingMediaRecorderSafely();
+                if (!meetingVideoEnabled) {
+                    stopMeetingAudioTracks();
+                }
+                teardownMeetingMicProcessing();
+                teardownMeetingAudioAnalyser();
+
+                meetingAudioChunks = [];
+                meetingAudioWavCache = null;
+                meetingRecordedMimeType = file.type || 'audio/webm';
+                meetingAudioBlob = file;
+                meetingTranscriptLines = [];
+                meetingTranscriptEntries = [];
+                meetingInterimLine = '';
+                meetingCurrentPhrase = '';
+                meetingCurrentPhraseStartMs = 0;
+                meetingRecordedDurationMs = 0;
+                meetingSessionTranscriptSnapshot = '';
+                meetingSpeakerDiarizer?.reset();
+                renderMeetingSpeakerPanel();
+                resetMeetingTranscriptRenderCache();
+                meetingSessionId += 1;
+
+                if (oaoMeetingMinutes) {
+                    meetingMinutesPlainText = '';
+                    meetingMinutesContentPlain = '';
+                    meetingMinutesMetaCache = null;
+                    oaoMeetingMinutes.classList.remove('has-form-layout', 'streaming');
+                    oaoMeetingMinutes.innerHTML = '';
+                }
+
+                const durationSec = await estimateMeetingUploadDurationSec(file);
+                meetingStartTs = Date.now() - durationSec * 1000;
+                meetingPausedTotal = 0;
+                meetingPauseStartTs = 0;
+                meetingSessionStartLabel = `${file.name || meetingT('minutesUntitled')} · ${new Date().toLocaleString(currentLang === 'zh' ? 'zh-CN' : 'en-US')}`;
+                updateMeetingTimerDisplay();
+                renderMeetingTranscript(true);
+                setMeetingUIState('stopped');
+            }
+
+            function setMeetingUploadBusy(busy, label) {
+                meetingUploadInProgress = !!busy;
+                if (oaoMeetingUploadBtn) {
+                    oaoMeetingUploadBtn.disabled = busy || meetingState === 'recording' || meetingState === 'paused';
+                    if (label) oaoMeetingUploadBtn.textContent = label;
+                    else oaoMeetingUploadBtn.textContent = meetingT('uploadAudio');
+                }
+                setMeetingUIState(meetingState);
+            }
+
+            async function handleMeetingAudioUpload(file) {
+                if (!file || meetingUploadInProgress) return;
+                if (!isMeetingUploadFileAllowed(file)) {
+                    showConnectionToast(meetingT('uploadInvalidFile'), 'error');
+                    return;
+                }
+                if (file.size > MEETING_UPLOAD_MAX_BYTES) {
+                    showConnectionToast(meetingT('uploadTooLarge'), 'error');
+                    return;
+                }
+                if (meetingState === 'recording' || meetingState === 'paused') {
+                    const ok = window.confirm(meetingT('uploadConfirmStop'));
+                    if (!ok) return;
+                    if (meetingState === 'recording' || meetingState === 'paused') {
+                        stopMeetingRecording();
+                    }
+                }
+
+                const ollamaOk = await probeMeetingOllamaTranscribe();
+                if (!ollamaOk) {
+                    showConnectionToast(meetingT('uploadNeedOllama'), 'error');
+                    return;
+                }
+
+                setMeetingUploadBusy(true, meetingT('uploadTranscribing'));
+                try {
+                    await prepareMeetingWorkspaceForUpload(file);
+                    const transcriptText = await transcribeMeetingUploadFile(file);
+                    if (!transcriptText) {
+                        showConnectionToast(meetingT('uploadEmptyResult'), 'error');
+                        return;
+                    }
+                    importMeetingUploadTranscript(transcriptText);
+                    setMeetingUIState('stopped');
+                    showConnectionToast(meetingT('uploadMinutesPending'), 'info');
+                    await generateMeetingMinutes();
+                    showConnectionToast(meetingT('uploadDone'), 'success');
+                } catch (error) {
+                    console.error('[OAO Meeting] Upload transcribe failed:', error);
+                    showConnectionToast(
+                        `${meetingT('uploadFail')}${error?.message ? `：${error.message}` : ''}`,
+                        'error'
+                    );
+                } finally {
+                    setMeetingUploadBusy(false);
+                }
             }
 
             function getMeetingSourceAudioBlob() {
@@ -13011,8 +15055,11 @@
                 const recorder = meetingMediaRecorder;
                 recorder.onstop = () => {
                     finalizeMeetingAudioBlob();
-                    setMeetingUIState('stopped');
-                    onFinished?.();
+                    void calibrateMeetingTranscriptTimestamps().then(() => {
+                        finalizeMeetingTranscriptEndMs();
+                        setMeetingUIState('stopped');
+                        onFinished?.();
+                    });
                 };
                 try { recorder.requestData(); } catch (_) {}
                 try { recorder.stop(); } catch (_) {
@@ -13051,71 +15098,14 @@
             }
 
             function buildMeetingMinutesPrompt(transcript, durationStr, sessionMeta) {
-                const scopedTranscript = prepareMeetingTranscriptForMinutes(transcript);
-                const metaLine = currentLang === 'zh'
-                    ? `会议时长：${durationStr}；开始时间：${sessionMeta.startLabel || meetingT('stopped')}`
-                    : `Duration: ${durationStr}; Start: ${sessionMeta.startLabel || meetingT('stopped')}`;
-                return currentLang === 'zh'
-                    ? `你是小O会议助手。请**严格且仅依据**下方转录稿，撰写「会议内容」正文。
-
-【写作要求】
-1. **提炼核心**：删除闲聊、重复发言和无关内容，只保留关键讨论事项；语言简洁明确，一句一事。
-2. **会议结论**：分别写清「已达成共识」与「待继续讨论」；仅写转录稿中明确出现的结论或分歧，不得推断。
-3. **待办事项**：逐条提取任务，每条包含：任务内容、责任人、完成时间（转录稿有则写，无则写「未明确」）。
-4. **真实性**：不得编造人名、数字、结论、日期或待办；无依据的小节写「（转录稿未明确提及）」。
-5. **格式**：只输出「会议内容」正文；不要表格；不要重复会议名称/时间/出席等元信息；不要 Markdown 标题（#）；不要 emoji。
-6. 若整份转录稿缺乏实质内容，只输出一行：转录稿中未明确提及重点内容。
-
-【输出结构】（按顺序输出，保留小节标题）
-
-一、核心讨论
-1. …
-2. …
-
-二、会议结论
-（1）已达成共识
-1. …
-
-（2）待继续讨论
-1. …
-
-三、待办事项
-1. 任务内容：…；责任人：…；完成时间：…
-2. …
-
-${metaLine}
-
----转录稿（唯一依据）---
-${scopedTranscript}`
-                    : `You are Xiao O Meeting Assistant. Write the "Meeting Content" body **strictly from** the transcript below.
-
-[Requirements]
-1. **Core content**: Remove chitchat, repetition, and off-topic talk; keep key discussion points; use concise, clear language.
-2. **Conclusions**: Separate "Consensus reached" vs "Needs further discussion"; only include what is explicitly in the transcript.
-3. **Action items**: One entry per task with: task, owner, due date (use "Not specified" if missing in transcript).
-4. **Accuracy**: Do not invent names, numbers, conclusions, dates, or tasks; use "(Not explicitly mentioned in transcript)" for empty subsections.
-5. **Format**: Output meeting content body only — no table, no metadata, no Markdown headings (#), no emoji.
-6. If the transcript has no substantive content, output one line only: Not explicitly mentioned in the transcript.
-
-[Output structure]
-
-I. Key Discussion
-1. …
-
-II. Meeting Conclusions
-(1) Consensus reached
-1. …
-
-(2) Needs further discussion
-1. …
-
-III. Action Items
-1. Task: …; Owner: …; Due: …
-
-${metaLine}
-
----Transcript (sole source)---
-${scopedTranscript}`;
+                return window.OAOMeetingMinutesAI.buildStructuredPrompt({
+                    transcript,
+                    durationStr,
+                    sessionMeta,
+                    lang: currentLang === 'en' ? 'en' : 'zh',
+                    prepareTranscript: prepareMeetingTranscriptForMinutes,
+                    stoppedLabel: meetingT('stopped'),
+                });
             }
 
             function extractAttendeesFromTranscript(transcript) {
@@ -13205,7 +15195,15 @@ ${scopedTranscript}`;
                 if (!oaoMeetingMinutes) return;
                 meetingMinutesMetaCache = meta;
                 meetingMinutesContentPlain = (contentText || '').trim();
-                let contentHtml = formatMeetingMinutesContentHtml(meetingMinutesContentPlain);
+                let contentHtml;
+                if (options.structured && window.OAOMeetingMinutesAI) {
+                    contentHtml = window.OAOMeetingMinutesAI.structuredToDisplayHtml(
+                        options.structured,
+                        currentLang === 'en' ? 'en' : 'zh'
+                    );
+                } else {
+                    contentHtml = formatMeetingMinutesContentHtml(meetingMinutesContentPlain);
+                }
                 if (!contentHtml) {
                     const placeholder = options.placeholder || meetingT('generating');
                     contentHtml = `<span style="opacity:0.55">${escapeHtml(placeholder)}</span>`;
@@ -13283,54 +15281,9 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
             }
 
             function buildLocalMeetingMinutesFallback(transcript) {
-                const isZh = currentLang === 'zh';
-                const emptyHint = isZh ? '（转录稿未明确提及）' : '(Not explicitly mentioned in transcript)';
-                const lines = (transcript || '')
-                    .split('\n')
-                    .map((line) => line.replace(/^\[[^\]]+\]\s*/, '').trim())
-                    .filter(Boolean);
-                if (!lines.length) {
-                    return isZh ? '转录稿中未明确提及重点内容。' : 'Not explicitly mentioned in the transcript.';
-                }
-                const seen = new Set();
-                const bullets = [];
-                for (let i = lines.length - 1; i >= 0; i--) {
-                    const line = lines[i];
-                    const normalized = line.replace(/[。！？\.!?]+$/u, '').trim();
-                    if (!normalized || normalized.length < 4 || seen.has(normalized)) continue;
-                    seen.add(normalized);
-                    bullets.unshift(normalized);
-                    if (bullets.length >= 6) break;
-                }
-                if (!bullets.length) {
-                    return isZh ? '转录稿中未明确提及重点内容。' : 'Not explicitly mentioned in the transcript.';
-                }
-                if (isZh) {
-                    return `一、核心讨论
-${bullets.map((item, index) => `${index + 1}. ${item}`).join('\n')}
-
-二、会议结论
-（1）已达成共识
-${emptyHint}
-
-（2）待继续讨论
-${emptyHint}
-
-三、待办事项
-${emptyHint}`;
-                }
-                return `I. Key Discussion
-${bullets.map((item, index) => `${index + 1}. ${item}`).join('\n')}
-
-II. Meeting Conclusions
-(1) Consensus reached
-${emptyHint}
-
-(2) Needs further discussion
-${emptyHint}
-
-III. Action Items
-${emptyHint}`;
+                const lang = currentLang === 'en' ? 'en' : 'zh';
+                const structured = window.OAOMeetingMinutesAI.buildLocalStructuredFallback(transcript, lang);
+                return window.OAOMeetingMinutesAI.structuredToPlainText(structured, lang);
             }
 
             async function callOllamaMinutesPrompt(prompt) {
@@ -13435,14 +15388,19 @@ ${emptyHint}`;
             }
 
             async function tryGlmMeetingMinutes(prompt, onChunk) {
+                const glmTimeout = window.OAOMeetingMinutesAI?.TIMEOUTS?.glm || 20000;
                 try {
-                    const fullText = (await streamZhipuMinutes(prompt, onChunk)) || '';
+                    const fullText = (await streamZhipuMinutes(prompt, onChunk, { timeout: glmTimeout })) || '';
                     if (fullText.trim()) return { text: fullText.trim(), source: 'glm' };
                 } catch (glmStreamErr) {
                     console.warn('[OAO Meeting] GLM stream failed:', glmStreamErr);
                 }
                 try {
-                    const answer = await callZhipuPrompt(prompt, { temperature: 0.1, max_tokens: 8192 });
+                    const answer = await window.OAOMeetingMinutesAI.withTimeout(
+                        callZhipuPrompt(prompt, { temperature: 0.1, max_tokens: 8192 }),
+                        glmTimeout,
+                        'glm-prompt'
+                    );
                     if (answer.trim()) return { text: answer.trim(), source: 'glm' };
                 } catch (glmErr) {
                     console.warn('[OAO Meeting] GLM prompt failed:', glmErr);
@@ -13451,21 +15409,58 @@ ${emptyHint}`;
             }
 
             async function resolveMeetingMinutesContent(prompt, transcript, onChunk) {
+                const MMAI = window.OAOMeetingMinutesAI;
+                const lang = currentLang === 'en' ? 'en' : 'zh';
+                const llmTimeout = MMAI.computeAiTimeout(prompt, MMAI.TIMEOUTS.anythingllm);
+                const ollamaTimeout = MMAI.computeAiTimeout(prompt, MMAI.TIMEOUTS.ollama);
+                const glmTimeout = MMAI.computeAiTimeout(prompt, MMAI.TIMEOUTS.glm);
+                let streamAccumulator = '';
+
+                function notifyStreamChunk(delta) {
+                    if (!onChunk || !delta) return;
+                    streamAccumulator += delta;
+                    const preview = MMAI.tryStructuredStreamPreview(streamAccumulator, transcript, lang);
+                    if (preview) {
+                        onChunk(preview.plain, preview.structured);
+                    }
+                }
+
+                function finalize(rawText, source, provider) {
+                    const structured = MMAI.parseStructuredMinutes(rawText, transcript, lang);
+                    const plain = MMAI.structuredToPlainText(structured, lang);
+                    MMAI.logMinutesResolved(provider || source, { source });
+                    return { text: plain, structured, source, provider: provider || source };
+                }
+
                 if (useCloudGlmAi()) {
-                    const glmOnly = await tryGlmMeetingMinutes(prompt, onChunk);
-                    if (glmOnly) return glmOnly;
+                    try {
+                        const glmOnly = await MMAI.withTimeout(
+                            tryGlmMeetingMinutes(prompt, (chunk) => notifyStreamChunk(chunk)),
+                            glmTimeout,
+                            'glm-primary'
+                        );
+                        if (glmOnly) return finalize(glmOnly.text, glmOnly.source, 'glm');
+                    } catch (glmPrimaryErr) {
+                        console.warn('[OAO Meeting] GLM primary failed:', glmPrimaryErr);
+                    }
                 }
 
                 try {
-                    const llmResult = await callLLMAPI(prompt, { mode: 'chat', temperature: 0.15, max_tokens: 8192 });
+                    const llmResult = await MMAI.withTimeout(
+                        callLLMAPI(prompt, {
+                            mode: 'chat',
+                            temperature: 0.15,
+                            max_tokens: 8192,
+                            timeout: llmTimeout,
+                        }),
+                        llmTimeout,
+                        'anythingllm'
+                    );
                     const answer = (llmResult.answer || '').trim();
                     if (answer && !isNoKnowledgeAnswer(answer, llmResult.sources)) {
-                        if (onChunk) onChunk(answer);
-                        return { text: answer, source: 'llm' };
-                    }
-                    if (answer) {
-                        if (onChunk) onChunk(answer);
-                        return { text: answer, source: 'llm' };
+                        const result = finalize(answer, 'llm', 'anythingllm-chat');
+                        if (onChunk) onChunk(result.text, result.structured);
+                        return result;
                     }
                 } catch (llmErr) {
                     console.warn('[OAO Meeting] AnythingLLM 纪要失败，尝试 Ollama:', llmErr);
@@ -13473,27 +15468,56 @@ ${emptyHint}`;
 
                 let fullText = '';
                 try {
-                    fullText = (await streamMeetingMinutes(prompt, onChunk)) || '';
+                    fullText = await MMAI.runOllamaQueued(() => MMAI.withTimeout(
+                        streamMeetingMinutes(prompt, (chunk) => {
+                            fullText += chunk;
+                            notifyStreamChunk(chunk);
+                        }),
+                        ollamaTimeout,
+                        'ollama-stream'
+                    )) || fullText;
                 } catch (streamErr) {
                     console.warn('[OAO Meeting] Ollama stream failed:', streamErr);
                 }
 
-                if (fullText.trim()) return { text: fullText.trim(), source: 'stream' };
+                if (fullText.trim()) return finalize(fullText.trim(), 'stream', 'ollama-stream');
 
                 try {
-                    const answer = await callOllamaMinutesPrompt(prompt);
-                    if (onChunk && answer) onChunk(answer);
-                    return { text: answer, source: 'ollama' };
+                    const answer = await MMAI.runOllamaQueued(() => MMAI.withTimeout(
+                        callOllamaMinutesPrompt(prompt),
+                        ollamaTimeout,
+                        'ollama'
+                    ));
+                    if (answer) {
+                        const result = finalize(answer, 'ollama', 'ollama');
+                        if (onChunk) onChunk(result.text, result.structured);
+                        return result;
+                    }
                 } catch (ollamaErr) {
                     console.warn('[OAO Meeting] Ollama non-stream fallback failed:', ollamaErr);
                 }
 
                 if (shouldUseZhipuFallback()) {
-                    const glmFallback = await tryGlmMeetingMinutes(prompt, onChunk);
-                    if (glmFallback) return glmFallback;
+                    try {
+                        const glmFallback = await MMAI.withTimeout(
+                            tryGlmMeetingMinutes(prompt, (chunk) => notifyStreamChunk(chunk)),
+                            glmTimeout,
+                            'glm-fallback'
+                        );
+                        if (glmFallback) return finalize(glmFallback.text, glmFallback.source, 'glm-fallback');
+                    } catch (glmFallbackErr) {
+                        console.warn('[OAO Meeting] GLM fallback failed:', glmFallbackErr);
+                    }
                 }
 
-                return { text: buildLocalMeetingMinutesFallback(transcript), source: 'local' };
+                const structured = MMAI.buildLocalStructuredFallback(transcript, lang);
+                MMAI.logMinutesResolved('local', { source: 'local' });
+                return {
+                    text: MMAI.structuredToPlainText(structured, lang),
+                    structured,
+                    source: 'local',
+                    provider: 'local',
+                };
             }
 
             async function generateMeetingMinutes() {
@@ -13525,21 +15549,43 @@ ${emptyHint}`;
                 renderMeetingMinutesDocument(meta, '');
 
                 let fullText = '';
-                const appendChunk = (chunk) => {
+                const appendChunk = (chunk, structuredPreview) => {
+                    if (structuredPreview) {
+                        renderMeetingMinutesDocument(meta, chunk, { structured: structuredPreview });
+                        return;
+                    }
                     fullText += chunk;
-                    updateMeetingMinutesContentCell(fullText);
-                    oaoMeetingMinutes.scrollTop = oaoMeetingMinutes.scrollHeight;
+                    const preview = window.OAOMeetingMinutesAI?.tryStructuredStreamPreview(fullText, transcript, currentLang === 'en' ? 'en' : 'zh');
+                    if (preview) {
+                        renderMeetingMinutesDocument(meta, preview.plain, { structured: preview.structured });
+                    }
                 };
 
                 try {
                     const resolved = await resolveMeetingMinutesContent(prompt, transcript, appendChunk);
                     fullText = resolved.text;
-                    renderMeetingMinutesDocument(meta, fullText);
+                    meetingMinutesStructuredCache = resolved.structured || null;
+                    renderMeetingMinutesDocument(meta, fullText, { structured: resolved.structured });
+                    updateMeetingArchiveKbButton();
+                    void refreshMeetingPlaybackPanel();
+                    if (fullText && resolved.source !== 'local' && window.isOAOAuthenticated?.()) {
+                        void window.OAOPlatform?.saveMeetingRecord?.({
+                            title: meta.title || meetingT('minutesUntitled'),
+                            summary: fullText.slice(0, 8000),
+                            durationSec: Math.floor((getMeetingElapsedMs() || 0) / 1000),
+                            source: resolved.source || 'glm',
+                            kbArchived: false,
+                            meetingId: getMeetingArchiveSessionId(),
+                        });
+                    }
+                    if (window.OAO_MEETING_AUTO_ARCHIVE_KB === true) {
+                        void archiveMeetingToKnowledgeBase({ silent: true });
+                    }
                     if (resolved.source === 'local') {
                         showConnectionToast(
                             currentLang === 'zh'
-                                ? 'AI 服务不可用，已根据转录稿生成简要要点'
-                                : 'AI unavailable; generated brief points from transcript',
+                                ? 'AI 纪要服务未响应或超时，已根据转录稿生成简要要点（建议确认 Ollama / AnythingLLM 已启动）'
+                                : 'AI timed out; brief points generated from transcript (check Ollama / AnythingLLM)',
                             'info'
                         );
                     } else if (resolved.source === 'glm') {
@@ -13654,19 +15700,30 @@ ${emptyHint}`;
                 meetingAudioWavCache = null;
                 meetingAudioChunks = [];
                 meetingTranscriptLines = [];
+                meetingTranscriptEntries = [];
                 meetingInterimLine = '';
                 meetingCurrentPhrase = '';
+                meetingCurrentPhraseStartMs = 0;
+                meetingRecordedDurationMs = 0;
                 meetingSessionTranscriptSnapshot = '';
                 meetingSessionStartLabel = '';
                 meetingPauseStartTs = 0;
                 meetingRecognitionRetries = 0;
+                meetingKbArchivedId = '';
+                meetingMinutesStructuredCache = null;
                 clearMeetingSilenceTimer();
                 resetMeetingTranscriptRenderCache();
                 meetingStartTs = 0;
                 meetingPausedTotal = 0;
+                teardownMeetingPlayback();
                 teardownMeetingAudioAnalyser();
                 startMeetingAudioWaveAnimation();
                 cancelRealtimeMeetingMinutes();
+                if (oaoMeetingKbSearchResult) {
+                    oaoMeetingKbSearchResult.textContent = '';
+                    oaoMeetingKbSearchResult.classList.remove('is-loading');
+                }
+                if (oaoMeetingKbSearchSources) oaoMeetingKbSearchSources.textContent = '';
                 if (oaoMeetingMinutes) {
                     meetingMinutesPlainText = '';
                     meetingMinutesContentPlain = '';
@@ -13683,6 +15740,7 @@ ${emptyHint}`;
                 updateMeetingNoticePreviewPlaceholder();
                 renderMeetingTranscript(true);
                 setMeetingUIState('idle');
+                updateMeetingArchiveKbButton();
             }
 
             function getMeetingAudioBlobForExport() {
@@ -13862,6 +15920,7 @@ ${emptyHint}`;
                 hideMeetingCloseConfirm();
                 setMeetingModule('workspace');
                 oaoMeetingModal?.classList.remove('hidden');
+                refreshMeetingWorkspaceI18n();
             }
 
             oaoToolMeetingBtn?.addEventListener('click', openOaoMeetingModal);
@@ -14095,6 +16154,7 @@ ${emptyHint}`;
                     window.openLoginModal?.('admin');
                     return;
                 }
+                void window.OAOPlatform?.syncUser?.({ silent: true });
 
                 if (window.location.protocol === 'file:') {
                     showOaoLocalSetupGuide('translate');
@@ -14286,6 +16346,14 @@ ${emptyHint}`;
             oaoMeetingResumeBtn?.addEventListener('click', resumeMeetingRecording);
             oaoMeetingStopBtn?.addEventListener('click', stopMeetingRecording);
             oaoMeetingDownloadBtn?.addEventListener('click', () => { void downloadMeetingAudio(); });
+            oaoMeetingUploadBtn?.addEventListener('click', () => {
+                oaoMeetingAudioUploadInput?.click();
+            });
+            oaoMeetingAudioUploadInput?.addEventListener('change', (event) => {
+                const file = event.target.files?.[0];
+                event.target.value = '';
+                if (file) void handleMeetingAudioUpload(file);
+            });
             oaoMeetingAudioFormat?.addEventListener('change', () => {
                 try {
                     localStorage.setItem('oao-meeting-audio-format', getSelectedMeetingAudioFormat());
@@ -14301,6 +16369,29 @@ ${emptyHint}`;
             oaoMeetingRealtimeMinutes?.addEventListener('change', applyMeetingRealtimeMinutesSettings);
             initMeetingRealtimeMinutesSettings();
             initMeetingAudioWave();
+            initMeetingSttSensitivitySettings();
+            initMeetingSpeakerDiarization();
+            oaoMeetingSttSensitivity?.addEventListener('change', () => {
+                try {
+                    localStorage.setItem(MEETING_STT_SENSITIVITY_STORAGE, oaoMeetingSttSensitivity.value);
+                } catch (_) {}
+                applyMeetingSttSensitivity({ toast: true });
+            });
+            oaoMeetingSpeakerDiarization?.addEventListener('change', () => {
+                const enabled = !!oaoMeetingSpeakerDiarization?.checked;
+                meetingSpeakerDiarizer?.setEnabled(enabled);
+                try {
+                    localStorage.setItem('oao-meeting-speaker-diarization', enabled ? 'on' : 'off');
+                } catch (_) {}
+                renderMeetingSpeakerPanel();
+                if (meetingState === 'recording' && meetingAudioStream && meetingAudioAnalyserCtx) {
+                    if (enabled) {
+                        meetingSpeakerDiarizer?.startCapture(meetingAudioStream, meetingAudioAnalyserCtx);
+                    } else {
+                        meetingSpeakerDiarizer?.stopCapture();
+                    }
+                }
+            });
 
             oaoMeetingSttMode?.addEventListener('change', () => {
                 try {
@@ -14357,14 +16448,42 @@ ${emptyHint}`;
                 }
             };
 
-            oaoMeetingCopyTranscript?.addEventListener('click', () => copyMeetingText(getMeetingTranscriptPlain()));
+            window.refreshMeetingWorkspaceI18n = function refreshMeetingWorkspaceI18n() {
+                if (oaoMeetingPlaybackHint) {
+                    oaoMeetingPlaybackHint.textContent = meetingT('playbackHint');
+                }
+                const kbTitle = document.getElementById('oaoMeetingKbSearchTitle');
+                if (kbTitle) kbTitle.textContent = meetingT('kbSearchTitle');
+                const kbDesc = document.getElementById('oaoMeetingKbSearchDesc');
+                if (kbDesc) kbDesc.textContent = meetingT('kbSearchDesc');
+                if (oaoMeetingKbSearchInput) {
+                    oaoMeetingKbSearchInput.placeholder = meetingT('kbSearchPlaceholder');
+                }
+                if (oaoMeetingKbSearchBtn) {
+                    oaoMeetingKbSearchBtn.textContent = meetingT('kbSearchBtn');
+                }
+                if (oaoMeetingKbSearchToggle && oaoMeetingKbSearchBody) {
+                    const collapsed = oaoMeetingKbSearchBody.classList.contains('hidden');
+                    oaoMeetingKbSearchToggle.textContent = collapsed
+                        ? meetingT('kbSearchExpand')
+                        : meetingT('kbSearchCollapse');
+                }
+                const recordLabel = document.getElementById('oaoMeetingControlRecordLabel');
+                if (recordLabel) recordLabel.textContent = meetingT('controlRecordLabel');
+                const audioLabel = document.getElementById('oaoMeetingControlAudioLabel');
+                if (audioLabel) audioLabel.textContent = meetingT('controlAudioLabel');
+                updateMeetingArchiveKbButton();
+                setMeetingUIState(meetingState);
+            };
+
+            oaoMeetingCopyTranscript?.addEventListener('click', () => copyMeetingText(getMeetingTranscriptExportPlain({ withTimestamps: true })));
             oaoMeetingExportTranscriptTxt?.addEventListener('click', () => {
-                const t = getMeetingTranscriptPlain();
+                const t = getMeetingTranscriptExportPlain({ withTimestamps: true });
                 if (!t) return showConnectionToast(meetingT('needTranscript'), 'error');
                 downloadTextFile(`OAO-transcript-${Date.now()}.txt`, t);
             });
             oaoMeetingExportTranscriptDoc?.addEventListener('click', () => {
-                const t = getMeetingTranscriptPlain();
+                const t = getMeetingTranscriptExportPlain({ withTimestamps: true });
                 if (!t) return showConnectionToast(meetingT('needTranscript'), 'error');
                 downloadWordFile(`OAO-transcript-${Date.now()}.doc`, t);
             });
@@ -14385,6 +16504,69 @@ ${emptyHint}`;
             oaoMeetingExportMinutesPdf?.addEventListener('click', () => {
                 if (!meetingMinutesPlainText && !meetingMinutesContentPlain) return;
                 exportMeetingMinutesPdf(currentLang === 'zh' ? '小O会议记录' : 'Xiao O Meeting Minutes');
+            });
+
+            oaoMeetingTranscript?.addEventListener('click', (event) => {
+                const line = event.target.closest('.oao-meeting-transcript-line.is-seekable');
+                if (!line || meetingState === 'recording' || meetingState === 'paused') return;
+                const startMs = parseInt(line.dataset.startMs, 10);
+                if (Number.isFinite(startMs)) seekMeetingTranscriptToMs(startMs);
+            });
+            oaoMeetingPlayback?.addEventListener('play', startMeetingPlaybackHighlightLoop);
+            oaoMeetingPlayback?.addEventListener('pause', () => {
+                if (meetingPlaybackHighlightTimer) {
+                    clearInterval(meetingPlaybackHighlightTimer);
+                    meetingPlaybackHighlightTimer = null;
+                }
+            });
+            oaoMeetingPlayback?.addEventListener('seeked', () => {
+                highlightMeetingTranscriptAtMs((oaoMeetingPlayback?.currentTime || 0) * 1000);
+            });
+            oaoMeetingArchiveKbBtn?.addEventListener('click', () => { void archiveMeetingToKnowledgeBase(); });
+            oaoMeetingKbSearchToggle?.addEventListener('click', () => {
+                if (!oaoMeetingKbSearchBody) return;
+                const collapsed = oaoMeetingKbSearchBody.classList.toggle('hidden');
+                if (oaoMeetingKbSearchToggle) {
+                    oaoMeetingKbSearchToggle.textContent = collapsed
+                        ? meetingT('kbSearchExpand')
+                        : meetingT('kbSearchCollapse');
+                }
+            });
+            oaoMeetingKbSearchBtn?.addEventListener('click', async () => {
+                const question = oaoMeetingKbSearchInput?.value?.trim();
+                if (!question) {
+                    showConnectionToast(meetingT('kbSearchEmpty'), 'error');
+                    return;
+                }
+                if (oaoMeetingKbSearchResult) {
+                    oaoMeetingKbSearchResult.classList.add('is-loading');
+                    oaoMeetingKbSearchResult.textContent = meetingT('kbSearching');
+                }
+                if (oaoMeetingKbSearchSources) oaoMeetingKbSearchSources.textContent = '';
+                try {
+                    const result = await queryPastMeetingsFromKb(question);
+                    if (oaoMeetingKbSearchResult) {
+                        oaoMeetingKbSearchResult.classList.remove('is-loading');
+                        oaoMeetingKbSearchResult.innerHTML = formatMeetingKbSearchAnswer(result?.answer);
+                    }
+                    if (oaoMeetingKbSearchSources && result?.sources?.length) {
+                        oaoMeetingKbSearchSources.textContent = (currentLang === 'zh' ? '引用来源：\n' : 'Sources:\n')
+                            + result.sources.slice(0, 5).map((src, index) => {
+                                const title = src.title || src.name || src.chunkSource || `Source ${index + 1}`;
+                                const text = String(src.text || src.content || '').slice(0, 120);
+                                return `- ${title}${text ? `：${text}` : ''}`;
+                            }).join('\n');
+                    }
+                } catch (error) {
+                    console.error('[OAO Meeting] KB search failed:', error);
+                    if (oaoMeetingKbSearchResult) {
+                        oaoMeetingKbSearchResult.classList.remove('is-loading');
+                        oaoMeetingKbSearchResult.textContent = error?.message || meetingT('archiveKbFail');
+                    }
+                }
+            });
+            oaoMeetingKbSearchInput?.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') oaoMeetingKbSearchBtn?.click();
             });
 
             oaoMeetingVideoEnableBtn?.addEventListener('click', () => { void enableMeetingVideo(); });
@@ -14521,8 +16703,13 @@ ${emptyHint}`;
                 oaoMeetingModalTagline: '企业级会议 · 实时转写 · AI 智能纪要',
                 oaoMeetingNavWorkspace: '会议中心',
                 oaoMeetingNavWorkspaceHint: '转写·纪要',
-                oaoMeetingSttModeLabel: '语音识别',
+                oaoMeetingSttModeLabel: '转写引擎',
                 oaoMeetingSttModeAuto: '自动（推荐）',
+                oaoMeetingSttSensitivityLabel: '识别灵敏度',
+                oaoMeetingSttSensLow: '低 · 单人',
+                oaoMeetingSttSensNormal: '标准',
+                oaoMeetingSttSensHigh: '高 · 多人',
+                oaoMeetingSttSensMax: '最高 · 近距离多人',
                 oaoMeetingSttModeNative: '浏览器原生 · Web Speech',
                 oaoMeetingSttModeGlobalEn: '全球通用 · English STT',
                 oaoMeetingSttModeMultilang: '全球通用 · Multilingual',
@@ -14539,11 +16726,26 @@ ${emptyHint}`;
                 oaoMeetingResume: '继续',
                 oaoMeetingStop: '停止',
                 oaoMeetingDownload: '下载音频',
+                oaoMeetingUpload: '上传录音转写',
                 oaoMeetingAudioFormatWav: 'WAV（可拖动进度）',
                 oaoMeetingAudioFormatWebm: 'WebM（原始）',
                 oaoMeetingTranscriptTitle: '实时转录',
+                oaoMeetingSpeakerBarTitle: '发言人识别',
+                oaoMeetingSpeakerDiarizationLabel: '多人声纹识别',
+                userProfileLink: '个人中心',
                 oaoMeetingMinutesTitle: '会议纪要',
                 oaoMeetingGenerate: '生成纪要',
+                oaoMeetingArchiveKb: '存入 OAO 知识库',
+                oaoMeetingArchiveKbDone: '已归档 ✓',
+                oaoMeetingKbSearchTitle: '跨会议检索',
+                oaoMeetingKbSearchDesc: '检索已归档至 AnythingLLM 的历史会议纪要与转录',
+                oaoMeetingKbSearchExpand: '展开',
+                oaoMeetingKbSearchCollapse: '收起',
+                oaoMeetingKbSearchPlaceholder: '例如：上次关于预算的会议定了什么？',
+                oaoMeetingKbSearchBtn: '检索',
+                oaoMeetingControlRecordLabel: '录音控制',
+                oaoMeetingControlAudioLabel: '音频文件',
+                oaoMeetingPlaybackHint: '点击转录行可定位播放',
                 oaoMeetingCopyTranscript: '复制转录',
                 oaoMeetingExportTxt: '导出 TXT',
                 oaoMeetingExportWord: '导出 Word',
@@ -14713,8 +16915,13 @@ ${emptyHint}`;
                 oaoMeetingModalTagline: 'Enterprise meeting · Live transcript · AI minutes',
                 oaoMeetingNavWorkspace: 'Meeting Hub',
                 oaoMeetingNavWorkspaceHint: 'Transcript',
-                oaoMeetingSttModeLabel: 'Speech Recognition',
+                oaoMeetingSttModeLabel: 'STT Engine',
                 oaoMeetingSttModeAuto: 'Auto (Recommended)',
+                oaoMeetingSttSensitivityLabel: 'Sensitivity',
+                oaoMeetingSttSensLow: 'Low · solo',
+                oaoMeetingSttSensNormal: 'Normal',
+                oaoMeetingSttSensHigh: 'High · multi-speaker',
+                oaoMeetingSttSensMax: 'Max · nearby group',
                 oaoMeetingSttModeNative: 'Native · Web Speech API',
                 oaoMeetingSttModeGlobalEn: 'Global · English STT',
                 oaoMeetingSttModeMultilang: 'Global · Multilingual',
@@ -14731,11 +16938,26 @@ ${emptyHint}`;
                 oaoMeetingResume: 'Resume',
                 oaoMeetingStop: 'Stop',
                 oaoMeetingDownload: 'Download Audio',
+                oaoMeetingUpload: 'Upload & Transcribe',
                 oaoMeetingAudioFormatWav: 'WAV (seekable)',
                 oaoMeetingAudioFormatWebm: 'WebM (original)',
                 oaoMeetingTranscriptTitle: 'Live Transcript',
+                oaoMeetingSpeakerBarTitle: 'Speakers',
+                oaoMeetingSpeakerDiarizationLabel: 'Multi-speaker voice ID',
+                userProfileLink: 'Profile',
                 oaoMeetingMinutesTitle: 'Meeting Minutes',
                 oaoMeetingGenerate: 'Generate Minutes',
+                oaoMeetingArchiveKb: 'Save to OAO KB',
+                oaoMeetingArchiveKbDone: 'Archived ✓',
+                oaoMeetingKbSearchTitle: 'Cross-meeting Search',
+                oaoMeetingKbSearchDesc: 'Search archived meeting minutes and transcripts in AnythingLLM',
+                oaoMeetingKbSearchExpand: 'Expand',
+                oaoMeetingKbSearchCollapse: 'Collapse',
+                oaoMeetingKbSearchPlaceholder: 'e.g. What did we decide about budget last time?',
+                oaoMeetingKbSearchBtn: 'Search',
+                oaoMeetingControlRecordLabel: 'Recording',
+                oaoMeetingControlAudioLabel: 'Audio',
+                oaoMeetingPlaybackHint: 'Click a transcript line to seek playback',
                 oaoMeetingCopyTranscript: 'Copy Transcript',
                 oaoMeetingExportTxt: 'Export TXT',
                 oaoMeetingExportWord: 'Export Word',
@@ -15032,7 +17254,8 @@ ${emptyHint}`;
                 oaoMeetingNavNoticeHint: 'oaoMeetingNavNoticeHint',
                 oaoMeetingNavVideoHint: 'oaoMeetingNavVideoHint',
                 oaoMeetingNavSettingsHint: 'oaoMeetingNavSettingsHint',
-                oaoMeetingSttModeLabel: 'oaoMeetingSttModeLabel'
+                oaoMeetingSttModeLabel: 'oaoMeetingSttModeLabel',
+                oaoMeetingSttSensitivityLabel: 'oaoMeetingSttSensitivityLabel'
             };
             Object.entries(meetingNavMap).forEach(([id, key]) => {
                 const el = document.getElementById(id);
@@ -15053,6 +17276,20 @@ ${emptyHint}`;
                 });
             }
 
+            const sttSensSelect = document.getElementById('oaoMeetingSttSensitivity');
+            if (sttSensSelect) {
+                [...sttSensSelect.options].forEach((opt) => {
+                    const keyMap = {
+                        '1': 'oaoMeetingSttSensLow',
+                        '2': 'oaoMeetingSttSensNormal',
+                        '3': 'oaoMeetingSttSensHigh',
+                        '4': 'oaoMeetingSttSensMax'
+                    };
+                    const k = keyMap[opt.value];
+                    if (k && translations[lang][k]) opt.textContent = translations[lang][k];
+                });
+            }
+
             const audioFormatSelect = document.getElementById('oaoMeetingAudioFormat');
             if (audioFormatSelect) {
                 [...audioFormatSelect.options].forEach((opt) => {
@@ -15067,9 +17304,17 @@ ${emptyHint}`;
                 oaoMeetingResumeBtn: 'oaoMeetingResume',
                 oaoMeetingStopBtn: 'oaoMeetingStop',
                 oaoMeetingDownloadBtn: 'oaoMeetingDownload',
+                oaoMeetingUploadBtn: 'oaoMeetingUpload',
                 oaoMeetingTranscriptTitle: 'oaoMeetingTranscriptTitle',
+                oaoMeetingSpeakerBarTitle: 'oaoMeetingSpeakerBarTitle',
+                oaoMeetingSpeakerDiarizationLabel: 'oaoMeetingSpeakerDiarizationLabel',
                 oaoMeetingMinutesTitle: 'oaoMeetingMinutesTitle',
                 oaoMeetingGenerateBtn: 'oaoMeetingGenerate',
+                oaoMeetingControlRecordLabel: 'oaoMeetingControlRecordLabel',
+                oaoMeetingControlAudioLabel: 'oaoMeetingControlAudioLabel',
+                oaoMeetingKbSearchTitle: 'oaoMeetingKbSearchTitle',
+                oaoMeetingKbSearchBtn: 'oaoMeetingKbSearchBtn',
+                oaoMeetingPlaybackHint: 'oaoMeetingPlaybackHint',
                 oaoMeetingCopyTranscript: 'oaoMeetingCopyTranscript',
                 oaoMeetingExportTranscriptTxt: 'oaoMeetingExportTxt',
                 oaoMeetingExportTranscriptDoc: 'oaoMeetingExportWord',
@@ -15085,6 +17330,26 @@ ${emptyHint}`;
                 const el = document.getElementById(id);
                 if (el) el.textContent = translations[lang][key];
             });
+            const kbDescEl = document.getElementById('oaoMeetingKbSearchDesc');
+            if (kbDescEl && translations[lang].oaoMeetingKbSearchDesc) {
+                kbDescEl.textContent = translations[lang].oaoMeetingKbSearchDesc;
+            }
+            if (oaoMeetingKbSearchInput && translations[lang].oaoMeetingKbSearchPlaceholder) {
+                oaoMeetingKbSearchInput.placeholder = translations[lang].oaoMeetingKbSearchPlaceholder;
+            }
+            if (oaoMeetingKbSearchToggle && oaoMeetingKbSearchBody) {
+                const collapsed = oaoMeetingKbSearchBody.classList.contains('hidden');
+                oaoMeetingKbSearchToggle.textContent = collapsed
+                    ? (translations[lang].oaoMeetingKbSearchExpand || 'Expand')
+                    : (translations[lang].oaoMeetingKbSearchCollapse || 'Collapse');
+            }
+            window.refreshMeetingWorkspaceI18n?.();
+            meetingSpeakerDiarizer?.setLanguage(lang);
+            renderMeetingSpeakerPanel();
+            const userProfileLink = document.getElementById('userProfileLink');
+            if (userProfileLink && translations[lang].userProfileLink) {
+                userProfileLink.textContent = translations[lang].userProfileLink;
+            }
 
             const fontSizeOpts = { oaoMeetingFontSm: 'sm', oaoMeetingFontMd: 'md', oaoMeetingFontLg: 'lg' };
             const fontSelect = document.getElementById('oaoMeetingFontSize');
@@ -15800,6 +18065,7 @@ ${emptyHint}`;
             wechatAuthVerified = true;
             activeAuthMethod = 'wechat';
             await refreshStatus();
+            void window.OAOPlatform?.syncUser?.({ silent: true });
             if (!silent) {
                 showConnectionToast(translations[currentLang].wechatLoginSuccess, 'success');
             }
@@ -15935,6 +18201,7 @@ ${emptyHint}`;
             activeAuthMethod = 'wallet';
             clearAdminSession();
             saveWalletSession(address, signature, message);
+            void window.OAOPlatform?.syncUser?.({ silent: true });
             return signature;
         }
 
@@ -16264,25 +18531,55 @@ ${emptyHint}`;
         }
 
         async function tryRestoreWalletSession() {
-            if (window.isOAOWeChatVerified?.()) return;
-            if (window.isOAOAdminVerified?.()) return;
+            if (window.isOAOWeChatVerified?.()) return true;
+            if (window.isOAOAdminVerified?.()) return true;
+
+            const session = loadWalletSession();
+            if (session?.address && session.message && session.signature) {
+                try {
+                    const valid = await verifyWalletSignature(session.address, session.message, session.signature);
+                    if (valid) {
+                        walletAuthVerified = true;
+                        currentAddress = session.address;
+                        await refreshStatus();
+                        void window.OAOPlatform?.syncUser?.({ silent: true });
+
+                        const modal = initWeb3Modal();
+                        if (modal?.cachedProvider) {
+                            try {
+                                const instance = await modal.connectTo(modal.cachedProvider);
+                                provider = new ethers.providers.Web3Provider(instance);
+                                signer = provider.getSigner();
+                                bindProviderEvents(instance);
+                            } catch (reconnectErr) {
+                                console.warn('钱包 Provider 后台重连失败（不影响登录状态）:', reconnectErr);
+                            }
+                        }
+                        return true;
+                    }
+                } catch (verifyErr) {
+                    console.warn('本地钱包会话校验失败:', verifyErr);
+                }
+            }
+
             const modal = initWeb3Modal();
-            if (!modal?.cachedProvider) return;
+            if (!modal?.cachedProvider) return false;
             try {
                 const instance = await modal.connectTo(modal.cachedProvider);
                 provider = new ethers.providers.Web3Provider(instance);
                 signer = provider.getSigner();
                 const address = await signer.getAddress();
-                const session = loadWalletSession();
+                const saved = loadWalletSession();
 
-                if (session && session.address === address.toLowerCase()) {
-                    const valid = await verifyWalletSignature(address, session.message, session.signature);
+                if (saved && saved.address === address.toLowerCase()) {
+                    const valid = await verifyWalletSignature(address, saved.message, saved.signature);
                     if (valid) {
                         walletAuthVerified = true;
                         currentAddress = address;
                         bindProviderEvents(instance);
                         await refreshStatus();
-                        return;
+                        void window.OAOPlatform?.syncUser?.({ silent: true });
+                        return true;
                     }
                 }
 
@@ -16295,9 +18592,12 @@ ${emptyHint}`;
                 await requireWalletSignature(signer, address);
                 bindProviderEvents(instance);
                 await refreshStatus();
+                return true;
             } catch (error) {
                 console.warn('恢复钱包会话失败:', error);
+                if (walletAuthVerified && currentAddress) return true;
                 handleDisconnect();
+                return false;
             }
         }
 
@@ -16337,6 +18637,7 @@ ${emptyHint}`;
                 clearWalletSession();
                 clearWeChatSession();
                 clearAdminSession();
+                window.OAOPlatform?.clearSession?.();
     
                 resetAuthTopbarUI();
                 window.resetOAOHomeToInitialState?.();

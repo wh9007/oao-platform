@@ -12,8 +12,13 @@
   ③ 一键上传GitHub.bat   版本更新 / 发布到 GitHub Pages
 
   需要外网访问本机 AI 时：打开 AnythingLLM + 双击「启动远程AI.bat」，保持窗口不关
-  首次运行会自动配置 Worker；高级菜单用 OAO服务器.bat menu
+  首次运行会自动配置 Worker
+  高级菜单：启动远程AI.bat menu
+  连通检测：启动远程AI.bat check
+  V2Ray 共存：启动远程AI.bat v2ray（或 V2Ray与Tunnel共存.bat）
   上传后等约 2 分钟，正式站 Ctrl+F5 强制刷新。
+
+  ※ OAO服务器.bat 仍可用，内部已转发到「启动远程AI.bat」
 
 
 ───────────────────────────────────────────────────
@@ -32,18 +37,17 @@
         检查 DNS 与 V2Ray 提示
         首次自动配置 Worker
         启动 Cloudflare Tunnel
+    · 可选参数：
+        menu   — 高级菜单（原 OAO服务器 菜单）
+        check  — 仅检测连通性
+        v2ray  — V2Ray 与 Tunnel 共存修复
     · 须保持本窗口打开，直到日志出现 Registered tunnel connection
     · 外网用户访问：https://wh9007.github.io/oao-platform/OAO.html
-    · V2Ray 用户：先运行 V2Ray与Tunnel共存.bat 或暂时关闭 V2Ray
-    · 检测连通：OAO服务器.bat check
-    · 高级菜单：OAO服务器.bat menu
 
   【3. 一键上传GitHub.bat — 版本更新】
     · 自动 commit + push 到 wh9007/oao-platform
     · 首次需配置 git-token.txt（GitHub Token，repo 权限）
     · 日志：upload-log.txt
-
-  ※ 旧版分散脚本已删除，统一使用上述 3 个入口 + scripts\ 内部文件
 
 
 ───────────────────────────────────────────────────
@@ -59,8 +63,8 @@
 
   【内部脚本（勿删）】
     scripts/lib.cmd        公共函数库
-    scripts/oao-services.cmd  后台服务（由 OAO服务器 调用）
-    do-upload.ps1          上传逻辑（由一键上传 调用）
+    scripts/*.ps1          启动/上传逻辑
+    do-upload.ps1          上传核心（由 upload-github.ps1 调用）
     cloudflare/            Worker + Tunnel 配置
 
   【勿分享 / 勿上传】
@@ -70,47 +74,42 @@
 
 
 ───────────────────────────────────────────────────
-三、AI 架构（本地 + 云端）
+三、小O会议 · 语音识别
+───────────────────────────────────────────────────
+
+  · 转写区上方可设置「识别灵敏度」
+    标准 — 单人近距离
+    高   — 推荐，多人同麦克风
+    最高 — 多人近距离（关闭降噪/回声消除，增强弱声）
+  · 「多人声纹识别」可区分发言人 A/B/C，支持手动改名
+  · 建议使用 Chrome / Edge，并将系统麦克风音量调高
+
+
+───────────────────────────────────────────────────
+四、AI 架构（本地 + 云端）
 ───────────────────────────────────────────────────
 
   默认：AnythingLLM + Ollama 优先；Tunnel 离线时智谱 GLM 备援
 
-  【AnythingLLM 知识库 — 必做】
-    1. 安装 AnythingLLM 并启动（http://127.0.0.1:3001）
-    2. 创建工作区「OAOeth」，绑定 Ollama 模型 qwen2.5:7b
-    3. 工作区聊天设置 → 聊天模式选「查询 Query」（知识库检索；勿用 Agent）
-    4. 填写 OAO_ANYTHINGLLM_API_KEY（AnythingLLM 设置 → API Keys）
-    5. 登录 OAO 后点击 AI 区「+」上传文件/文本到知识库
-    6. 对话默认从 OAOeth 工作区检索回答
-
   本地测试：打开OAO.bat + 本机 Ollama + AnythingLLM
-  外网连本机：OAO服务器.bat 选项 1 + Worker 配置 LLM_ORIGIN / OLLAMA_ORIGIN
-  智谱备援：OAO服务器.bat 选项 5 或 cloudflare\部署智谱Worker.bat
-
-
-───────────────────────────────────────────────────
-四、OAO翻译 / 小O会议
-───────────────────────────────────────────────────
-
-  · 浏览器模式默认可用（Chrome / Edge + 麦克风）
-  · 分享观看需 OAO服务器 选项 2 或 1（:3011 中继）
-  · 会议纪要优先 AnythingLLM + 本地 Ollama；失败时智谱备援
+  外网连本机：启动远程AI.bat + Worker 配置 LLM_ORIGIN / OLLAMA_ORIGIN
+  智谱备援：cloudflare\部署智谱Worker.bat
 
 
 ───────────────────────────────────────────────────
 五、常见问题
 ───────────────────────────────────────────────────
 
-  Q：外网 AI 无响应？
-  A：OAO服务器.bat 选 [1]；确认 Tunnel Token 与 Worker 变量；控制台 OAO_Diagnostic.testRemoteTunnel()
+  Q：旁边的人说话识别不到？
+  A：小O会议 → 识别灵敏度选「最高」；调高系统麦克风；两人尽量靠近麦克风
 
-  Q：本地 AI 显示 Ollama？
-  A：正常。请 ollama pull qwen2.5 并启动 AnythingLLM oaoeth 工作区。
+  Q：外网 AI 无响应？
+  A：启动远程AI.bat check；确认 Tunnel Token 与 Worker 变量
 
   Q：上传失败？
   A：查看 upload-log.txt；重新生成 GitHub Token（repo 权限）。
 
 
 ═══════════════════════════════════════════════════
-  更新：2026-08-02  三脚本整合 · 本地测试 / 远程 AI / GitHub 发布
+  更新：2026-08-08  脚本整合 · 可调语音识别灵敏度
 ═══════════════════════════════════════════════════

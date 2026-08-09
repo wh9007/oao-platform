@@ -1,14 +1,4 @@
 ﻿@echo off
-title OAO 远程 AI
-cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0cloudflare\ensure-ps1-bom.ps1" 2>nul
-if /I "%~1"=="menu" (
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\remote-ai-start.ps1" -Menu
-    exit /b %ERRORLEVEL%
-)
-if /I "%~1"=="check" (
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\remote-ai-start.ps1" -CheckOnly
-    exit /b %ERRORLEVEL%
-)
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\remote-ai-start.ps1"
+rem 兼容旧入口 — 已合并到「启动远程AI.bat」
+call "%~dp0启动远程AI.bat" %*
 exit /b %ERRORLEVEL%

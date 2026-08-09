@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 · OAO.ETH</title>
+    <link rel="stylesheet" href="assets/css/oao-design-tokens.css">
+    <link rel="stylesheet" href="assets/css/oao-enterprise.css">
+    <style>
+        body { max-width: 920px; margin: 0 auto; padding: 24px 16px 48px; }
+        .profile-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .profile-head h1 { font-size: 1.5rem; margin: 0; }
+        .profile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .profile-card { background: var(--card-bg, #f5f5f5); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+        .profile-card h2 { font-size: 1rem; margin-bottom: 10px; opacity: .85; }
+        .profile-meta { font-size: 14px; line-height: 1.7; word-break: break-all; }
+        .meeting-item { border-top: 1px solid rgba(0,0,0,.08); padding: 12px 0; }
+        .meeting-item:first-child { border-top: none; padding-top: 0; }
+        .meeting-item h3 { font-size: 15px; margin-bottom: 6px; }
+        .meeting-item time { font-size: 12px; opacity: .6; }
+        .meeting-item .kb-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; background: rgba(26, 86, 219, 0.12); color: #1a56db; }
+        .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-color, #ccc); text-decoration: none; color: inherit; background: transparent; cursor: pointer; font: inherit; }
+        .btn-primary { background: #1a56db; color: #fff; border-color: #1a56db; }
+        .empty { opacity: .55; font-size: 14px; }
+        #profileStatus { margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+        #profileStatus.is-error { color: #b45309; }
+    </style>
+    <script>
+        (function () {
+            var h = location.hostname || '';
+            if ((h.indexOf('github.io') !== -1 || h.indexOf('wh9007.github.io') !== -1) && !window.OAO_WORKER_URL) {
+                window.OAO_WORKER_URL = 'https://oao-ai.wh529007.workers.dev';
+            }
+        })();
+    </script>
+    <script src="local-config.js" onerror="void 0"></script>
+    <script src="assets/js/oao-platform-api.js"></script>
+</head>
+<body>
+    <div class="profile-head">
+        <h1 id="pageTitle">个人中心</h1>
+        <div class="profile-actions">
+            <a class="btn" id="backHome" href="OAO.html">返回 OAO</a>
+            <button class="btn btn-primary" id="syncBtn" type="button">同步数据</button>
+        </div>
+    </div>
+    <p id="profileStatus">加载中…</p>
+
+    <section class="profile-card">
+        <h2 id="accountTitle">账户信息</h2>
+        <div class="profile-meta" id="accountMeta">—</div>
+    </section>
+
+    <section class="profile-card">
+        <h2 id="translateTitle">翻译使用</h2>
+        <div class="profile-meta" id="translateMeta">—</div>
+    </section>
+
+    <section class="profile-card">
+        <h2 id="meetingsTitle">会议摘要记录</h2>
+        <div id="meetingsList"><p class="empty">暂无记录</p></div>
+    </section>
+
+    <script>
+        const lang = (localStorage.getItem('oao-language') === 'en') ? 'en' : 'zh';
+        const T = {
+            zh: {
+                pageTitle: '个人中心', back: '返回 OAO', sync: '同步数据',
+                account: '账户信息', translate: '翻译使用', meetings: '会议摘要记录',
+                needLogin: '请先在 OAO 主页登录钱包或微信，再打开个人中心。',
+                syncFailed: '云端同步失败。请确认 Worker 已部署 D1 并配置 JWT Secrets（见 cloudflare/DEPLOY-D1-ADMIN.md）。',
+                loading: '加载中…', emptyMeetings: '暂无会议摘要。在小O会议中生成 AI 纪要后会自动保存摘要（不含完整转录）。',
+                kbArchived: '已入知识库',
+                translateStats: (c, ch, t) => `累计翻译 ${c} 次 · 约 ${ch} 字 · 最近：${t || '—'}`,
+                loginCount: (n) => `登录次数：${n}`,
+                localAuth: (id) => `本地已登录：${id}`,
+            },
+            en: {
+                pageTitle: 'Profile', back: 'Back to OAO', sync: 'Sync',
+                account: 'Account', translate: 'Translation', meetings: 'Meeting Summaries',
+                needLogin: 'Please login on OAO home first, then open Profile.',
+                syncFailed: 'Cloud sync failed. Deploy D1 + JWT secrets on Worker first.',
+                loading: 'Loading…', emptyMeetings: 'No meeting summaries yet.',
+                kbArchived: 'In knowledge base',
+                translateStats: (c, ch, t) => `${c} sessions · ~${ch} chars · Last: ${t || '—'}`,
+                loginCount: (n) => `Logins: ${n}`,
+                localAuth: (id) => `Local session: ${id}`,
+            }
+        }[lang];
+
+        document.getElementById('pageTitle').textContent = T.pageTitle;
+        document.getElementById('backHome').textContent = T.back;
+        document.getElementById('syncBtn').textContent = T.sync;
+        document.getElementById('accountTitle').textContent = T.account;
+        document.getElementById('translateTitle').textContent = T.translate;
+        document.getElementById('meetingsTitle').textContent = T.meetings;
+
+        const statusEl = document.getElementById('profileStatus');
+        function setStatus(text, isError) {
+            statusEl.textContent = text || '';
+            statusEl.classList.toggle('is-error', !!isError);
+        }
+
+        function renderMeetings(list) {
+            const box = document.getElementById('meetingsList');
+            if (!list || !list.length) {
+                box.innerHTML = '<p class="empty">' + T.emptyMeetings + '</p>';
+                return;
+            }
+            box.innerHTML = list.map((m) => (
+                '<article class="meeting-item">' +
+                '<h3>' + escapeHtml(m.title || 'Meeting') +
+                (m.kb_archived ? (' <span class="kb-badge">' + escapeHtml(T.kbArchived) + '</span>') : '') +
+                '</h3>' +
+                '<time>' + escapeHtml(formatTime(m.created_at)) + '</time>' +
+                '<p>' + escapeHtml((m.summary || '').slice(0, 600)) + ((m.summary || '').length > 600 ? '…' : '') + '</p>' +
+                '</article>'
+            )).join('');
+        }
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/[&<>"']/g, (c) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+
+        function formatTime(iso) {
+            if (!iso) return '—';
+            try {
+                return new Date(iso).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US');
+            } catch (_) { return iso; }
+        }
+
+        function showLocalAuthHint(auth) {
+            if (!auth) return;
+            document.getElementById('accountMeta').innerHTML =
+                '<div>' + escapeHtml(T.localAuth(auth.userId)) + '</div>' +
+                '<div style="opacity:.7;margin-top:6px;">' + escapeHtml(T.syncFailed) + '</div>';
+        }
+
+        async function loadProfile() {
+            setStatus(T.loading, false);
+
+            const auth = window.OAOPlatform?.detectLocalAuth?.();
+            if (!auth) {
+                setStatus(T.needLogin, true);
+                return;
+            }
+
+            const session = await OAOPlatform.ensurePlatformSession({ silent: true });
+            if (!session.ok) {
+                showLocalAuthHint(auth);
+                setStatus(T.syncFailed, true);
+                return;
+            }
+
+            try {
+                const data = await OAOPlatform.fetchProfile();
+                const u = data.user;
+                document.getElementById('accountMeta').innerHTML =
+                    '<div>' + escapeHtml(u.ensName || u.address) + '</div>' +
+                    '<div>' + escapeHtml(u.address) + '</div>' +
+                    '<div>' + T.loginCount(u.loginCount) + '</div>';
+                const tr = data.translate || {};
+                document.getElementById('translateMeta').textContent = T.translateStats(
+                    tr.translate_count || 0, tr.char_count || 0, formatTime(tr.last_used_at)
+                );
+                const meetings = await OAOPlatform.fetchMeetings();
+                renderMeetings(meetings.meetings || []);
+                setStatus('', false);
+            } catch (e) {
+                if (e && e.status === 401) {
+                    OAOPlatform.clearSession();
+                    const retry = await OAOPlatform.ensurePlatformSession({ silent: true });
+                    if (retry.ok) {
+                        return loadProfile();
+                    }
+                }
+                showLocalAuthHint(auth);
+                setStatus((e && e.message) || T.syncFailed, true);
+            }
+        }
+
+        document.getElementById('syncBtn').addEventListener('click', async () => {
+            setStatus(T.loading, false);
+            const auth = OAOPlatform.detectLocalAuth();
+            if (!auth) {
+                setStatus(T.needLogin, true);
+                return;
+            }
+            const synced = await OAOPlatform.syncUserFromStorage({ silent: false });
+            if (!synced?.token) {
+                showLocalAuthHint(auth);
+                setStatus(T.syncFailed, true);
+                return;
+            }
+            await loadProfile();
+        });
+
+        loadProfile();
+    </script>
+</body>
+</html>
