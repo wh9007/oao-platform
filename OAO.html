@@ -3001,8 +3001,14 @@
         }
 
         #pageHome.active.home-authed .home-hero-brand {
-            transition: transform 0.28s ease;
-            will-change: transform;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+            width: max-content;
+            max-width: min(92vw, 960px);
         }
 
         .oao-side-panel-body {
@@ -8108,20 +8114,8 @@
                     aiHomeToggle.classList.toggle('collapsed', rightCollapsed);
                 }
 
-                requestAnimationFrame(() => {
-                    if (!oaoToolbarToggle || !aiHomeToggle || !homeHeroBrand) return;
-                    const logoEl = document.getElementById('homeHeroLogo');
-                    const leftRect = oaoToolbarToggle.getBoundingClientRect();
-                    const rightRect = aiHomeToggle.getBoundingClientRect();
-                    const leftCenter = leftRect.left + leftRect.width / 2;
-                    const rightCenter = rightRect.left + rightRect.width / 2;
-                    const targetCenterX = (leftCenter + rightCenter) / 2;
-                    const measureEl = logoEl || homeHeroBrand;
-                    const measureRect = measureEl.getBoundingClientRect();
-                    const currentCenterX = measureRect.left + measureRect.width / 2;
-                    const offsetX = targetCenterX - currentCenterX;
-                    homeHeroBrand.style.transform = Math.abs(offsetX) > 0.5 ? `translateX(${offsetX}px)` : '';
-                });
+                /* 背景 OAO Logo 固定于视口正中，不随侧栏箭头位置偏移 */
+                if (homeHeroBrand) homeHeroBrand.style.transform = '';
             }
 
             window.syncHomeSidePanelLayout = syncHomeSidePanelLayout;
