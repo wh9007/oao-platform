@@ -3,28 +3,64 @@ $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
 $ErrorActionPreference = 'Continue'
 
+$CfDir = $PSScriptRoot
+$ConfigFile = Join-Path $CfDir 'remote-access.config.json'
+$WorkerUrl = 'https://oao-ai.wh529007.workers.dev'
+$LlmHost = 'llm.wh9007.dpdns.org'
+$OllamaHost = 'ollama.wh9007.dpdns.org'
+$SearxHost = 'search.wh9007.dpdns.org'
+
+if (Test-Path $ConfigFile) {
+    try {
+        $cfg = Get-Content $ConfigFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($cfg.worker_url) { $WorkerUrl = $cfg.worker_url }
+        if ($cfg.llm_tunnel_hostname) { $LlmHost = ($cfg.llm_tunnel_hostname -replace '^https?://', '') }
+        if ($cfg.ollama_tunnel_hostname) { $OllamaHost = ($cfg.ollama_tunnel_hostname -replace '^https?://', '') }
+        if ($cfg.searx_tunnel_hostname) { $SearxHost = ($cfg.searx_tunnel_hostname -replace '^https?://', '') }
+    } catch {}
+}
+
 Write-Host ''
 Write-Host '=== OAO 远程 AI 连通性诊断 ===' -ForegroundColor Cyan
 
-function Test-Url($label, $url) {
+function Test-Url($label, $url, [switch]$JsonOk) {
     Write-Host ("`n[{0}] {1}" -f $label, $url)
     try {
-        $r = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 12
+        $r = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 15
         Write-Host ("  正常 HTTP {0}" -f $r.StatusCode) -ForegroundColor Green
-        if ($r.Content.Length -lt 400) { Write-Host ("  返回: {0}" -f $r.Content.Trim()) }
+        $body = $r.Content.Trim()
+        if ($JsonOk -and $body.StartsWith('{')) {
+            try {
+                $data = $body | ConvertFrom-Json
+                if ($data.ok -eq $true -and $data.count -gt 0) {
+                    Write-Host ("  搜索 OK: count={0}" -f $data.count) -ForegroundColor Green
+                } elseif ($data.results -and $data.results.Count -gt 0) {
+                    Write-Host ("  SearXNG OK: results={0}" -f $data.results.Count) -ForegroundColor Green
+                } elseif ($data.error) {
+                    Write-Host ("  业务错误: {0}" -f $data.error) -ForegroundColor Yellow
+                    if ($data.hint) { Write-Host ("  提示: {0}" -f $data.hint) -ForegroundColor Yellow }
+                }
+            } catch {}
+        } elseif ($body.Length -lt 400) {
+            Write-Host ("  返回: {0}" -f $body)
+        }
         return $true
     } catch {
         $msg = $_.Exception.Message
         if ($_.Exception.Response) {
             $code = [int]$_.Exception.Response.StatusCode
             Write-Host ("  失败 HTTP {0}" -f $code) -ForegroundColor Red
+            try {
+                $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+                $errBody = $reader.ReadToEnd()
+                if ($errBody -and $errBody.Length -lt 500) { Write-Host ("  返回: {0}" -f $errBody.Trim()) }
+            } catch {}
         } else {
             Write-Host ("  失败: {0}" -f $msg) -ForegroundColor Red
         }
         if ($msg -match '1033|530|Tunnel') {
             Write-Host '  => Cloudflare Tunnel 错误 1033: Tunnel 未连接' -ForegroundColor Yellow
             Write-Host '     请先运行 OAO服务器.bat，并保持窗口打开' -ForegroundColor Yellow
-            Write-Host '     看到 Registered tunnel connection 后再检测' -ForegroundColor Yellow
         }
         return $false
     }
@@ -36,29 +72,38 @@ if ($cf) {
 } else {
     Write-Host ''
     Write-Host '[Tunnel 进程] cloudflared 未运行' -ForegroundColor Red
-    Write-Host '  => 这就是 Error 1033 的原因. 请双击 OAO服务器.bat 启动 Tunnel' -ForegroundColor Yellow
+    Write-Host '  => Tunnel 域名与 Worker 代理可能失败. 请双击 OAO服务器.bat' -ForegroundColor Yellow
 }
 
-Test-Url '本机 AnythingLLM' 'http://127.0.0.1:3001/api/ping' | Out-Null
-Test-Url '本机 Ollama' 'http://127.0.0.1:11434/api/tags' | Out-Null
-Test-Url 'Worker 智谱健康' 'https://oao-ai.wh529007.workers.dev/glm/health' | Out-Null
-Test-Url 'Tunnel 域名 LLM' 'https://llm.wh9007.dpdns.org/api/ping' | Out-Null
-Test-Url 'Worker 代理本机 AI' 'https://oao-ai.wh529007.workers.dev/api/ping' | Out-Null
-Test-Url 'Worker 代理 Ollama' 'https://oao-ai.wh529007.workers.dev/ollama/api/tags' | Out-Null
-Test-Url 'Tunnel Ollama 域名' 'https://ollama.wh9007.dpdns.org/api/tags' | Out-Null
+$results = @{}
+$results['local_llm'] = Test-Url '本机 AnythingLLM' 'http://127.0.0.1:3001/api/ping'
+$results['local_ollama'] = Test-Url '本机 Ollama' 'http://127.0.0.1:11434/api/tags'
+$results['local_searx'] = Test-Url '本机 SearXNG' 'http://127.0.0.1:8080/search?q=test&format=json' -JsonOk
+$results['tunnel_llm'] = Test-Url 'Tunnel 域名 LLM' "https://$LlmHost/api/ping"
+$results['worker_llm'] = Test-Url 'Worker 代理本机 AI' "$WorkerUrl/api/ping"
+$results['worker_ollama'] = Test-Url 'Worker 代理 Ollama' "$WorkerUrl/ollama/api/tags"
+$results['tunnel_ollama'] = Test-Url 'Tunnel Ollama 域名' "https://$OllamaHost/api/tags"
+$results['tunnel_searx'] = Test-Url 'Tunnel SearXNG 域名' "https://$SearxHost/search?q=test&format=json" -JsonOk
+$results['worker_websearch'] = Test-Url 'Worker 联网搜索' "$WorkerUrl/web-search?q=OpenAI" -JsonOk
+
+Write-Host ''
+Write-Host '--- 验收摘要 ---' -ForegroundColor Cyan
+$pass = ($results.Values | Where-Object { $_ }).Count
+$total = $results.Count
+Write-Host ("  通过 {0}/{1} 项" -f $pass, $total) -ForegroundColor $(if ($pass -eq $total) { 'Green' } else { 'Yellow' })
 
 Write-Host ''
 Write-Host '外网用户访问: https://wh9007.github.io/oao-platform/OAO.html' -ForegroundColor Cyan
 Write-Host '本机需满足:' -ForegroundColor Cyan
 Write-Host '  1. AnythingLLM 桌面版已打开, 端口 3001, 工作区 oaoeth'
 Write-Host '  2. Ollama 已运行, 端口 11434'
-Write-Host '  3. 双击 OAO服务器.bat，保持窗口打开'
-Write-Host '  4. Worker 已配置 LLM_ORIGIN=https://llm.wh9007.dpdns.org'
-Write-Host '              OLLAMA_ORIGIN=你的 ollama 隧道域名'
-Write-Host '              ANYTHINGLLM_API_KEY=你的 API Key'
+Write-Host '  3. SearXNG 已运行, 端口 8080 (Docker, OAO服务器.bat 自动启动)'
+Write-Host '  4. Tunnel 公网路由: search.* -> http://127.0.0.1:8080'
+Write-Host '  5. 双击 OAO服务器.bat，保持窗口打开'
+Write-Host '  6. Worker 变量: LLM_ORIGIN / OLLAMA_ORIGIN / SEARXNG_ORIGIN'
+Write-Host '  7. 浏览器控制台: OAO_Diagnostic.testWebSearch()'
 Write-Host ''
 
-Write-Host ''
 Write-Host '--- Tunnel 所需 DNS 检测 ---' -ForegroundColor Cyan
 $dnsHosts = @('argotunnel.com', 'cfd-features.argotunnel.com', 'api.cloudflare.com', 'region1.v2.argotunnel.com')
 $dnsFail = $false
@@ -73,12 +118,19 @@ foreach ($h in $dnsHosts) {
 }
 if ($dnsFail) {
     Write-Host ''
-    Write-Host 'Tunnel 日志若出现 lookup argotunnel.com: no such host, 是 DNS 问题' -ForegroundColor Yellow
-    Write-Host '修复: 设置 -> 网络 -> WLAN -> DNS 手动 -> 1.1.1.1 / 8.8.8.8' -ForegroundColor Yellow
-    Write-Host '然后管理员 CMD 运行 ipconfig /flushdns, 再选 1 启动 Tunnel' -ForegroundColor Yellow
+    Write-Host 'Tunnel DNS 失败时: WiFi DNS 改为 1.1.1.1 / 8.8.8.8, 运行 ipconfig /flushdns' -ForegroundColor Yellow
 }
 
 Write-Host ''
-Write-Host '说明: 选项 6 只做检测, 不会启动 Tunnel' -ForegroundColor DarkGray
-Write-Host '      远程 AI 要可用, 请先双击 OAO服务器.bat 并保持窗口不关' -ForegroundColor DarkGray
+Write-Host '联网搜索链路: 浏览器 -> Worker /web-search -> Tunnel -> SearXNG -> Ollama 总结' -ForegroundColor DarkGray
 Write-Host ''
+
+if (-not $results['local_searx']) {
+    Write-Host '[提示] 本机 SearXNG 未运行 — 需 Docker Desktop, 或 cd searxng && docker compose up -d' -ForegroundColor Yellow
+}
+if (-not $results['worker_websearch']) {
+    Write-Host '[提示] Worker /web-search 失败 — 运行 cloudflare\setup-remote-access.ps1 或 npx wrangler deploy' -ForegroundColor Yellow
+}
+if (-not $results['tunnel_searx']) {
+    Write-Host '[提示] Tunnel search 域名失败 — 在 Cloudflare 添加 search.wh9007.dpdns.org -> 127.0.0.1:8080' -ForegroundColor Yellow
+}

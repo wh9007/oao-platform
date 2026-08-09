@@ -40,6 +40,7 @@ function Get-RemoteConfig {
         worker_url = 'https://oao-ai.wh529007.workers.dev'
         llm_tunnel_hostname = 'llm.wh9007.dpdns.org'
         ollama_tunnel_hostname = 'ollama.wh9007.dpdns.org'
+        searx_tunnel_hostname = 'search.wh9007.dpdns.org'
         github_pages_url = 'https://wh9007.github.io/oao-platform/OAO.html'
     }
 }
@@ -70,7 +71,7 @@ function Show-Banner {
     Write-Host ' ============================================================' -ForegroundColor Cyan
     Write-Host ''
     Write-Host '  外网打开:' $Cfg.github_pages_url
-    Write-Host '  链路: 浏览器 -> Cloudflare Worker -> Tunnel -> 本机 AI'
+    Write-Host '  链路: 浏览器 -> Worker -> Tunnel -> 本机 AI / SearXNG 联网'
     Write-Host '  只需保持本窗口打开，关闭 = 外网无法访问本机 AI'
     Write-Host '  高级菜单: OAO服务器.bat menu' -ForegroundColor DarkGray
     Write-Host ''
@@ -94,6 +95,23 @@ function Ensure-BackgroundServices {
     ) -WindowStyle Minimized
     Start-Sleep -Seconds 3
     Write-Host '  (完成) 后台服务已启动（可最小化，勿关闭）' -ForegroundColor Green
+}
+
+function Ensure-SearXNGService {
+    Write-Host ''
+    Write-Host ' [1b/5] SearXNG 联网搜索 (8080)' -ForegroundColor Cyan
+    $searxScript = Join-Path $PSScriptRoot 'searxng-start.ps1'
+    if (-not (Test-Path $searxScript)) {
+        Write-Host '  (跳过) 未找到 searxng-start.ps1' -ForegroundColor Yellow
+        return $false
+    }
+    try {
+        . $searxScript
+        return (Ensure-SearXNG)
+    } catch {
+        Write-Host "  (警告) SearXNG 启动异常: $($_.Exception.Message)" -ForegroundColor Yellow
+        return $false
+    }
 }
 
 function Ensure-Ollama {
@@ -330,6 +348,7 @@ try {
 
     Ensure-BackgroundServices
     Ensure-Ollama | Out-Null
+    Ensure-SearXNGService | Out-Null
     Ensure-AnythingLLM | Out-Null
     Ensure-FirstTimeWorker
     Test-NetworkForTunnel | Out-Null

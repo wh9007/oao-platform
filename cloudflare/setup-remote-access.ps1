@@ -31,6 +31,8 @@ if (-not (Test-Path $ConfigFile)) {
 $cfg = Get-Content $ConfigFile -Raw -Encoding UTF8 | ConvertFrom-Json
 $llmOrigin = 'https://{0}' -f ($cfg.llm_tunnel_hostname -replace '^https?://', '')
 $ollamaOrigin = 'https://{0}' -f ($cfg.ollama_tunnel_hostname -replace '^https?://', '')
+$searxHost = if ($cfg.searx_tunnel_hostname) { $cfg.searx_tunnel_hostname } else { 'search.wh9007.dpdns.org' }
+$searxOrigin = 'https://{0}' -f ($searxHost -replace '^https?://', '')
 
 Write-Host ''
 Write-Host '============================================================' -ForegroundColor Green
@@ -39,6 +41,7 @@ Write-Host '============================================================' -Foreg
 Write-Host " Worker: $($cfg.worker_url)"
 Write-Host " LLM Tunnel: $llmOrigin -> 本机 :3001"
 Write-Host " Ollama Tunnel: $ollamaOrigin -> 本机 :11434"
+Write-Host " SearXNG Tunnel: $searxOrigin -> 本机 :8080"
 Write-Host " 外网页面: $($cfg.github_pages_url)"
 
 # 从 local-config.js 读取 AnythingLLM API Key
@@ -86,6 +89,7 @@ function Set-TomlVar([string]$content, [string]$name, [string]$value) {
 $toml = Set-TomlVar $toml 'ZHIPU_MODEL' 'glm-4.7-flash'
 $toml = Set-TomlVar $toml 'LLM_ORIGIN' $llmOrigin
 $toml = Set-TomlVar $toml 'OLLAMA_ORIGIN' $ollamaOrigin
+$toml = Set-TomlVar $toml 'SEARXNG_ORIGIN' $searxOrigin
 [IO.File]::WriteAllText($WranglerToml, $toml, [Text.UTF8Encoding]::new($false))
 
 Push-Location $CfDir
@@ -117,8 +121,10 @@ Write-Host ''
 Write-Host '1. Cloudflare Zero Trust -> 网络 -> Tunnel -> 公网路由 确认:'
 Write-Host "   $($cfg.llm_tunnel_hostname)  -> http://127.0.0.1:3001"
 Write-Host "   $($cfg.ollama_tunnel_hostname) -> http://127.0.0.1:11434"
+Write-Host "   $searxHost -> http://127.0.0.1:8080"
 Write-Host ''
-Write-Host '2. 打开 AnythingLLM 桌面版 + Ollama'
+Write-Host '2. 本机 SearXNG: OAO服务器.bat 会自动 docker compose 启动 searxng/ (需 Docker Desktop)'
+Write-Host '   打开 AnythingLLM 桌面版 + Ollama'
 Write-Host ''
 Write-Host '3. 若 Tunnel DNS 报错，WiFi DNS 改为 1.1.1.1 / 8.8.8.8，V2Ray 对 cloudflare.com 直连'
 Write-Host ''

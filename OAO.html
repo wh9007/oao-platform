@@ -29,31 +29,24 @@
     <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk@3.0.0/dist/coinbase-wallet-sdk.min.js"></script>
-    <script async src="https://cse.google.com/cse.js?cx=50e946c8b03534c5d"></script>
     <script>
         // ========== OAO 个人使用说明 ==========
         // 1. 本地测试：双击「打开OAO.bat」
         // 2. 外网远程本机 AI：双击「OAO服务器.bat」（保持窗口打开）
         // 3. 版本发布：双击「一键上传GitHub.bat」
         // 4. 外网站点：https://wh9007.github.io/oao-platform/
-        // 5. AI：本地 AnythingLLM + Ollama 优先；Tunnel 经 Worker；智谱 GLM 备援
+        // 5. AI：AnythingLLM 知识库 + Ollama；联网搜索：SearXNG（Worker /web-search）+ Ollama 总结
         // 8. 视频会议信令：window.OAO_MEETING_SIGNAL_URL = 'wss://oao-ai.wh529007.workers.dev/meeting';
         // 7. OAO翻译（可选覆盖云端地址）：window.OAO_TRANSLATE_URL = 'https://your-translate-host/oao-translate/embed/index.html';
-        // 联网搜索（可选）：取消下面注释并填写 Key
+        // 联网搜索默认经 Worker → Tunnel → 本机 SearXNG；可选 Tavily/Serper Key 增强
         // window.OAO_TAVILY_API_KEY = 'tvly-xxxxxxxx';
-        // window.OAO_SERPER_API_KEY = 'xxxxxxxx';
-        // window.OAO_BRAVE_SEARCH_API_KEY = 'BSA-xxxxxxxx';
-        // window.OAO_WEB_SEARCH_PROXY = 'https://oao-ai.wh529007.workers.dev/web-search';
-        // 外网 GitHub Pages 默认（无 local-config.js 时）
         (function () {
-            var h = location.hostname || '';
-            if (h.indexOf('github.io') === -1 && h.indexOf('wh9007.github.io') === -1) return;
-            if (!window.OAO_WORKER_URL) window.OAO_WORKER_URL = 'https://oao-ai.wh529007.workers.dev';
+            var worker = window.OAO_WORKER_URL || 'https://oao-ai.wh529007.workers.dev';
+            if (!window.OAO_WORKER_URL) window.OAO_WORKER_URL = worker;
+            if (!window.OAO_WEB_SEARCH_PROXY) window.OAO_WEB_SEARCH_PROXY = worker + '/web-search';
             if (!window.OAO_ANYTHINGLLM_WORKSPACE) window.OAO_ANYTHINGLLM_WORKSPACE = 'oaoeth';
-            // 外网默认优先 Tunnel 本机 AI；仅当显式 OAO_ENABLE_GLM_FALLBACK=true 时才回退智谱
-            if (typeof window.OAO_DISABLE_GLM_FALLBACK === 'undefined' && window.OAO_ENABLE_GLM_FALLBACK !== true) {
-                window.OAO_DISABLE_GLM_FALLBACK = true;
-            }
+            window.OAO_DISABLE_GLM = true;
+            window.OAO_DISABLE_GLM_FALLBACK = true;
         })();
     </script>
     <script src="local-config.js" onerror="void 0"></script>
@@ -533,6 +526,16 @@
         
         #pageNav.active {
             display: flex;
+            overflow: hidden;
+            justify-content: flex-start;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        #pageNav.active .nav-container {
+            flex: 1;
+            width: 100%;
+            max-width: none;
         }
         
         /* ENS扫描器页面 */
@@ -1060,30 +1063,31 @@
         /* 导航页面样式 */
         .nav-container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1280px;
             height: 100%;
             max-height: 100%;
-            padding: 12px 12px 8px;
+            padding: 8px 8px 4px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 0;
             margin-top: 0;
             box-sizing: border-box;
             min-height: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
-        .search-container {
+        #pageNav .search-container {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
-            justify-content: center;
-            background: var(--bg-color);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            justify-content: flex-end;
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            margin-bottom: 0;
+            flex-wrap: nowrap;
+            flex: 1;
+            min-width: 0;
         }
 
         .search-engine-selector {
@@ -1138,16 +1142,16 @@
 
         .nav-search-input {
             flex: 1;
-            min-width: 200px;
-            padding: 14px 20px;
+            min-width: 120px;
+            padding: 10px 14px;
             background: #ffffff;
             border: 2px solid var(--border-color);
             color: #121212;
-            font-size: 16px;
+            font-size: 14px;
             outline: none;
             transition: all 0.3s ease;
             border-radius: 8px;
-            height: 48px;
+            height: 40px;
         }
 
         .nav-search-input:focus {
@@ -1156,11 +1160,11 @@
         }
 
         .nav-search-btn {
-            padding: 14px 20px;
+            padding: 10px 14px;
             background: var(--btn-bg);
             color: var(--btn-text);
             border: 2px solid var(--border-color);
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -1171,8 +1175,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 48px;
-            min-width: 48px;
+            height: 40px;
+            min-width: 40px;
+            flex-shrink: 0;
         }
 
         .nav-search-btn:hover {
@@ -1183,11 +1188,11 @@
         }
 
         .nav-submit-btn {
-            padding: 14px 28px;
+            padding: 10px 16px;
             background: var(--btn-bg);
             color: var(--btn-text);
             border: 2px solid var(--border-color);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -1198,7 +1203,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 48px;
+            height: 40px;
+            flex-shrink: 0;
         }
 
         .nav-submit-btn:hover {
@@ -1211,16 +1217,25 @@
         .data-container {
             background: var(--bg-color);
             border-radius: 12px;
-            padding: 16px;
+            padding: 12px;
             flex: 1;
-            overflow-y: auto;
+            overflow: hidden;
             overflow-x: hidden;
             margin-bottom: 0;
             max-height: 100%;
             min-height: 0;
             height: auto;
+            display: flex;
+            flex-direction: column;
         }
         
+        #pageNav .card-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
+            padding-bottom: 12px;
+        }
+
         .card-view {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -1277,6 +1292,13 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
+        #pageNav .data-content {
+            min-height: 0;
+            max-height: none;
+            overflow: visible;
+            padding: 4px 4px 12px;
+        }
+
         .data-content {
             min-height: 400px;
             max-height: 65vh;
@@ -1286,7 +1308,456 @@
         }
 
         .search-results-container {
-            min-height: 400px;
+            min-height: 280px;
+        }
+
+        /* Web3 导航页 v3 — 边栏 Tab + 单内容区 */
+        .nav-layout-v3 {
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+            gap: 0;
+            width: 100%;
+        }
+
+        .nav-sidebar {
+            width: 152px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px 8px 8px 0;
+            border-right: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+
+        .nav-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-color);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255, 94, 0, 0.06);
+        }
+
+        .nav-tab.active {
+            background: var(--btn-hover-bg);
+            color: var(--btn-hover-text);
+            border-color: rgba(255, 94, 0, 0.35);
+            box-shadow: 0 2px 8px rgba(255, 94, 0, 0.12);
+        }
+
+        .nav-tab-icon {
+            font-size: 16px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .nav-tab-label {
+            line-height: 1.2;
+        }
+
+        .nav-main {
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding-left: 12px;
+        }
+
+        .nav-topbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            min-height: 56px;
+            max-height: 72px;
+            padding: 6px 4px 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-topbar-meta {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .nav-topbar-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-color);
+            white-space: nowrap;
+        }
+
+        .nav-site-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-color);
+            white-space: nowrap;
+        }
+
+        .nav-topbar-actions {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #pageNav .view-toggle {
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        #pageNav .toggle-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .nav-body {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-panel {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+        }
+
+        .nav-panel.hidden {
+            display: none !important;
+        }
+
+        .nav-panel.active {
+            display: flex;
+        }
+
+        .nav-sites-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-primary-data {
+            border: 1px solid rgba(255, 94, 0, 0.14);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            flex: 1;
+            min-height: 0;
+        }
+
+        [data-theme="dark"] .nav-primary-data {
+            border-color: rgba(255, 154, 68, 0.22);
+            box-shadow: none;
+        }
+
+        .nav-engine-results {
+            min-height: 0;
+            padding: 16px;
+        }
+
+        .nav-engine-shell {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .nav-engine-brand-bar {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 12px 8px;
+            background: var(--bg-color);
+        }
+
+        .nav-engine-logo {
+            height: 52px;
+            width: auto;
+            max-width: 280px;
+            object-fit: contain;
+        }
+
+        .nav-engine-logo-baidu {
+            height: 68px;
+            max-width: 240px;
+        }
+
+        .nav-engine-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .nav-engine-cse-mount {
+            min-height: 280px;
+        }
+
+        .nav-engine-api-results {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-engine-result-item {
+            display: block;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--card-bg);
+            text-decoration: none;
+            color: var(--text-color);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .nav-engine-result-item:hover {
+            border-color: rgba(255, 94, 0, 0.35);
+            box-shadow: 0 4px 14px rgba(255, 94, 0, 0.1);
+        }
+
+        .nav-engine-result-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a0dab;
+            margin-bottom: 4px;
+            line-height: 1.35;
+        }
+
+        [data-theme="dark"] .nav-engine-result-title {
+            color: #8ab4f8;
+        }
+
+        .nav-engine-result-url {
+            font-size: 12px;
+            color: #006621;
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+
+        [data-theme="dark"] .nav-engine-result-url {
+            color: #81c995;
+        }
+
+        .nav-engine-result-snippet {
+            font-size: 13px;
+            line-height: 1.5;
+            opacity: 0.88;
+        }
+
+        .nav-engine-status {
+            text-align: center;
+            padding: 24px 12px;
+            font-size: 14px;
+            opacity: 0.75;
+            color: var(--text-color);
+        }
+
+        .nav-engine-open-link {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--accent-color);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .nav-engine-hint {
+            margin: 0;
+            font-size: 13px;
+            opacity: 0.65;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        #navPanelOao .nav-sites-scroll {
+            flex: 1;
+            min-height: 0;
+        }
+
+        #navPanelGoogle .nav-sites-scroll,
+        #navPanelBaidu .nav-sites-scroll {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #navPanelGoogle .nav-engine-results,
+        #navPanelBaidu .nav-engine-results {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        .nav-engine-mount {
+            width: 100%;
+            min-height: 320px;
+        }
+
+        #navPanelGoogle .nav-engine-mount,
+        #navPanelBaidu .nav-engine-mount {
+            min-height: 0;
+        }
+
+        .nav-search-iframe {
+            display: block;
+            width: 100%;
+            min-height: calc(100vh - 260px);
+            height: 100%;
+            border: none;
+            background: #fff;
+            border-radius: 8px;
+        }
+
+        [data-theme="dark"] .nav-search-iframe {
+            background: #1a1a1a;
+        }
+
+        #pageNav .site-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: var(--bg-color);
+        }
+
+        #pageNav .site-card-url {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #pageNav .site-card-desc {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .nav-layout-v3 {
+                flex-direction: column;
+            }
+
+            .nav-sidebar {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 6px 0 8px;
+            }
+
+            .nav-tab {
+                width: auto;
+                flex-shrink: 0;
+            }
+
+            .nav-main {
+                padding-left: 0;
+                min-height: 0;
+            }
+
+            .nav-topbar {
+                flex-direction: column;
+                align-items: stretch;
+                max-height: none;
+                gap: 8px;
+            }
+
+            .nav-topbar-meta {
+                justify-content: space-between;
+            }
+
+            #pageNav .search-container {
+                flex-wrap: wrap;
+            }
+
+            #pageNav .nav-search-input {
+                min-width: 0;
+                flex: 1 1 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            #pageNav .card-view {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .site-card {
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            padding: 18px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        [data-theme="dark"] .site-card {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .site-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 94, 0, 0.35);
+            box-shadow: 0 10px 24px rgba(255, 94, 0, 0.12);
+        }
+
+        .site-card-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .site-card-url {
+            font-size: 12px;
+            opacity: 0.65;
+            margin-bottom: 10px;
+            word-break: break-all;
+            color: var(--accent-color);
+        }
+
+        .site-card-desc {
+            font-size: 13px;
+            line-height: 1.55;
+            opacity: 0.85;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 640px) {
+            .card-view {
+                grid-template-columns: 1fr;
+            }
         }
 
         .search-iframe {
@@ -7408,68 +7879,76 @@
         <!-- 导航页面 -->
         <div id="pageNav" class="page-section">
             <div class="section-tag" id="navTag"></div>
-            <div class="nav-container">
-                <div class="search-container">
-                    <div class="search-engine-selector">
-                        <label class="search-engine-option">
-                            <input type="radio" name="searchEngine" value="google" checked>
-                            <span class="search-engine-icon">🌐</span>
-                            <span class="search-engine-label">Web (Google)</span>
-                        </label>
-                        <label class="search-engine-option">
-                            <input type="radio" name="searchEngine" value="baidu">
-                            <span class="search-engine-icon">🇨🇳</span>
-                            <span class="search-engine-label">中文 (Baidu)</span>
-                        </label>
-                        <label class="search-engine-option">
-                            <input type="radio" name="searchEngine" value="oao">
-                            <span class="search-engine-icon">🧩</span>
-                            <span class="search-engine-label">Web3 (OAO)</span>
-                        </label>
-                    </div>
-                    <input type="text" class="nav-search-input" id="navSearchInput" placeholder="搜索网站...">
-                    <button class="nav-search-btn" id="navSearchBtn">🔍</button>
-                    <button class="nav-submit-btn" id="navSubmitBtn">收录申请</button>
-                </div>
-                <div class="data-container">
-                    <div class="data-header">
-                        <h2 class="data-title">收录网站</h2>
-                        <div class="view-toggle">
-                            <button class="toggle-btn active" data-view="card">卡片</button>
-                            <button class="toggle-btn" data-view="table">表格</button>
+            <div class="nav-container nav-layout-v3">
+                <aside class="nav-sidebar" aria-label="导航类型">
+                    <button type="button" class="nav-tab active" data-nav-tab="oao" id="navTabOao">
+                        <span class="nav-tab-icon" aria-hidden="true">⬡</span>
+                        <span class="nav-tab-label" id="navTabOaoLabel">Web3 导航</span>
+                    </button>
+                    <button type="button" class="nav-tab" data-nav-tab="google" id="navTabGoogle">
+                        <span class="nav-tab-icon" aria-hidden="true">🌐</span>
+                        <span class="nav-tab-label" id="navTabGoogleLabel">Google</span>
+                    </button>
+                    <button type="button" class="nav-tab" data-nav-tab="baidu" id="navTabBaidu">
+                        <span class="nav-tab-icon" aria-hidden="true">🇨🇳</span>
+                        <span class="nav-tab-label" id="navTabBaiduLabel">Baidu</span>
+                    </button>
+                </aside>
+                <div class="nav-main">
+                    <header class="nav-topbar">
+                        <div class="nav-topbar-meta">
+                            <h2 class="nav-topbar-title" id="navPanelTitle">Web3 导航</h2>
+                            <span class="nav-site-count hidden" id="navSiteCount" aria-live="polite"></span>
                         </div>
-                    </div>
-                    <div class="data-content" id="dataContent">
-                        <div class="loading">正在加载数据...</div>
-                    </div>
-                    <div class="data-content search-results-container" id="googleResultsContainer">
-                        <form action="https://www.google.com/search" method="get" target="_blank">
-                            <div style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
-                                <div style="margin-bottom: 20px;">
-                                    <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" style="height: 40px; width: auto; max-width: 100%;">
-                                </div>
-                                <div style="display: flex; width: 100%; max-width: 600px; gap: 10px;">
-                                    <input type="text" name="q" placeholder="Search" style="flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
-                                    <button type="submit" style="padding: 10px 20px; background: #4285f4; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer;">Google Search</button>
+                        <div class="nav-topbar-actions search-container">
+                            <input type="text" class="nav-search-input" id="navSearchInput" placeholder="搜索网站...">
+                            <button type="button" class="nav-search-btn" id="navSearchBtn" aria-label="搜索">🔍</button>
+                            <button type="button" class="nav-submit-btn nav-oao-only" id="navSubmitBtn">收录申请</button>
+                            <div class="view-toggle nav-oao-only" id="navViewToggle">
+                                <button type="button" class="toggle-btn active" data-view="card" id="navViewCard">卡片</button>
+                                <button type="button" class="toggle-btn" data-view="table" id="navViewTable">表格</button>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="nav-body">
+                        <section class="nav-panel active" data-nav-panel="oao" id="navPanelOao" aria-label="Web3 收录">
+                            <div class="data-container nav-primary-data">
+                                <div class="nav-sites-scroll" id="navSitesScroll">
+                                    <div class="data-content" id="dataContent">
+                                        <div class="loading">正在加载数据...</div>
+                                    </div>
+                                    <div class="data-content search-results-container hidden" id="oaoResultsContainer">
+                                        <div id="oaoSearchResults"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                    <div class="data-content search-results-container" id="baiduResultsContainer">
-                        <form action="https://www.baidu.com/s" method="get" target="_blank">
-                            <div style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
-                                <div style="margin-bottom: 20px;">
-                                    <img src="https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png" alt="Baidu" style="height: 60px; width: auto; max-width: 100%;">
-                                </div>
-                                <div style="display: flex; width: 100%; max-width: 600px; gap: 10px;">
-                                    <input type="text" name="wd" placeholder="请输入搜索内容" style="flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
-                                    <button type="submit" style="padding: 10px 20px; background: #38f; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer;">百度一下</button>
+                        </section>
+                        <section class="nav-panel hidden" data-nav-panel="google" id="navPanelGoogle" aria-label="Google 搜索">
+                            <div class="nav-sites-scroll" id="navSitesScrollGoogle">
+                                <div class="data-content search-results-container nav-engine-results" id="googleResultsContainer">
+                                    <div class="nav-engine-shell">
+                                        <header class="nav-engine-brand-bar">
+                                            <img class="nav-engine-logo nav-engine-logo-google" src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" alt="Google">
+                                        </header>
+                                        <div class="nav-engine-body" id="googleEngineBody"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                    <div class="data-content search-results-container" id="oaoResultsContainer">
-                        <div id="oaoSearchResults"></div>
+                        </section>
+                        <section class="nav-panel hidden" data-nav-panel="baidu" id="navPanelBaidu" aria-label="Baidu 搜索">
+                            <div class="nav-sites-scroll" id="navSitesScrollBaidu">
+                                <div class="data-content search-results-container nav-engine-results" id="baiduResultsContainer">
+                                    <div class="nav-engine-shell">
+                                        <header class="nav-engine-brand-bar">
+                                            <img class="nav-engine-logo nav-engine-logo-baidu" src="https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png" alt="Baidu">
+                                        </header>
+                                        <div class="nav-engine-body">
+                                            <div id="baiduApiResults" class="nav-engine-api-results"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
             </div>
@@ -8275,17 +8754,22 @@
                 return resolveWorkerBaseUrl() + '/glm/chat';
             }
 
+            function resolveWebSearchProxyUrl() {
+                if (window.OAO_WEB_SEARCH_PROXY) {
+                    return String(window.OAO_WEB_SEARCH_PROXY).replace(/\/$/, '');
+                }
+                return resolveWorkerBaseUrl() + '/web-search';
+            }
+
             function useCloudGlmAi() {
+                if (window.OAO_DISABLE_GLM === true) return false;
                 if (window.OAO_FORCE_LOCAL_AI === true) return false;
                 if (window.OAO_FORCE_GLM === true) return true;
                 return false;
             }
 
-            /** 本地 AI 不可用时是否回退智谱 GLM（默认关闭；需显式 OAO_ENABLE_GLM_FALLBACK=true） */
+            /** 智谱已停用；保留函数兼容旧配置 */
             function shouldUseZhipuFallback() {
-                if (window.OAO_FORCE_LOCAL_AI === true) return false;
-                if (window.OAO_DISABLE_GLM_FALLBACK === true) return false;
-                if (window.OAO_ENABLE_GLM_FALLBACK === true) return true;
                 return false;
             }
 
@@ -8848,9 +9332,9 @@
                 get tavilyApiKey() { return window.OAO_TAVILY_API_KEY || ''; },
                 get serperApiKey() { return window.OAO_SERPER_API_KEY || ''; },
                 get braveApiKey() { return window.OAO_BRAVE_SEARCH_API_KEY || ''; },
-                get proxyUrl() { return window.OAO_WEB_SEARCH_PROXY || ''; },
+                get proxyUrl() { return resolveWebSearchProxyUrl(); },
                 maxResults: 8,
-                timeout: 20000
+                timeout: 25000
             };
 
             const NO_KB_ANSWER_PATTERNS = [
@@ -8899,15 +9383,9 @@
             }
 
             function getWebSearchUnavailableHint() {
-                const hasPaidKey = !!(WEB_SEARCH_CONFIG.tavilyApiKey || WEB_SEARCH_CONFIG.serperApiKey || WEB_SEARCH_CONFIG.braveApiKey || WEB_SEARCH_CONFIG.proxyUrl);
-                if (hasPaidKey) {
-                    return currentLang === 'zh'
-                        ? '联网搜索暂时不可用，请稍后重试或检查 API Key 配置。'
-                        : 'Web search unavailable. Retry later or check API keys.';
-                }
                 return currentLang === 'zh'
-                    ? '联网搜索暂时不可用（已尝试 Wikipedia / DuckDuckGo 等免费源）。请检查网络后重试；如需更强检索可配置 Tavily 免费额度（local-config.js）。'
-                    : 'Web search unavailable (tried Wikipedia/DuckDuckGo). Check network or add Tavily key in local-config.js.';
+                    ? '联网搜索暂时不可用。\n\n请确认：\n1. 本机已运行 OAO服务器.bat（SearXNG :8080 + Tunnel）\n2. Cloudflare Tunnel 已配置 search.* → http://127.0.0.1:8080\n3. Worker 变量 SEARXNG_ORIGIN 已部署（cloudflare\\setup-remote-access.ps1）\n4. 浏览器可打开 ' + resolveWebSearchProxyUrl() + '?q=test 应返回 JSON\n\n诊断：OAO_Diagnostic.testWebSearch()'
+                    : 'Web search unavailable. Run OAO服务器.bat, route search.* to :8080, deploy SEARXNG_ORIGIN. Try OAO_Diagnostic.testWebSearch().';
             }
 
             function normalizeNoKbAnswer(answer) {
@@ -9652,20 +10130,6 @@
                     setAiHomeStatus(getAiStatusReadyLabel());
                     appendAiReplyToHistory(finalAnswer, aiMeta);
                 } catch (error) {
-                    if (shouldUseZhipuFallback() && !useCloudGlmAi() && !error.__zhipuFallbackTried) {
-                        error.__zhipuFallbackTried = true;
-                        console.warn('[OAO-AI] 本地 AI 失败，回退智谱 GLM:', error);
-                        try {
-                            setAiHomeStatus(currentLang === 'zh'
-                                ? '本地 AI 不可用，正在使用智谱 GLM…'
-                                : 'Local AI unavailable, trying Zhipu GLM…');
-                            await deliverGlmChatReply(message, typingDiv, { isFallback: true });
-                            return;
-                        } catch (glmErr) {
-                            console.warn('[OAO-AI] 智谱 GLM 备援也失败:', glmErr);
-                            error = glmErr;
-                        }
-                    }
                     console.warn('[OAO-AI] API调用失败:', error);
                     removeTypingIndicator(typingDiv);
                     setAiHomeStatus(translations[currentLang].aiHomeStatusError);
@@ -9830,6 +10294,32 @@
 
                 checkRemoteTunnel: async function() {
                     return window.OAO_Diagnostic.testRemoteTunnel();
+                },
+
+                testWebSearch: async function(query = 'OpenAI') {
+                    console.log('========== SearXNG / Worker 联网搜索诊断 ==========');
+                    const url = resolveWebSearchProxyUrl() + '?q=' + encodeURIComponent(query);
+                    console.log('GET', url);
+                    try {
+                        const res = await fetch(url, { cache: 'no-store' });
+                        const data = await res.json();
+                        console.log('response:', data);
+                        if (data.ok && Array.isArray(data.results) && data.results.length > 0) {
+                            console.log('✅ SearXNG 联网搜索正常，结果数:', data.results.length);
+                            return { success: true, data };
+                        }
+                        if (data.error === 'searxng_not_configured') {
+                            console.error('❌ Worker 未配置 SEARXNG_ORIGIN — 运行 cloudflare\\setup-remote-access.ps1');
+                        } else if (data.error === 'searxng_tunnel_offline') {
+                            console.error('❌ SearXNG Tunnel 未连接 — 运行 OAO服务器.bat，配置 search.* -> :8080');
+                        } else {
+                            console.warn('⚠ 搜索无结果或异常:', data.error || res.status, data.hint || '');
+                        }
+                        return { success: false, data };
+                    } catch (error) {
+                        console.error('❌ 联网搜索请求失败:', error.message);
+                        return { success: false, error: error.message };
+                    }
                 },
                 
                 /**
@@ -10021,6 +10511,7 @@
             console.log('  OAO_Diagnostic.testAnythingLLM()  - 测试 AnythingLLM 知识库');
             console.log('  OAO_Diagnostic.testGlm()         - 测试智谱 GLM Worker');
             console.log('  OAO_Diagnostic.testRemoteTunnel() - 测试本机 Tunnel（可选）');
+            console.log('  OAO_Diagnostic.testWebSearch()    - 测试 SearXNG 联网搜索');
             console.log('  OAO_Diagnostic.runFullDiagnostic() - 运行完整诊断');
             
             // ==================== LLM API 调用函数 ====================
@@ -10371,37 +10862,31 @@
             /**
              * 联网搜索并调用 Ollama 生成回答
              */
-            async function optimizeQueryForWebSearch(query) {
-                const prompt = currentLang === 'zh'
-                    ? `你是搜索助手。请将下面的用户问题改写为适合在互联网检索的简洁关键词或短问句，只输出改写结果，不要解释：\n${query}`
-                    : `Rewrite the following user question into a concise web search query. Output only the rewritten query:\n${query}`;
-                try {
-                    const optimized = await callAiPrompt(prompt, { temperature: 0.3, max_tokens: 128 });
-                    const cleaned = optimized?.trim().replace(/^["'「]|["'」]$/g, '');
-                    return cleaned || query;
-                } catch (error) {
-                    console.warn('[OAO-AI] 搜索词优化失败，使用原问题:', error);
-                    return query;
-                }
+            function optimizeQueryForWebSearch(query) {
+                return String(query || '').trim();
+            }
+
+            async function summarizeWebWithOllama(prompt, options = {}) {
+                return callOllama(prompt, options);
             }
 
             async function searchWebAndAnswer(query) {
-                const searchQuery = await optimizeQueryForWebSearch(query);
+                const searchQuery = optimizeQueryForWebSearch(query);
                 const snippets = await fetchWebSearchResults(searchQuery);
                 if (snippets.length === 0) {
                     return currentLang === 'zh'
-                        ? '未能从互联网检索到有效信息。建议配置 Tavily / Serper API Key 提升检索质量，或换个问法重试。'
-                        : 'No useful web results found. Configure Tavily/Serper API keys for better search, or try rephrasing.';
+                        ? '未能从 SearXNG 检索到有效信息。请确认 OAO服务器.bat 已启动、Tunnel 路由 search.* → :8080，并运行 cloudflare\\setup-remote-access.ps1 部署 Worker。'
+                        : 'No SearXNG results. Ensure OAO服务器.bat, Tunnel search route, and Worker SEARXNG_ORIGIN are configured.';
                 }
 
                 const contextBlock = snippets.map((item, index) =>
                     `[${index + 1}] ${item.title}\n${item.content}\n来源: ${item.url}`
                 ).join('\n\n');
                 const prompt = currentLang === 'zh'
-                    ? `你是 OAO 助手。请基于以下**最新网络检索结果**回答用户问题，优先使用较新、权威的信息；若信息不足请明确说明。回答需简洁准确，可引用序号 [1][2]。\n\n用户问题：${query}\n\n网络检索结果：\n${contextBlock}\n\n请给出中文回答：`
-                    : `You are the OAO assistant. Answer using these **latest web search results**. Cite [1][2] when helpful. If insufficient, say so.\n\nQuestion: ${query}\n\nWeb results:\n${contextBlock}\n\nAnswer:`;
+                    ? `${getOaoSystemDatetimeContext()}\n\n你是 OAO 助手。请基于以下**最新网络检索结果**（SearXNG）回答用户问题，优先使用较新、权威的信息；若信息不足请明确说明。回答需简洁准确，可引用序号 [1][2]。\n\n用户问题：${query}\n\n网络检索结果：\n${contextBlock}\n\n请给出中文回答：`
+                    : `${getOaoSystemDatetimeContext()}\n\nYou are the OAO assistant. Answer using these **SearXNG web results**. Cite [1][2] when helpful.\n\nQuestion: ${query}\n\nWeb results:\n${contextBlock}\n\nAnswer:`;
 
-                const answer = await callAiPrompt(prompt, { temperature: 0.5, max_tokens: 4096 });
+                const answer = await summarizeWebWithOllama(prompt);
                 return appendWebSearchReferences(answer, snippets);
             }
 
@@ -10431,11 +10916,15 @@
                     const timer = setTimeout(() => controller.abort(), WEB_SEARCH_CONFIG.timeout);
                     const sep = proxyUrl.includes('?') ? '&' : '?';
                     const res = await fetch(`${proxyUrl}${sep}q=${encodeURIComponent(query)}`, {
-                        signal: controller.signal
+                        signal: controller.signal,
+                        cache: 'no-store'
                     });
                     clearTimeout(timer);
-                    if (!res.ok) return [];
-                    const data = await res.json();
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || data.error) {
+                        console.warn('[OAO-AI] SearXNG 代理错误:', data.error || res.status, data.hint || '');
+                        return [];
+                    }
                     const items = data.results || data.items || data.organic || [];
                     return items.map((item) => ({
                         title: item.title || item.name || query,
@@ -10591,11 +11080,12 @@
             }
 
             async function fetchWebSearchResults(query) {
-                const providers = [];
-
-                if (WEB_SEARCH_CONFIG.proxyUrl) {
-                    providers.push(fetchWebSearchViaProxy(query));
+                const searxResults = await fetchWebSearchViaProxy(query);
+                if (searxResults.length > 0) {
+                    return dedupeSearchResults(searxResults).slice(0, WEB_SEARCH_CONFIG.maxResults);
                 }
+
+                const providers = [];
                 if (WEB_SEARCH_CONFIG.tavilyApiKey) {
                     providers.push(fetchTavilyResults(query));
                 }
@@ -17035,6 +17525,21 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                 navNoData: '暂无数据',
                 navLoadError: '加载数据失败，请稍后重试',
                 navTag: '连接一切',
+                navHeroTitle: 'Web3 导航',
+                navHeroSubtitle: '收录 Web3 站点 · 支持 .eth 直达',
+                navHeroCount: '已收录 {count} 个站点',
+                navTabOao: 'Web3 导航',
+                navTabGoogle: 'Google',
+                navTabBaidu: 'Baidu',
+                navPanelTitleOao: 'Web3 导航',
+                navPanelTitleGoogle: 'Google 搜索',
+                navPanelTitleBaidu: '百度搜索',
+                navGooglePlaceholder: 'Google 搜索...',
+                navBaiduPlaceholder: '百度搜索...',
+                navGoogleHint: '按 Enter 将在新窗口打开 Google 搜索',
+                navBaiduHint: '输入关键词后按 Enter 或点击搜索',
+                navFallbackToggle: '传统搜索（Google / 百度）',
+                navFallbackSearchPlaceholder: 'Google / 百度搜索...',
             },
             en: {
                 connectWallet: 'Login',
@@ -17282,6 +17787,21 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                 navLoading: 'Loading data...',
                 navNoData: 'No data available',
                 navLoadError: 'Failed to load data, please try again later',
+                navHeroTitle: 'Web3 Directory',
+                navHeroSubtitle: 'Curated Web3 sites · .eth gateway ready',
+                navHeroCount: '{count} sites indexed',
+                navTabOao: 'Web3 Directory',
+                navTabGoogle: 'Google',
+                navTabBaidu: 'Baidu',
+                navPanelTitleOao: 'Web3 Directory',
+                navPanelTitleGoogle: 'Google Search',
+                navPanelTitleBaidu: 'Baidu Search',
+                navGooglePlaceholder: 'Google search...',
+                navBaiduPlaceholder: 'Baidu search...',
+                navGoogleHint: 'Press Enter to open Google search in a new tab',
+                navBaiduHint: 'Type a query and press Enter or click search',
+                navFallbackToggle: 'Traditional search (Google / Baidu)',
+                navFallbackSearchPlaceholder: 'Google / Baidu search...',
             }
         };
 
@@ -17307,15 +17827,24 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
             
             const navSubmitBtn = document.getElementById('navSubmitBtn');
             if (navSubmitBtn) navSubmitBtn.textContent = translations[lang].navSubmitBtn;
-            
-            const dataTitle = document.querySelector('.data-title');
-            if (dataTitle) dataTitle.textContent = translations[lang].navDataTitle;
-            
-            const toggleBtns = document.querySelectorAll('.toggle-btn');
-            if (toggleBtns.length >= 2) {
-                toggleBtns[0].textContent = translations[lang].navViewCard;
-                toggleBtns[1].textContent = translations[lang].navViewTable;
-            }
+
+            const navDataTitle = document.getElementById('navDataTitle');
+            if (navDataTitle) navDataTitle.textContent = translations[lang].navDataTitle;
+
+            const navViewCard = document.getElementById('navViewCard');
+            const navViewTable = document.getElementById('navViewTable');
+            if (navViewCard) navViewCard.textContent = translations[lang].navViewCard;
+            if (navViewTable) navViewTable.textContent = translations[lang].navViewTable;
+
+            const navTabOaoLabel = document.getElementById('navTabOaoLabel');
+            if (navTabOaoLabel) navTabOaoLabel.textContent = translations[lang].navTabOao;
+            const navTabGoogleLabel = document.getElementById('navTabGoogleLabel');
+            if (navTabGoogleLabel) navTabGoogleLabel.textContent = translations[lang].navTabGoogle;
+            const navTabBaiduLabel = document.getElementById('navTabBaiduLabel');
+            if (navTabBaiduLabel) navTabBaiduLabel.textContent = translations[lang].navTabBaidu;
+            if (typeof updateNavPanelTitle === 'function') updateNavPanelTitle();
+            if (typeof updateNavSearchPlaceholder === 'function') updateNavSearchPlaceholder();
+            updateNavSiteCount();
 
             // 如果正在显示导航页面，重新加载数据以更新文本
             if (document.getElementById('pageNav')?.classList.contains('active')) {
@@ -19252,245 +19781,298 @@ Generated by OAO ENS Identity Lab
         document.getElementById('shareDiscordBtn').addEventListener('click', shareToDiscord);
         document.getElementById('resetBtn').addEventListener('click', resetForm);
 
-        // 导航页面功能
+        // 导航页面功能（v3 边栏 Tab）
         let currentView = 'card';
         let sitesData = [];
-        let currentSearchEngine = 'google';
-        let googleCSELoaded = false;
+        let currentNavTab = 'oao';
+        const navSearchTerms = { oao: '', google: '', baidu: '' };
+        let baiduResultsCache = { term: '', html: '' };
 
-        // 初始化搜索引擎选择器
-        function initSearchEngineSelector() {
-            const radioButtons = document.querySelectorAll('input[name="searchEngine"]');
-            radioButtons.forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    currentSearchEngine = e.target.value;
-                    updateSearchEngineUI();
-                    
-                    // 切换搜索引擎时，显示对应的容器
-                    switchSearchEngineContainer();
-                });
-            });
-        }
-
-        // 切换搜索引擎容器
-        function switchSearchEngineContainer() {
-            const dataContent = document.getElementById('dataContent');
-            const googleContainer = document.getElementById('googleResultsContainer');
-            const baiduContainer = document.getElementById('baiduResultsContainer');
-            const oaoContainer = document.getElementById('oaoResultsContainer');
-            const dataHeader = document.querySelector('.data-header');
-            const navSearchInput = document.getElementById('navSearchInput');
-            const navSearchBtn = document.getElementById('navSearchBtn');
-            const navSubmitBtn = document.getElementById('navSubmitBtn');
-            
-            dataContent.style.display = 'none';
-            googleContainer.style.display = 'none';
-            baiduContainer.style.display = 'none';
-            oaoContainer.style.display = 'none';
-            
-            switch (currentSearchEngine) {
-                case 'google':
-                    googleContainer.style.display = 'block';
-                    dataHeader.style.display = 'none';
-                    // 隐藏文本输入框但保持布局不变
-                    navSearchInput.style.visibility = 'hidden';
-                    navSearchInput.style.position = 'absolute';
-                    navSearchBtn.style.visibility = 'hidden';
-                    navSearchBtn.style.position = 'absolute';
-                    navSubmitBtn.style.visibility = 'hidden';
-                    navSubmitBtn.style.position = 'absolute';
-                    break;
-                case 'baidu':
-                    baiduContainer.style.display = 'block';
-                    dataHeader.style.display = 'none';
-                    // 隐藏文本输入框但保持布局不变
-                    navSearchInput.style.visibility = 'hidden';
-                    navSearchInput.style.position = 'absolute';
-                    navSearchBtn.style.visibility = 'hidden';
-                    navSearchBtn.style.position = 'absolute';
-                    navSubmitBtn.style.visibility = 'hidden';
-                    navSubmitBtn.style.position = 'absolute';
-                    break;
-                case 'oao':
-                    dataContent.style.display = 'block';
-                    oaoContainer.style.display = 'block';
-                    dataHeader.style.display = 'flex';
-                    navSearchInput.style.visibility = 'visible';
-                    navSearchInput.style.position = 'static';
-                    navSearchBtn.style.visibility = 'visible';
-                    navSearchBtn.style.position = 'static';
-                    navSubmitBtn.style.visibility = 'visible';
-                    navSubmitBtn.style.position = 'static';
-                    loadSitesData();
-                    break;
-            }
-        }
-
-        // 更新搜索引擎UI状态
-        function updateSearchEngineUI() {
-            const radioButtons = document.querySelectorAll('input[name="searchEngine"]');
-            radioButtons.forEach(radio => {
-                const option = radio.closest('.search-engine-option');
-                if (radio.checked) {
-                    option.style.background = 'var(--btn-hover-bg)';
-                    option.style.color = 'var(--btn-hover-text)';
-                    option.style.borderColor = '#ff5e00';
-                    option.style.boxShadow = '0 2px 8px rgba(255, 94, 0, 0.2)';
-                } else {
-                    option.style.background = 'var(--btn-bg)';
-                    option.style.color = 'var(--btn-text)';
-                    option.style.borderColor = 'var(--border-color)';
-                    option.style.boxShadow = 'none';
-                }
-            });
-        }
-
-        // 执行搜索
-        function performSearch() {
-            const searchTerm = document.getElementById('navSearchInput').value.trim();
-
-            if (!searchTerm) {
-                switchSearchEngineContainer();
+        function updateNavSiteCount() {
+            const el = document.getElementById('navSiteCount');
+            if (!el) return;
+            if (!sitesData.length || currentNavTab !== 'oao') {
+                el.classList.add('hidden');
                 return;
             }
+            el.textContent = translations[currentLang].navHeroCount.replace('{count}', String(sitesData.length));
+            el.classList.remove('hidden');
+        }
 
-            switch (currentSearchEngine) {
-                case 'google':
-                    performGoogleSearch(searchTerm);
-                    break;
-                case 'baidu':
-                    performBaiduSearch(searchTerm);
-                    break;
-                case 'oao':
-                    performOAOSearch(searchTerm);
-                    break;
+        function updateNavPanelTitle() {
+            const el = document.getElementById('navPanelTitle');
+            if (!el) return;
+            const key = currentNavTab === 'google'
+                ? 'navPanelTitleGoogle'
+                : currentNavTab === 'baidu'
+                    ? 'navPanelTitleBaidu'
+                    : 'navPanelTitleOao';
+            el.textContent = translations[currentLang][key];
+        }
+
+        function updateNavSearchPlaceholder() {
+            const input = document.getElementById('navSearchInput');
+            if (!input) return;
+            if (currentNavTab === 'google') {
+                input.placeholder = translations[currentLang].navGooglePlaceholder;
+            } else if (currentNavTab === 'baidu') {
+                input.placeholder = translations[currentLang].navBaiduPlaceholder;
+            } else {
+                input.placeholder = translations[currentLang].navSearchPlaceholder;
             }
         }
 
-        // 隐藏所有搜索结果容器
-        function hideAllSearchContainers() {
-            document.getElementById('dataContent').style.display = 'none';
-            document.getElementById('googleResultsContainer').style.display = 'none';
-            document.getElementById('baiduResultsContainer').style.display = 'none';
-            document.getElementById('oaoResultsContainer').style.display = 'none';
+        const NAV_ENGINE_LOGO = {
+            google: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png',
+            baidu: 'https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png'
+        };
+
+        function getNavWebSearchUrl(query, engines) {
+            const base = window.OAO_WEB_SEARCH_PROXY
+                || ((window.OAO_WORKER_URL || 'https://oao-ai.wh529007.workers.dev') + '/web-search');
+            const url = new URL(base, location.origin);
+            url.searchParams.set('q', query);
+            url.searchParams.set('lang', currentLang === 'zh' ? 'zh-CN' : 'en');
+            if (engines) url.searchParams.set('engines', engines);
+            return url.toString();
         }
 
-        // Google搜索
-        function performGoogleSearch(searchTerm) {
-            const googleContainer = document.getElementById('googleResultsContainer');
-            
-            // 确保容器有正确的结构
-            googleContainer.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: 600; color: var(--text-color);">Google 搜索</div>
-                <div class="gcse-searchresults-only" id="googleSearchElement"></div>
-            `;
-            
-            // 等待Google CSE加载完成后执行搜索
-            function executeSearch() {
-                if (window.google && google.search && google.search.cse) {
-                    try {
-                        // 重新初始化CSE
-                        google.search.cse.element.go();
-                        // 执行搜索
-                        const elements = google.search.cse.element.getAllElements();
-                        if (elements && elements.length > 0) {
-                            elements[0].execute(searchTerm);
-                        } else {
-                            // 回退方案
-                            showFallback(searchTerm);
-                        }
-                    } catch (error) {
-                        console.error('Google CSE执行错误:', error);
-                        showFallback(searchTerm);
-                    }
-                } else {
-                    // Google CSE未加载，使用回退方案
-                    showFallback(searchTerm);
-                }
-            }
-            
-            // 回退方案
-            function showFallback(searchTerm) {
-                googleContainer.innerHTML = `
-                    <div style="text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: 600; color: var(--text-color);">Google 搜索</div>
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; min-height: 400px;">
-                        <div style="font-size: 32px; margin-bottom: 20px;">🔍</div>
-                        <div style="font-size: 16px; margin-bottom: 30px; text-align: center; max-width: 500px; color: var(--text-color);">
-                            搜索: <strong>${searchTerm}</strong>
-                        </div>
-                        <a href="https://www.google.com/search?q=${encodeURIComponent(searchTerm)}" target="_blank" rel="noopener noreferrer" 
-                           style="padding: 12px 32px; background: var(--btn-hover-bg); color: var(--btn-hover-text); border: 2px solid var(--border-color); border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-decoration: none;">
-                            在新窗口打开 Google 搜索
+        function getExternalSearchUrl(engine, searchTerm) {
+            const q = encodeURIComponent(searchTerm);
+            return engine === 'baidu'
+                ? `https://www.baidu.com/s?wd=${q}`
+                : `https://www.google.com/search?q=${q}`;
+        }
+
+        function showEngineApiResults(container, engine, searchTerm, results, extraHtml) {
+            if (!container) return;
+            container.classList.remove('hidden');
+            if (!Array.isArray(results) || !results.length) {
+                container.innerHTML = `
+                    <div class="nav-engine-status">
+                        ${currentLang === 'zh' ? '未找到相关结果' : 'No results found'}
+                        <a class="nav-engine-open-link" href="${getExternalSearchUrl(engine, searchTerm)}" target="_blank" rel="noopener noreferrer">
+                            ${currentLang === 'zh' ? '在官网继续搜索' : 'Continue on official site'}
                         </a>
                     </div>
                 `;
+                return;
             }
-            
-            // 立即执行搜索
-            executeSearch();
+            let html = '';
+            results.forEach(item => {
+                const title = escapeHtml(item.title || item.url || '');
+                const url = navAttr(item.url || '');
+                const snippet = escapeHtml(item.content || '');
+                html += `
+                    <a class="nav-engine-result-item" href="${url}" target="_blank" rel="noopener noreferrer">
+                        <div class="nav-engine-result-title">${title}</div>
+                        <div class="nav-engine-result-url">${escapeHtml(item.url || '')}</div>
+                        <div class="nav-engine-result-snippet">${snippet}</div>
+                    </a>
+                `;
+            });
+            if (extraHtml) html += extraHtml;
+            container.innerHTML = html;
+        }
+
+        async function fetchNavEngineResults(engine, searchTerm) {
+            const resp = await fetch(getNavWebSearchUrl(searchTerm, engine), {
+                method: 'GET',
+                headers: { Accept: 'application/json' }
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok || !data.ok) {
+                const err = new Error(data.error || `HTTP ${resp.status}`);
+                err.data = data;
+                throw err;
+            }
+            return data.results || [];
+        }
+
+        function showEngineLoading(container, engine) {
+            if (!container) return;
+            container.classList.remove('hidden');
+            container.innerHTML = `
+                <div class="nav-engine-status">
+                    ${currentLang === 'zh' ? '正在搜索…' : 'Searching…'}
+                </div>
+            `;
+        }
+
+        function restoreGoogleLanding() {
+            const body = document.getElementById('googleEngineBody');
+            if (body) body.innerHTML = '';
+        }
+
+        function restoreBaiduLanding() {
+            const apiResults = document.getElementById('baiduApiResults');
+            if (apiResults) apiResults.innerHTML = '';
+        }
+
+        function restoreBaiduResultsView() {
+            const apiResults = document.getElementById('baiduApiResults');
+            if (!apiResults) return;
+            const term = (navSearchTerms.baidu || '').trim();
+            if (term && baiduResultsCache.term === term && baiduResultsCache.html) {
+                apiResults.innerHTML = baiduResultsCache.html;
+            } else {
+                apiResults.innerHTML = '';
+            }
+        }
+
+        function cacheBaiduResults(term, html) {
+            baiduResultsCache = { term: String(term || '').trim(), html: html || '' };
+        }
+
+        async function renderBaiduSearchResults(searchTerm, options = {}) {
+            const apiResults = document.getElementById('baiduApiResults');
+            const openExternal = options.openExternal !== false;
+            showEngineLoading(apiResults, 'baidu');
+
+            try {
+                const results = await fetchNavEngineResults('baidu', searchTerm);
+                showEngineApiResults(apiResults, 'baidu', searchTerm, results);
+                if (apiResults) cacheBaiduResults(searchTerm, apiResults.innerHTML);
+                return;
+            } catch (error) {
+                console.warn('Baidu web-search failed:', error);
+            }
+
+            const fallbackHtml = `
+                <div class="nav-engine-status">
+                    ${currentLang === 'zh' ? '页内搜索暂不可用' : 'In-page search unavailable'}
+                    <a class="nav-engine-open-link" href="${getExternalSearchUrl('baidu', searchTerm)}" target="_blank" rel="noopener noreferrer">
+                        ${currentLang === 'zh' ? '在百度官网打开搜索结果' : 'Open results on Baidu'}
+                    </a>
+                </div>
+            `;
+            if (apiResults) {
+                apiResults.innerHTML = fallbackHtml;
+                cacheBaiduResults(searchTerm, fallbackHtml);
+            }
+            if (openExternal) {
+                window.open(getExternalSearchUrl('baidu', searchTerm), '_blank', 'noopener,noreferrer');
+            }
+        }
+
+        function switchNavTab(tab, options = {}) {
+            if (!['oao', 'google', 'baidu'].includes(tab)) return;
+
+            const searchInput = document.getElementById('navSearchInput');
+            if (searchInput && !options.skipSave) {
+                navSearchTerms[currentNavTab] = searchInput.value;
+            }
+
+            currentNavTab = tab;
+
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.navTab === tab);
+            });
+            document.querySelectorAll('.nav-panel').forEach(panel => {
+                const active = panel.dataset.navPanel === tab;
+                panel.classList.toggle('active', active);
+                panel.classList.toggle('hidden', !active);
+            });
+
+            document.querySelectorAll('.nav-oao-only').forEach(el => {
+                el.style.display = tab === 'oao' ? '' : 'none';
+            });
+
+            if (searchInput) {
+                searchInput.value = navSearchTerms[tab] || '';
+            }
+            updateNavPanelTitle();
+            updateNavSearchPlaceholder();
+            updateNavSiteCount();
+
+            if (tab === 'google') {
+                restoreGoogleLanding();
+            }
+            if (tab === 'baidu') {
+                restoreBaiduResultsView();
+            }
+        }
+
+        function performSearch() {
+            const searchInput = document.getElementById('navSearchInput');
+            const searchTerm = searchInput?.value.trim() || '';
+            navSearchTerms[currentNavTab] = searchTerm;
+
+            if (currentNavTab === 'oao') {
+                if (!searchTerm) {
+                    if (sitesData.length) renderData(sitesData, document.getElementById('dataContent'));
+                    return;
+                }
+                performOAOSearch(searchTerm);
+                return;
+            }
+
+            if (currentNavTab === 'google') {
+                if (!searchTerm) {
+                    restoreGoogleLanding();
+                    return;
+                }
+                performGoogleSearch(searchTerm);
+                return;
+            }
+
+            if (!searchTerm) {
+                restoreBaiduLanding();
+                return;
+            }
+            performBaiduSearch(searchTerm);
+        }
+
+        // Google搜索 — 回车/点击直接新窗口打开
+        function performGoogleSearch(searchTerm) {
+            if (currentNavTab !== 'google') {
+                switchNavTab('google', { skipSave: true, skipSearch: true });
+            }
+            navSearchTerms.google = searchTerm;
+            const searchInput = document.getElementById('navSearchInput');
+            if (searchInput) searchInput.value = searchTerm;
+
+            if (!searchTerm) {
+                restoreGoogleLanding();
+                return;
+            }
+
+            window.open(getExternalSearchUrl('google', searchTerm), '_blank', 'noopener,noreferrer');
         }
 
         // Baidu搜索
         function performBaiduSearch(searchTerm) {
-            const baiduContainer = document.getElementById('baiduResultsContainer');
-            
-            baiduContainer.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: 600; color: var(--text-color);">Baidu 搜索</div>
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; min-height: 400px;">
-                    <div style="font-size: 32px; margin-bottom: 20px;">🔍</div>
-                    <div style="font-size: 16px; margin-bottom: 30px; text-align: center; max-width: 500px; color: var(--text-color);">
-                        搜索: <strong>${searchTerm}</strong>
-                    </div>
-                    <div style="width: 100%; max-width: 800px; min-height: 300px;" id="baiduSearchResults"></div>
-                </div>
-            `;
-            
-            // 使用百度的搜索框嵌入
-            const resultsContainer = document.getElementById('baiduSearchResults');
-            resultsContainer.innerHTML = `
-                <div style="width: 100%;">
-                    <form action="https://www.baidu.com/s" target="_blank" style="margin-bottom: 20px;">
-                        <input type="hidden" name="wd" value="${encodeURIComponent(searchTerm)}">
-                        <button type="submit" style="padding: 10px 20px; background: var(--btn-hover-bg); color: var(--btn-hover-text); border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; cursor: pointer;">
-                            在新窗口打开百度搜索
-                        </button>
-                    </form>
-                    <div style="font-size: 14px; opacity: 0.6; text-align: center;">
-                        点击按钮在新窗口中查看完整搜索结果
-                    </div>
-                </div>
-            `;
+            if (currentNavTab !== 'baidu') {
+                switchNavTab('baidu', { skipSave: true, skipSearch: true });
+            }
+            navSearchTerms.baidu = searchTerm;
+            const searchInput = document.getElementById('navSearchInput');
+            if (searchInput) searchInput.value = searchTerm;
+            void renderBaiduSearchResults(searchTerm);
         }
 
         // OAO搜索（整合现有功能）
         function performOAOSearch(searchTerm) {
             const dataContent = document.getElementById('dataContent');
-            const oaoContainer = document.getElementById('oaoResultsContainer');
-            const dataHeader = document.querySelector('.data-header');
-            
-            document.getElementById('googleResultsContainer').style.display = 'none';
-            document.getElementById('baiduResultsContainer').style.display = 'none';
+            if (!dataContent) return;
             dataContent.style.display = 'block';
-            oaoContainer.style.display = 'block';
-            dataHeader.style.display = 'flex';
-            
             filterSites(searchTerm, dataContent);
         }
-        // 绑定搜索按钮事件
-        document.getElementById('navSearchBtn').addEventListener('click', performSearch);
 
-        // 绑定回车键搜索
+        document.getElementById('navSearchBtn').addEventListener('click', performSearch);
         document.getElementById('navSearchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
+            if (e.key === 'Enter') performSearch();
         });
 
-        // 初始化搜索引擎选择器
-        initSearchEngineSelector();
-        
-        // 初始化时显示默认搜索引擎容器
-        switchSearchEngineContainer();
+        document.querySelectorAll('.nav-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.navTab;
+                if (tab === currentNavTab) return;
+                switchNavTab(tab);
+            });
+        });
+
+        switchNavTab('oao', { skipSave: true });
 
         async function loadSitesData() {
             const dataContent = document.getElementById('dataContent');
@@ -19544,6 +20126,7 @@ Generated by OAO ENS Identity Lab
                     
                     if (sitesData.length > 0) {
                         renderData(sitesData);
+                        updateNavSiteCount();
                     } else {
                         dataContent.innerHTML = `
                             <div class="loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px;">
@@ -19611,8 +20194,17 @@ Generated by OAO ENS Identity Lab
             return rows;
         }
 
+        function navAttr(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;');
+        }
+
         function renderData(data, targetContainer = null) {
             const dataContent = targetContainer || document.getElementById('dataContent');
+            if (!dataContent) return;
             
             if (currentView === 'card') {
                 renderCardView(data, dataContent);
@@ -19623,38 +20215,72 @@ Generated by OAO ENS Identity Lab
 
         function renderCardView(data, targetContainer = null) {
             const dataContent = targetContainer || document.getElementById('dataContent');
+            if (!dataContent) return;
+            if (!Array.isArray(data) || data.length === 0) {
+                dataContent.innerHTML = `
+                    <div class="loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;">
+                        <div style="font-size:28px;margin-bottom:12px;">📭</div>
+                        <div style="font-size:15px;font-weight:600;">${translations[currentLang].navNoData}</div>
+                    </div>
+                `;
+                return;
+            }
+
             let html = '<div class="card-view">';
-            
             data.forEach(site => {
+                const safeUrl = navAttr(site.url);
                 html += `
-                    <div class="site-card" onclick="openUrl('${site.url}')">
-                        <div class="site-card-title">${site.name}</div>
-                        <div class="site-card-url">${site.url}</div>
-                        <div class="site-card-desc">${site.description}</div>
+                    <div class="site-card" data-open-url="${safeUrl}" role="button" tabindex="0">
+                        <div class="site-card-title">${escapeHtml(site.name)}</div>
+                        <div class="site-card-url" title="${safeUrl}">${escapeHtml(site.url)}</div>
+                        <div class="site-card-desc">${escapeHtml(site.description || '')}</div>
                     </div>
                 `;
             });
-            
             html += '</div>';
             dataContent.innerHTML = html;
+            dataContent.querySelectorAll('.site-card[data-open-url]').forEach(card => {
+                card.addEventListener('click', () => openUrl(card.getAttribute('data-open-url')));
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openUrl(card.getAttribute('data-open-url'));
+                    }
+                });
+            });
         }
 
         function renderTableView(data, targetContainer = null) {
             const dataContent = targetContainer || document.getElementById('dataContent');
+            if (!dataContent) return;
+            if (!Array.isArray(data) || data.length === 0) {
+                dataContent.innerHTML = `
+                    <div class="loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;">
+                        <div style="font-size:28px;margin-bottom:12px;">📭</div>
+                        <div style="font-size:15px;font-weight:600;">${translations[currentLang].navNoData}</div>
+                    </div>
+                `;
+                return;
+            }
+
             let html = `<div class="table-view"><table class="site-table"><thead><tr><th>${translations[currentLang].navTableHeaderName}</th><th>${translations[currentLang].navTableHeaderUrl}</th><th>${translations[currentLang].navTableHeaderDesc}</th></tr></thead><tbody>`;
             
             data.forEach(site => {
+                const safeUrl = navAttr(site.url);
                 html += `
-                    <tr onclick="openUrl('${site.url}')" style="cursor: pointer;">
-                        <td>${site.name}</td>
-                        <td><a href="javascript:void(0)" onclick="openUrl('${site.url}')">${site.url}</a></td>
-                        <td>${site.description}</td>
+                    <tr data-open-url="${safeUrl}" style="cursor: pointer;">
+                        <td>${escapeHtml(site.name)}</td>
+                        <td><span class="site-table-link">${escapeHtml(site.url)}</span></td>
+                        <td>${escapeHtml(site.description || '')}</td>
                     </tr>
                 `;
             });
             
             html += '</tbody></table></div>';
             dataContent.innerHTML = html;
+            dataContent.querySelectorAll('tr[data-open-url]').forEach(row => {
+                row.addEventListener('click', () => openUrl(row.getAttribute('data-open-url')));
+            });
         }
 
         // 处理 .eth 结尾的网址
@@ -19799,15 +20425,11 @@ Generated by OAO ENS Identity Lab
 
         function toggleView(view) {
             currentView = view;
-            document.querySelectorAll('.toggle-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.view === view) {
-                    btn.classList.add('active');
-                }
+            document.querySelectorAll('#pageNav .toggle-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === view);
             });
-            
-            // 根据当前搜索引擎重新渲染数据
-            if (currentSearchEngine === 'oao') {
+
+            if (currentNavTab === 'oao') {
                 const searchTerm = document.getElementById('navSearchInput').value.trim();
                 if (searchTerm) {
                     filterSites(searchTerm, document.getElementById('dataContent'));
@@ -19835,7 +20457,7 @@ Generated by OAO ENS Identity Lab
             const dataContent = targetContainer || document.getElementById('dataContent');
             
             if (!searchTerm || searchTerm.trim() === '') {
-                if (currentSearchEngine === 'oao') {
+                if (currentNavTab === 'oao') {
                     renderData(sitesData, dataContent);
                 }
                 return;
@@ -19844,9 +20466,9 @@ Generated by OAO ENS Identity Lab
             const term = searchTerm.toLowerCase().trim();
             
             const filtered = sitesData.filter(site => {
-                const nameMatch = site.name.toLowerCase().includes(term);
-                const urlMatch = site.url.toLowerCase().includes(term);
-                const descMatch = site.description.toLowerCase().includes(term);
+                const nameMatch = (site.name || '').toLowerCase().includes(term);
+                const urlMatch = (site.url || '').toLowerCase().includes(term);
+                const descMatch = (site.description || '').toLowerCase().includes(term);
                 
                 return nameMatch || urlMatch || descMatch;
             });
@@ -19902,13 +20524,15 @@ Generated by OAO ENS Identity Lab
         }
 
         // 绑定导航页面事件
-        document.querySelectorAll('.toggle-btn').forEach(btn => {
+        document.querySelectorAll('#pageNav .toggle-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 toggleView(btn.dataset.view);
             });
         });
 
         document.getElementById('navSearchInput').addEventListener('input', (e) => {
+            if (currentNavTab !== 'oao') return;
+            navSearchTerms.oao = e.target.value;
             debouncedFilter(e.target.value);
         });
 
@@ -19921,11 +20545,13 @@ Generated by OAO ENS Identity Lab
         showPage = function(pageId) {
             originalShowPage(pageId);
             if (pageId === 'pageNav') {
-                if (sitesData.length === 0) {
-                    loadSitesData();
+                switchNavTab('oao', { skipSave: true });
+                if (sitesData.length === 0) loadSitesData();
+                else {
+                    const searchTerm = document.getElementById('navSearchInput')?.value.trim();
+                    if (searchTerm) performOAOSearch(searchTerm);
+                    else renderData(sitesData, document.getElementById('dataContent'));
                 }
-                // 显示当前选中的搜索引擎容器
-                switchSearchEngineContainer();
             } else if (pageId === 'pageTimeSlot') {
                 // 重置时间席位页面到第一屏
                 if (currentSection !== 0) {

@@ -23,6 +23,7 @@ import { MeetingRoom } from './meeting-room.js';
 import { handleGlmChat, handleGlmHealth } from './glm-handler.js';
 import { handleUserApi } from './user-api.js';
 import { handleAdminApi } from './admin-api.js';
+import { handleWebSearch } from './web-search-handler.js';
 
 export { MeetingRoom };
 
@@ -134,6 +135,10 @@ export default {
       return withCors(await handleAdminApi(request, env, url, CORS));
     }
 
+    if (path === '/web-search' || path.startsWith('/web-search/')) {
+      return withCors(await handleWebSearch(request, env, CORS));
+    }
+
     if (path.startsWith('/glm/')) {
       if (path === '/glm/health' && request.method === 'GET') {
         return withCors(await handleGlmHealth(env, CORS));
@@ -175,7 +180,7 @@ export default {
         '/glm/health', '/glm/chat',
         '/api/user/sync', '/api/user/me', '/api/user/meetings', '/api/user/translate',
         '/admin/login', '/admin/api/stats', '/admin/api/users',
-        '/ollama/*', '/api/*', '/meeting', '/auth/wechat/config',
+        '/web-search', '/ollama/*', '/api/*', '/meeting', '/auth/wechat/config',
       ],
     }), {
       headers: { 'Content-Type': 'application/json; charset=utf-8' },

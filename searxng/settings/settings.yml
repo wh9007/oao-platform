@@ -1,0 +1,28 @@
+﻿use_default_settings: true
+
+general:
+  instance_name: "OAO Search"
+  debug: false
+  default_lang: "zh-CN"
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "zh-CN"
+  formats:
+    - html
+    - json
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "oao-searxng-local-change-me-in-production"
+  limiter: false
+  image_proxy: false
+
+ui:
+  static_use_hash: true
+
+outgoing:
+  request_timeout: 10.0
+  max_request_timeout: 15.0
