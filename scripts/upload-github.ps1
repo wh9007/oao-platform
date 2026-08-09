@@ -69,12 +69,26 @@ if ($ok -eq 0) {
     Write-Host '  若页面仍是旧版，请按 Ctrl+F5 强制刷新'
     Write-Host ' ============================================================' -ForegroundColor Green
     Start-Process 'https://wh9007.github.io/oao-platform/'
-} else {
+} elseif ($ok -eq 2) {
     Write-Host ' ============================================================' -ForegroundColor Red
-    Write-Host '  [上传失败] 请看上方 upload-log.txt'
-    Write-Host '  若提示 Token 无效，请重新生成 Classic Token（勾选 repo）'
+    Write-Host '  [上传失败] 无法连接 GitHub（网络/代理问题，不是 Token）'
+    Write-Host '  1. 打开 Clash/V2Ray，确认浏览器能打开 https://github.com'
+    Write-Host '  2. 复制 upload-proxy.txt.example -> upload-proxy.txt'
+    Write-Host '     写入代理，例如: http://127.0.0.1:7890'
+    Write-Host '  3. 重新运行本脚本'
+    Write-Host '  本地 commit 已成功时，网络恢复后再次上传即可 push'
+    Write-Host '  详情: upload-log.txt'
+    Write-Host ' ============================================================' -ForegroundColor Red
+} elseif ($ok -eq 3) {
+    Write-Host ' ============================================================' -ForegroundColor Red
+    Write-Host '  [上传失败] GitHub Token 无效或权限不足'
+    Write-Host '  请重新生成 Classic Token（勾选 repo）写入 git-token.txt'
     Write-Host ' ============================================================' -ForegroundColor Red
     Start-Process 'https://github.com/settings/tokens/new?scopes=repo'
+} else {
+    Write-Host ' ============================================================' -ForegroundColor Red
+    Write-Host '  [上传失败] 请看 upload-log.txt'
+    Write-Host ' ============================================================' -ForegroundColor Red
 }
 
 Write-Host ''
