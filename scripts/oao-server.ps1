@@ -69,8 +69,8 @@ function Start-Services {
 }
 
 function Find-Cloudflared {
-    $cf = (Get-Command cloudflared -ErrorAction SilentlyContinue)?.Source
-    if ($cf) { return $cf }
+    $cmd = Get-Command cloudflared -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
     $warp = "${env:ProgramFiles}\Cloudflare\Cloudflare WARP\cloudflared.exe"
     if (Test-Path $warp) { return $warp }
     return $null
@@ -100,6 +100,25 @@ function Start-Tunnel {
         Write-Host ' [错误] Token 为空' -ForegroundColor Red
         Read-Host '按回车退出'
         exit 1
+    }
+
+    . (Join-Path $PSScriptRoot 'tunnel-health.ps1')
+    $cfg = Get-OaoRemoteConfig -Root $Root
+    $tunnelState = Ensure-CloudflaredTunnelRunning -Root $Root -TokenFile $TokenFile -AutoRestartStale
+    if ($tunnelState.action -eq 'ok') {
+        Write-Host ''
+        Write-Host ' [正常] 远程 Tunnel 已连通，外网可访问本机 AI' -ForegroundColor Green
+        Write-Host " 页面: $($cfg.github_pages_url)"
+        Read-Host '按回车关闭（无需重复启动 Tunnel）'
+        return
+    }
+    if ($tunnelState.action -eq 'stale') {
+        $ans = Read-Host ' cloudflared 在运行但 Tunnel 未连通。输入 Y 重启，或回车退出'
+        if ($ans -match '^[Yy]') {
+            Stop-StaleCloudflared -Force | Out-Null
+        } else {
+            return
+        }
     }
 
     Write-Host ''
@@ -136,6 +155,11 @@ function Start-Tunnel {
 }
 
 function Start-All {
+    $unified = Join-Path $Root 'scripts\oao-remote-server.ps1'
+    if (Test-Path $unified) {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $unified
+        return
+    }
     Show-Prereq
     Write-Host ''
     Write-Host ' [1/2] 正在启动后台服务...'

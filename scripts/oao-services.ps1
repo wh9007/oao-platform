@@ -65,7 +65,7 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
 }
 
 Write-Host ''
-Write-Host ' 远程 AI 还需另开「OAO服务器.bat」选 1 或 3 启动 Tunnel'
+Write-Host ' 远程 AI：双击「OAO服务器.bat」启动 Tunnel（保持窗口打开）'
 Write-Host " 日志: $Log"
 Write-Host ''
 Write-Host ' 本窗口请保持打开...'

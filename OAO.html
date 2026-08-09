@@ -33,7 +33,7 @@
     <script>
         // ========== OAO 个人使用说明 ==========
         // 1. 本地测试：双击「打开OAO.bat」
-        // 2. 外网远程本机 AI：双击「启动远程AI.bat」（每次运行即可）
+        // 2. 外网远程本机 AI：双击「OAO服务器.bat」（保持窗口打开）
         // 3. 版本发布：双击「一键上传GitHub.bat」
         // 4. 外网站点：https://wh9007.github.io/oao-platform/
         // 5. AI：本地 AnythingLLM + Ollama 优先；Tunnel 经 Worker；智谱 GLM 备援
@@ -50,6 +50,10 @@
             if (h.indexOf('github.io') === -1 && h.indexOf('wh9007.github.io') === -1) return;
             if (!window.OAO_WORKER_URL) window.OAO_WORKER_URL = 'https://oao-ai.wh529007.workers.dev';
             if (!window.OAO_ANYTHINGLLM_WORKSPACE) window.OAO_ANYTHINGLLM_WORKSPACE = 'oaoeth';
+            // 外网默认优先 Tunnel 本机 AI；仅当显式 OAO_ENABLE_GLM_FALLBACK=true 时才回退智谱
+            if (typeof window.OAO_DISABLE_GLM_FALLBACK === 'undefined' && window.OAO_ENABLE_GLM_FALLBACK !== true) {
+                window.OAO_DISABLE_GLM_FALLBACK = true;
+            }
         })();
     </script>
     <script src="local-config.js" onerror="void 0"></script>
@@ -8283,12 +8287,12 @@
                 return false;
             }
 
-            /** 本地 AI 不可用时是否回退智谱 GLM（外网/Tunnel 场景默认开启；本地预览默认关闭） */
+            /** 本地 AI 不可用时是否回退智谱 GLM（默认关闭；需显式 OAO_ENABLE_GLM_FALLBACK=true） */
             function shouldUseZhipuFallback() {
                 if (window.OAO_FORCE_LOCAL_AI === true) return false;
                 if (window.OAO_DISABLE_GLM_FALLBACK === true) return false;
                 if (window.OAO_ENABLE_GLM_FALLBACK === true) return true;
-                return !isOaoLocalPreview();
+                return false;
             }
 
             /** @deprecated 别名，与 useCloudGlmAi 相同 */
@@ -8394,10 +8398,114 @@
             function getAiConnectionHint() {
                 if (useCloudGlmAi()) return getGlmConnectionHint();
                 if (isOaoLocalPreview()) return getLocalAiConnectionHint();
-                return currentLang === 'zh'
-                    ? '无法通过 Cloudflare Tunnel 连接本机 AI。\n\n请在本机：\n1. 启动 Ollama(:11434) 与 AnythingLLM(:3001)\n2. 双击「OAO服务器.bat」选 [1] 启动全部\n3. Worker 已配置 LLM_ORIGIN / OLLAMA_ORIGIN'
-                    : 'Cannot reach home AI via Tunnel. Run OAO服务器.bat option [1].';
+                return getRemoteTunnelSetupHint();
             }
+
+            function getRemoteTunnelSetupHint(extraDetail) {
+                const worker = resolveWorkerBaseUrl();
+                const lines = currentLang === 'zh'
+                    ? [
+                        '无法通过 Cloudflare Tunnel 连接本机 AI（不是智谱额度问题）。',
+                        '',
+                        '请在本机依次确认：',
+                        '1. AnythingLLM 桌面版已打开（端口 3001，工作区 oaoeth，模式 Query）',
+                        '2. Ollama 已运行（端口 11434，模型 qwen2.5:7b 等）',
+                        '3. 双击「OAO服务器.bat」，保持窗口打开直到 Tunnel 连通',
+                        '4. 首次远程使用：在 cloudflare 目录运行 setup-remote-access.ps1，写入 Worker Secret ANYTHINGLLM_API_KEY',
+                        '',
+                        `5. 浏览器可访问 ${worker}/api/ping 应返回 online`,
+                        `   ${worker}/ollama/api/tags 应返回模型列表`,
+                        '',
+                        '诊断：控制台执行 OAO_Diagnostic.checkRemoteTunnel()',
+                        '若 Tunnel 报 Error 1033，说明 cloudflared 未连接，请重新双击 OAO服务器.bat。',
+                    ]
+                    : [
+                        'Cannot reach home AI via Cloudflare Tunnel (not a Zhipu quota issue).',
+                        '',
+                        'On your PC:',
+                        '1. Start AnythingLLM (:3001, workspace oaoeth, Query mode)',
+                        '2. Start Ollama (:11434)',
+                        '3. Run OAO服务器.bat and keep the window open',
+                        '4. First-time: run cloudflare/setup-remote-access.ps1 for ANYTHINGLLM_API_KEY secret',
+                        '',
+                        `5. ${worker}/api/ping should respond`,
+                        '',
+                        'Run OAO_Diagnostic.checkRemoteTunnel() in the console.',
+                    ];
+                if (extraDetail) {
+                    lines.push('');
+                    lines.push(currentLang === 'zh' ? `详情：${extraDetail}` : `Detail: ${extraDetail}`);
+                }
+                return lines.join('\n');
+            }
+
+            let cachedRemoteTunnelHealth = null;
+            let cachedRemoteTunnelHealthAt = 0;
+
+            async function checkRemoteTunnelHealth(forceRefresh = false) {
+                if (isOaoLocalPreview()) {
+                    return { ok: true, local: true, worker: resolveWorkerBaseUrl() };
+                }
+                const now = Date.now();
+                if (!forceRefresh && cachedRemoteTunnelHealth && now - cachedRemoteTunnelHealthAt < 20000) {
+                    return cachedRemoteTunnelHealth;
+                }
+                const worker = resolveWorkerBaseUrl();
+                const result = {
+                    ok: false,
+                    worker,
+                    llmOk: false,
+                    ollamaOk: false,
+                    llmStatus: 0,
+                    ollamaStatus: 0,
+                    error: '',
+                };
+                const probe = async (path) => {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 12000);
+                    try {
+                        const res = await fetch(`${worker}${path}`, {
+                            method: 'GET',
+                            cache: 'no-store',
+                            signal: controller.signal,
+                        });
+                        clearTimeout(timer);
+                        const text = await res.text().catch(() => '');
+                        if (isTunnelUnavailableBody(text)) {
+                            const err = new Error(text.slice(0, 200) || 'Tunnel unavailable');
+                            err.code = 'TUNNEL_UNAVAILABLE';
+                            throw err;
+                        }
+                        return { ok: res.ok, status: res.status, text };
+                    } catch (err) {
+                        clearTimeout(timer);
+                        throw err;
+                    }
+                };
+                try {
+                    const llm = await probe('/api/ping');
+                    result.llmOk = llm.ok;
+                    result.llmStatus = llm.status;
+                } catch (err) {
+                    result.error = err?.message || String(err);
+                    cachedRemoteTunnelHealth = result;
+                    cachedRemoteTunnelHealthAt = now;
+                    return result;
+                }
+                try {
+                    const ollama = await probe('/ollama/api/tags');
+                    result.ollamaOk = ollama.ok;
+                    result.ollamaStatus = ollama.status;
+                } catch (err) {
+                    result.error = err?.message || String(err);
+                }
+                result.ok = result.llmOk;
+                cachedRemoteTunnelHealth = result;
+                cachedRemoteTunnelHealthAt = now;
+                return result;
+            }
+
+            window.checkRemoteTunnelHealth = checkRemoteTunnelHealth;
 
             async function deliverGlmChatReply(message, typingDiv, options = {}) {
                 const glmResult = await callZhipuChat(message);
@@ -8676,9 +8784,15 @@
                         : '2. Set workspace chat mode to Query for RAG');
                 }
                 if (!LLM_CONFIG.apiKey) {
-                    lines.push(currentLang === 'zh'
-                        ? '3. 复制 local-config.example.txt → local-config.js，填写 OAO_ANYTHINGLLM_API_KEY（AnythingLLM 设置 → API Keys）'
-                        : '3. Set OAO_ANYTHINGLLM_API_KEY in local-config.js (from AnythingLLM API Keys)');
+                    if (isOaoLocalPreview()) {
+                        lines.push(currentLang === 'zh'
+                            ? '3. 复制 local-config.example.txt → local-config.js，填写 OAO_ANYTHINGLLM_API_KEY（AnythingLLM 设置 → API Keys）'
+                            : '3. Set OAO_ANYTHINGLLM_API_KEY in local-config.js (from AnythingLLM API Keys)');
+                    } else {
+                        lines.push(currentLang === 'zh'
+                            ? '3. 外网经 Worker 代理鉴权：在本机运行 cloudflare\\setup-remote-access.ps1，写入 Worker Secret ANYTHINGLLM_API_KEY'
+                            : '3. Remote uses Worker-injected ANYTHINGLLM_API_KEY — run cloudflare/setup-remote-access.ps1 on your PC');
+                    }
                 }
                 if (errorMsg) {
                     lines.push(currentLang === 'zh' ? `详情：${errorMsg}` : `Detail: ${errorMsg}`);
@@ -8691,6 +8805,15 @@
 
             async function refreshAnythingLLMStatus() {
                 if (!isLoggedIn || useCloudGlmAi()) return;
+                if (!isOaoLocalPreview()) {
+                    const tunnel = await checkRemoteTunnelHealth(false);
+                    if (!tunnel.ok) {
+                        setAiHomeStatus(currentLang === 'zh'
+                            ? '远程 Tunnel 未连接 · 请双击 OAO服务器.bat'
+                            : 'Remote tunnel offline · run OAO服务器.bat');
+                        return;
+                    }
+                }
                 const health = await checkAnythingLLMHealth(false);
                 if (health.ok) {
                     setAiHomeStatus(getAiStatusReadyLabel());
@@ -9399,6 +9522,22 @@
                 if (!useCloudGlmAi()) {
                     void checkAnythingLLMHealth(true);
                 }
+
+                if (!useCloudGlmAi() && !isOaoLocalPreview()) {
+                    const tunnel = await checkRemoteTunnelHealth(true);
+                    if (!tunnel.ok) {
+                        removeTypingIndicator(typingDiv);
+                        const tunnelHint = getRemoteTunnelSetupHint(tunnel.error);
+                        addMessage(tunnelHint, false, { timestamp: Date.now(), source: 'system' });
+                        setAiHomeStatus(currentLang === 'zh'
+                            ? '远程 Tunnel 未连接 · 请双击 OAO服务器.bat'
+                            : 'Remote tunnel offline · run OAO服务器.bat');
+                        const updatedHistory = loadChatHistory();
+                        updatedHistory.push({ type: 'ai', content: tunnelHint, timestamp: Date.now() });
+                        saveChatHistory(updatedHistory);
+                        return;
+                    }
+                }
                 
                 try {
                     if (useCloudGlmAi()) {
@@ -9539,7 +9678,7 @@
                     
                     let errorMessage = '';
                     const glmUserError = getGlmUserFacingError(error);
-                    if (glmUserError) {
+                    if (glmUserError && (useCloudGlmAi() || shouldUseZhipuFallback())) {
                         errorMessage = glmUserError;
                     } else if (isGlmUnavailableError(error) || isTunnelUnavailableError(error)) {
                         errorMessage = getAiConnectionHint();
@@ -9548,7 +9687,7 @@
                             ? (currentLang === 'zh'
                                 ? '无法连接 Cloudflare Worker（网络/CORS 问题）。\n\n请确认能打开 ' + resolveWorkerBaseUrl() + '/glm/health ，或稍后重试。'
                                 : 'Cannot reach Cloudflare Worker. Check ' + resolveWorkerBaseUrl() + '/glm/health')
-                            : getAiConnectionHint();
+                            : getRemoteTunnelSetupHint(error.message);
                     } else if (error.name === 'AbortError') {
                         errorMessage = currentLang === 'zh'
                             ? (useCloudGlmAi() ? '智谱 AI 请求超时，请稍后重试' : '请求超时，请检查本地 AI 服务')
@@ -9566,9 +9705,11 @@
                             ? '服务器内部错误，请稍后重试'
                             : 'Internal server error, please try again later';
                     } else {
-                        errorMessage = currentLang === 'zh' 
-                            ? `调用失败: ${error.message}`
-                            : `Call failed: ${error.message}`;
+                        errorMessage = !isOaoLocalPreview() && !useCloudGlmAi()
+                            ? getRemoteTunnelSetupHint(error.message)
+                            : (currentLang === 'zh' 
+                                ? `调用失败: ${error.message}`
+                                : `Call failed: ${error.message}`);
                     }
                     
                     addMessage(errorMessage, false, { timestamp: Date.now() });
@@ -9591,6 +9732,8 @@
                     console.log('========== OAO AI 配置诊断 ==========');
                     console.log('环境:', isOaoLocalPreview() ? '本地预览' : '外网 / GitHub Pages');
                     console.log('useCloudGlmAi:', useCloudGlmAi());
+                    console.log('shouldUseZhipuFallback:', shouldUseZhipuFallback());
+                    console.log('OAO_DISABLE_GLM_FALLBACK:', window.OAO_DISABLE_GLM_FALLBACK);
                     console.log('workerUrl:', resolveWorkerBaseUrl());
                     console.log('glmChatUrl:', resolveGlmChatUrl());
                     console.log('local LLM baseUrl:', LLM_CONFIG.baseUrl);
@@ -9651,32 +9794,48 @@
 
                 testRemoteTunnel: async function() {
                     console.log('========== 远程 Tunnel / Worker 诊断 ==========');
-                    const testBase = isOaoLocalPreview()
-                        ? 'https://oao-ai.wh529007.workers.dev'
-                        : LLM_CONFIG.baseUrl;
-                    console.log('测试 baseUrl:', testBase);
+                    const tunnel = await checkRemoteTunnelHealth(true);
+                    console.log('tunnel health:', tunnel);
+                    if (tunnel.local) {
+                        console.log('当前为本地预览，Worker 测试 URL:', resolveWorkerBaseUrl());
+                    }
+                    if (!tunnel.ok) {
+                        console.error('❌ Worker → 本机 AnythingLLM 不可达');
+                        console.error(getRemoteTunnelSetupHint(tunnel.error));
+                        return { success: false, tunnel };
+                    }
                     try {
-                        const response = await fetch(`${testBase}/api/v1/system`, {
+                        const response = await fetch(`${tunnel.worker}/api/v1/system`, {
                             method: 'GET',
-                            headers: buildAnythingLLMHeaders(false)
+                            headers: buildAnythingLLMHeaders(false),
+                            cache: 'no-store',
                         });
                         const text = await response.text();
                         if (response.ok) {
-                            console.log('✅ Worker → 本机 AnythingLLM 连通');
-                            try { console.log('系统信息:', JSON.parse(text)); } catch (_) { /* ignore */ }
-                            return { success: true, status: response.status };
+                            console.log('✅ Worker → AnythingLLM 系统 API 正常');
+                            if (tunnel.ollamaOk) {
+                                console.log('✅ Worker → Ollama 正常');
+                            } else {
+                                console.warn('⚠ Worker → Ollama 未响应，通用对话可能不可用');
+                            }
+                            return { success: true, tunnel, status: response.status };
                         }
                         if (isTunnelUnavailableBody(text)) {
-                            console.error('❌ Cloudflare Tunnel 未运行或 LLM_ORIGIN 不可达（Error 1033）');
-                            console.error('请在本机运行：OAO服务器.bat 选项 [1]，并确保 Ollama + AnythingLLM 已启动');
-                            return { success: false, error: 'tunnel_offline' };
+                            console.error('❌ Cloudflare Tunnel 未运行（Error 1033）');
+                            console.error(getRemoteTunnelSetupHint(text.slice(0, 200)));
+                            return { success: false, tunnel, error: 'tunnel_offline' };
                         }
                         console.error('❌ 异常响应', response.status, text.slice(0, 240));
-                        return { success: false, status: response.status, error: text.slice(0, 240) };
+                        return { success: false, tunnel, status: response.status, error: text.slice(0, 240) };
                     } catch (error) {
                         console.error('❌ 网络错误:', error.message);
-                        return { success: false, error: error.message };
+                        console.error(getRemoteTunnelSetupHint(error.message));
+                        return { success: false, tunnel, error: error.message };
                     }
+                },
+
+                checkRemoteTunnel: async function() {
+                    return window.OAO_Diagnostic.testRemoteTunnel();
                 },
                 
                 /**

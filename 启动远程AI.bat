@@ -1,18 +1,5 @@
-﻿@echo off
-title OAO 远程 AI
-cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0cloudflare\ensure-ps1-bom.ps1" 2>nul
-if /I "%~1"=="menu" (
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\remote-ai-start.ps1" -Menu
-    exit /b %ERRORLEVEL%
-)
-if /I "%~1"=="check" (
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\remote-ai-start.ps1" -CheckOnly
-    exit /b %ERRORLEVEL%
-)
-if /I "%~1"=="v2ray" (
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0cloudflare\v2ray-tunnel-fix.ps1"
-    exit /b %ERRORLEVEL%
-)
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\remote-ai-start.ps1" %*
-exit /b %ERRORLEVEL%
+﻿@echo off
+rem 兼容旧名称 — 与 OAO服务器.bat 相同
+cd /d "%~dp0"
+call "%~dp0OAO服务器.bat" %*
+exit /b %ERRORLEVEL%

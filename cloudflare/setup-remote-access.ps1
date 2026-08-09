@@ -122,7 +122,7 @@ Write-Host '2. 打开 AnythingLLM 桌面版 + Ollama'
 Write-Host ''
 Write-Host '3. 若 Tunnel DNS 报错，WiFi DNS 改为 1.1.1.1 / 8.8.8.8，V2Ray 对 cloudflare.com 直连'
 Write-Host ''
-Write-Host '4. 运行 启动远程AI.bat，保持窗口直到 Registered tunnel connection'
+Write-Host '4. 双击 OAO服务器.bat，保持窗口直到 Registered tunnel connection'
 Write-Host ''
 Write-Host "5. 外网测试: $($cfg.github_pages_url)"
 Write-Host ''

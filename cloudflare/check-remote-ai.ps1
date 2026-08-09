@@ -23,8 +23,8 @@ function Test-Url($label, $url) {
         }
         if ($msg -match '1033|530|Tunnel') {
             Write-Host '  => Cloudflare Tunnel 错误 1033: Tunnel 未连接' -ForegroundColor Yellow
-            Write-Host '     请先运行 OAO服务器.bat 选 1, 并保持 Tunnel 窗口打开' -ForegroundColor Yellow
-            Write-Host '     看到 Registered tunnel connection 后再选 6 检测' -ForegroundColor Yellow
+            Write-Host '     请先运行 OAO服务器.bat，并保持窗口打开' -ForegroundColor Yellow
+            Write-Host '     看到 Registered tunnel connection 后再检测' -ForegroundColor Yellow
         }
         return $false
     }
@@ -36,7 +36,7 @@ if ($cf) {
 } else {
     Write-Host ''
     Write-Host '[Tunnel 进程] cloudflared 未运行' -ForegroundColor Red
-    Write-Host '  => 这就是 Error 1033 的原因. 请选 OAO服务器.bat 选项 1 启动 Tunnel' -ForegroundColor Yellow
+    Write-Host '  => 这就是 Error 1033 的原因. 请双击 OAO服务器.bat 启动 Tunnel' -ForegroundColor Yellow
 }
 
 Test-Url '本机 AnythingLLM' 'http://127.0.0.1:3001/api/ping' | Out-Null
@@ -52,7 +52,7 @@ Write-Host '外网用户访问: https://wh9007.github.io/oao-platform/OAO.html' 
 Write-Host '本机需满足:' -ForegroundColor Cyan
 Write-Host '  1. AnythingLLM 桌面版已打开, 端口 3001, 工作区 oaoeth'
 Write-Host '  2. Ollama 已运行, 端口 11434'
-Write-Host '  3. OAO服务器.bat 选 1 后, Tunnel 窗口保持打开'
+Write-Host '  3. 双击 OAO服务器.bat，保持窗口打开'
 Write-Host '  4. Worker 已配置 LLM_ORIGIN=https://llm.wh9007.dpdns.org'
 Write-Host '              OLLAMA_ORIGIN=你的 ollama 隧道域名'
 Write-Host '              ANYTHINGLLM_API_KEY=你的 API Key'
@@ -80,5 +80,5 @@ if ($dnsFail) {
 
 Write-Host ''
 Write-Host '说明: 选项 6 只做检测, 不会启动 Tunnel' -ForegroundColor DarkGray
-Write-Host '      远程 AI 要可用, 必须先选 1 并保持 Tunnel 窗口不关' -ForegroundColor DarkGray
+Write-Host '      远程 AI 要可用, 请先双击 OAO服务器.bat 并保持窗口不关' -ForegroundColor DarkGray
 Write-Host ''
