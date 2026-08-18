@@ -4,8 +4,8 @@ cd /d "%~dp0"
 title OAO Server - Remote AI
 rem Start Docker + SearXNG + Ollama + AnythingLLM + Tunnel
 rem Args: menu  check  v2ray
-net session >nul 2>&1
-if %errorlevel% neq 0 (
+fltmc >nul 2>&1
+if errorlevel 1 (
     powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
     exit /b
 )
