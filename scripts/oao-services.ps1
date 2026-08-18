@@ -8,9 +8,7 @@ $Log = Join-Path $Root 'oao-services.log'
 
 $Host.UI.RawUI.WindowTitle = 'OAO 后台服务'
 
-$py = $null
-if (Get-Command python -ErrorAction SilentlyContinue) { $py = 'python' }
-elseif (Get-Command py -ErrorAction SilentlyContinue) { $py = 'py -3' }
+$node = Get-Command node -ErrorAction SilentlyContinue
 
 Add-Content -Path $Log -Value "========================================"
 Add-Content -Path $Log -Value " OAO 后台服务 $(Get-Date)"
@@ -29,13 +27,12 @@ Write-Host ''
 $listening8777 = netstat -ano 2>$null | Select-String ':8777' | Select-String 'LISTENING'
 if ($listening8777) {
     Write-Host '(跳过) 主页 8777 已由其他启动器运行'
-} elseif ($py) {
+} elseif ($node) {
     Write-Host '(运行中) 主页服务 8777'
-    if ($py -eq 'py -3') {
-        Start-Process -FilePath 'py' -ArgumentList '-3','-m','http.server','8777','--bind','127.0.0.1' -WindowStyle Hidden
-    } else {
-        Start-Process -FilePath 'python' -ArgumentList '-m','http.server','8777','--bind','127.0.0.1' -WindowStyle Hidden
-    }
+    $launcher = Join-Path $Root 'scripts\run-dev-server.ps1'
+    Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $launcher + '"') -WorkingDirectory $Root -WindowStyle Hidden
+} else {
+    Write-Host '(提示) 未检测到 Node.js - 主页 8777 无法启动'
 }
 
 if (Get-Command ollama -ErrorAction SilentlyContinue) {

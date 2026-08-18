@@ -13,8 +13,8 @@ Write-Host ' ============================================================' -Fore
 Write-Host '   OAO — 快速部署 Cloudflare Worker' -ForegroundColor Cyan
 Write-Host ' ============================================================' -ForegroundColor Cyan
 Write-Host ''
-Write-Host ' 用途: 更新 Worker 代码（AI联网 /web-search、Tunnel 代理等）'
-Write-Host ' 说明: 智谱 GLM 已停用，本脚本不会要求设置 ZHIPU_API_KEY'
+Write-Host ' 用途: 更新 Worker 代码（AI 对话 /glm/chat、AI联网 /web-search、Tunnel 代理等）'
+Write-Host ' 说明: 本脚本只更新代码；ZHIPU_API_KEY / D1 / Secrets 请先运行完整配置脚本'
 Write-Host ''
 
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {

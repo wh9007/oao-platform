@@ -1,5 +1,5 @@
-﻿# OAO 服务器 — 一键启动：本机 AI + 后台服务 + Cloudflare Tunnel
-# 双击 OAO服务器.bat 即可；外网通过 Worker -> Tunnel 访问本机 AnythingLLM / Ollama
+﻿# OAO 服务器 — 一键启动：Docker + SearXNG + 本机 AI + Cloudflare Tunnel
+# 双击 OAO服务器.bat 即可；外网通过 Worker -> Tunnel 访问本机 AnythingLLM / Ollama / SearXNG
 param(
     [switch]$Menu,
     [switch]$CheckOnly,
@@ -11,6 +11,17 @@ $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 $ErrorActionPreference = 'Continue'
 
 $Root = Split-Path $PSScriptRoot -Parent
+foreach ($arg in $args) {
+    switch ($arg.ToLower()) {
+        'menu'  { $Menu = $true }
+        'check' { $CheckOnly = $true }
+        'v2ray' {
+            $fix = Join-Path $Root 'cloudflare\v2ray-tunnel-fix.ps1'
+            if (Test-Path $fix) { & $fix } else { Write-Host '  (错误) 未找到 v2ray-tunnel-fix.ps1' -ForegroundColor Red }
+            exit 0
+        }
+    }
+}
 $CfDir = Join-Path $Root 'cloudflare'
 $TokenFile = Join-Path $CfDir 'tunnel-token.txt'
 $ConfigFile = Join-Path $CfDir 'remote-access.config.json'
@@ -72,6 +83,7 @@ function Show-Banner {
     Write-Host ''
     Write-Host '  外网打开:' $Cfg.github_pages_url
     Write-Host '  链路: 浏览器 -> Worker -> Tunnel -> 本机 AI / SearXNG 联网'
+    Write-Host '  本脚本自动: Docker Desktop + SearXNG(:8080) + Ollama + Tunnel'
     Write-Host '  只需保持本窗口打开，关闭 = 外网无法访问本机 AI'
     Write-Host '  高级菜单: OAO服务器.bat menu' -ForegroundColor DarkGray
     Write-Host ''
@@ -99,7 +111,7 @@ function Ensure-BackgroundServices {
 
 function Ensure-SearXNGService {
     Write-Host ''
-    Write-Host ' [1b/5] SearXNG 联网搜索 (8080)' -ForegroundColor Cyan
+    Write-Host ' [1/6] Docker + SearXNG 联网搜索 (8080)' -ForegroundColor Cyan
     $searxScript = Join-Path $PSScriptRoot 'searxng-start.ps1'
     if (-not (Test-Path $searxScript)) {
         Write-Host '  (跳过) 未找到 searxng-start.ps1' -ForegroundColor Yellow
@@ -110,20 +122,21 @@ function Ensure-SearXNGService {
         $ok = Ensure-SearXNG
         if (-not $ok) {
             Write-Host '  (提示) SearXNG 未就绪 — AI联网 将不可用或质量较差' -ForegroundColor Yellow
-            Write-Host '         1) 打开 Docker Desktop  2) 双击 searxng\启动SearXNG.bat' -ForegroundColor Yellow
+            Write-Host '         1) 确认 Docker Desktop 托盘为 Running' -ForegroundColor Yellow
+            Write-Host '         2) 浏览器测试 http://127.0.0.1:8080/search?q=test&format=json' -ForegroundColor Yellow
             Write-Host '         3) 或配置 Serper Key: local-config.js → OAO_SERPER_API_KEY' -ForegroundColor Yellow
         }
         return $ok
     } catch {
         Write-Host "  (警告) SearXNG 启动异常: $($_.Exception.Message)" -ForegroundColor Yellow
-        Write-Host '         请打开 Docker Desktop 后运行 searxng\启动SearXNG.bat' -ForegroundColor Yellow
+        Write-Host '         请确认 Docker Desktop 已运行后重新双击 OAO服务器.bat' -ForegroundColor Yellow
         return $false
     }
 }
 
 function Ensure-Ollama {
     Write-Host ''
-    Write-Host ' [1/5] Ollama (11434)' -ForegroundColor Cyan
+    Write-Host ' [2/6] Ollama (11434)' -ForegroundColor Cyan
     if (Test-LocalPort -Port 11434 -Path '/api/tags') {
         Write-Host '  (正常) Ollama 已运行' -ForegroundColor Green
         return $true
@@ -160,7 +173,7 @@ function Find-AnythingLLMExe {
 
 function Ensure-AnythingLLM {
     Write-Host ''
-    Write-Host ' [2/5] AnythingLLM (3001)' -ForegroundColor Cyan
+    Write-Host ' [3/6] AnythingLLM (3001)' -ForegroundColor Cyan
     if (Test-LocalPort -Port 3001 -Path '/api/ping') {
         Write-Host '  (正常) AnythingLLM 已运行' -ForegroundColor Green
         return $true
@@ -221,7 +234,7 @@ function Ensure-TunnelToken {
 function Ensure-FirstTimeWorker {
     if (Test-Path $ReadyMarker) { return }
     Write-Host ''
-    Write-Host ' [3/5] 首次运行 — 配置 Cloudflare Worker（仅需一次）' -ForegroundColor Cyan
+    Write-Host ' [4/6] 首次运行 — 配置 Cloudflare Worker（仅需一次）' -ForegroundColor Cyan
     $setup = Join-Path $CfDir 'setup-remote-access.ps1'
     if (-not (Test-Path $setup)) {
         Write-Host '  (跳过) 未找到 setup-remote-access.ps1' -ForegroundColor Yellow
@@ -243,12 +256,12 @@ function Ensure-FirstTimeWorker {
 function Test-NetworkForTunnel {
     if ($SkipDnsCheck) { return $true }
     Write-Host ''
-    Write-Host ' [4/5] Tunnel 网络 / DNS' -ForegroundColor Cyan
+    Write-Host ' [5/6] Tunnel 网络 / DNS' -ForegroundColor Cyan
     $xray = Get-DnsClientServerAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
         Where-Object { $_.InterfaceAlias -match 'xray|v2ray|clash|sing-box' }
     if ($xray) {
         Write-Host '  (警告) 检测到 V2Ray/Xray — 可能导致 Tunnel 失败' -ForegroundColor Yellow
-        Write-Host '         可运行「V2Ray与Tunnel共存.bat」，或暂时关闭 V2Ray'
+        Write-Host '         可运行 OAO服务器.bat v2ray，或暂时关闭 V2Ray'
     }
     $dnsScript = Join-Path $CfDir 'check-dns.ps1'
     if (-not (Test-Path $dnsScript)) { return $true }
@@ -321,7 +334,7 @@ function Start-TunnelCore {
     }
 
     Write-Host ''
-    Write-Host ' [5/5] 启动 Cloudflare Tunnel' -ForegroundColor Cyan
+    Write-Host ' [6/6] 启动 Cloudflare Tunnel' -ForegroundColor Cyan
     Show-RunningBanner -Cfg $Cfg -Mode 'tunnel'
     & $cf tunnel run --token $Token --protocol http2
     Write-Host ''
@@ -331,6 +344,7 @@ function Start-TunnelCore {
 
 function Invoke-CheckOnly {
     param($Cfg)
+    Ensure-SearXNGService | Out-Null
     Ensure-Ollama | Out-Null
     Ensure-AnythingLLM | Out-Null
     Test-NetworkForTunnel | Out-Null
@@ -354,8 +368,8 @@ try {
     }
 
     Ensure-BackgroundServices
-    Ensure-Ollama | Out-Null
     Ensure-SearXNGService | Out-Null
+    Ensure-Ollama | Out-Null
     Ensure-AnythingLLM | Out-Null
     Ensure-FirstTimeWorker
     Test-NetworkForTunnel | Out-Null

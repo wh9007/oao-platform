@@ -1,6 +1,4 @@
-﻿# SearXNG 本地搜索服务 — 端口 8080（AI联网 / Tunnel search.*）
-# 首次运行需拉取 Docker 镜像，可能需 2~5 分钟，请耐心等待
-
+﻿# SearXNG 本地搜索服务 — 端口 8080（由 OAO服务器.bat 自动调用）
 $Root = Split-Path -Parent $PSScriptRoot
 $SearxDir = Join-Path $Root 'searxng'
 $ComposeFile = Join-Path $SearxDir 'docker-compose.yml'
@@ -30,6 +28,53 @@ function Test-DockerDaemon {
     } catch {
         return $false
     }
+}
+
+function Find-DockerDesktopExe {
+    $candidates = @(
+        (Join-Path ${env:ProgramFiles} 'Docker\Docker\Docker Desktop.exe'),
+        (Join-Path ${env:ProgramFiles(x86)} 'Docker\Docker\Docker Desktop.exe'),
+        (Join-Path $env:LOCALAPPDATA 'Docker\Docker Desktop.exe')
+    )
+    foreach ($path in $candidates) {
+        if (Test-Path $path) { return $path }
+    }
+    return $null
+}
+
+function Ensure-DockerDesktop {
+    if (Test-DockerDaemon) {
+        return $true
+    }
+
+    $dockerExe = Find-DockerDesktopExe
+    if (-not $dockerExe) {
+        Write-Host '[Docker] 未找到 Docker Desktop 安装路径' -ForegroundColor Yellow
+        Write-Host '         安装: https://www.docker.com/products/docker-desktop/' -ForegroundColor Yellow
+        return $false
+    }
+
+    $dockerProc = Get-Process -Name 'Docker Desktop' -ErrorAction SilentlyContinue
+    if (-not $dockerProc) {
+        Write-Host '[Docker] 正在启动 Docker Desktop（首次约 30~90 秒）…' -ForegroundColor Cyan
+        Start-Process -FilePath $dockerExe | Out-Null
+    } else {
+        Write-Host '[Docker] Docker Desktop 已在运行，等待引擎就绪…' -ForegroundColor Cyan
+    }
+
+    for ($i = 1; $i -le 40; $i++) {
+        Start-Sleep -Seconds 3
+        if (Test-DockerDaemon) {
+            Write-Host '[Docker] 引擎已就绪' -ForegroundColor Green
+            return $true
+        }
+        if ($i % 5 -eq 0) {
+            Write-Host "[Docker] 等待就绪… ($($i * 3)s)" -ForegroundColor DarkGray
+        }
+    }
+
+    Write-Host '[Docker] 启动超时 — 请确认 Docker Desktop 托盘图标为 Running 后重试' -ForegroundColor Yellow
+    return $false
 }
 
 function Invoke-DockerCompose {
@@ -62,15 +107,15 @@ function Ensure-SearXNG {
 
     $docker = Get-Command docker -ErrorAction SilentlyContinue
     if (-not $docker) {
-        Write-Host '[SearXNG] 未安装 Docker Desktop — AI联网将不可用或质量较差' -ForegroundColor Yellow
-        Write-Host '         安装: https://www.docker.com/products/docker-desktop/' -ForegroundColor Yellow
+        Write-Host '[SearXNG] 未安装 Docker CLI — AI联网将不可用或质量较差' -ForegroundColor Yellow
+        Write-Host '         安装 Docker Desktop: https://www.docker.com/products/docker-desktop/' -ForegroundColor Yellow
         Write-Host '         或配置 local-config.js 中的 OAO_SERPER_API_KEY 作为云端搜索备用' -ForegroundColor Yellow
         return $false
     }
 
-    if (-not (Test-DockerDaemon)) {
-        Write-Host '[SearXNG] Docker Desktop 未运行，请先打开 Docker Desktop 再重试' -ForegroundColor Yellow
-        Write-Host '         也可双击 searxng\启动SearXNG.bat 单独启动' -ForegroundColor Yellow
+    if (-not (Ensure-DockerDesktop)) {
+        Write-Host '[SearXNG] Docker 未就绪 — AI联网将不可用或质量较差' -ForegroundColor Yellow
+        Write-Host '         请确认 Docker Desktop 已 Running，或配置 OAO_SERPER_API_KEY 备用' -ForegroundColor Yellow
         return $false
     }
 

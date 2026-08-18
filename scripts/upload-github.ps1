@@ -88,6 +88,21 @@ if ($ok -eq 0) {
     Write-Host '  约 1~2 分钟后访问: https://wh9007.github.io/oao-platform/'
     Write-Host '  若页面仍是旧版，请按 Ctrl+F5 强制刷新'
     Write-Host ' ============================================================' -ForegroundColor Green
+    Push-Location $Root
+    try {
+        $cfFiles = git diff-tree --no-commit-id --name-only -r HEAD 2>$null |
+            Where-Object { $_ -match '^cloudflare[/\\]' }
+        if ($cfFiles) {
+            Write-Host ''
+            Write-Host ' 检测到 cloudflare/ 变更，正在同步部署 Worker…' -ForegroundColor Cyan
+            $deploy = Join-Path $Root 'cloudflare\deploy-worker-quick.ps1'
+            if (Test-Path $deploy) {
+                & powershell -NoProfile -ExecutionPolicy Bypass -File $deploy -NoPause
+            }
+        }
+    } finally {
+        Pop-Location
+    }
     Start-Process 'https://wh9007.github.io/oao-platform/'
 } elseif ($ok -eq 2) {
     Write-Host ' ============================================================' -ForegroundColor Red

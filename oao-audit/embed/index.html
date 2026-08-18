@@ -1,0 +1,373 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAO 审计</title>
+  <base href="./">
+  <link rel="stylesheet" href="styles.css">
+  <script src="audit-vendor.js"></script>
+  <script src="../../local-config.js"></script>
+</head>
+<body class="embed-mode">
+  <div id="roleOverlay" class="overlay">
+    <div class="modal">
+      <h2>选择您的审计身份</h2>
+      <p class="muted">身份决定可上传的资料类型与可见内容。可随时在顶部切换。</p>
+      <div class="role-grid" id="roleGrid">
+        <button type="button" class="role-card" data-role="supervisor">
+          <strong>主管单位</strong>
+          <span class="muted">上传制度与审计要求，下发需求包</span>
+        </button>
+        <button type="button" class="role-card" data-role="third_party">
+          <strong>三方审计单位</strong>
+          <span class="muted">上传程序/要求，独立评估视角</span>
+        </button>
+        <button type="button" class="role-card" data-role="auditee">
+          <strong>被审计单位</strong>
+          <span class="muted">按需求准备迎审资料，查看自检报告</span>
+        </button>
+        <button type="button" class="role-card" data-role="lead">
+          <strong>审计组长</strong>
+          <span class="muted">要求与资料均可管理</span>
+        </button>
+      </div>
+      <button type="button" class="btn primary" id="btnConfirmRole" disabled>确认进入</button>
+    </div>
+  </div>
+
+  <div class="app" id="appRoot">
+    <header class="topbar">
+      <div>
+        <h1>OAO 审计</h1>
+        <div class="topbar-meta" id="topMeta">本地模式 · 数据仅存本机</div>
+      </div>
+      <div class="topbar-actions">
+        <select id="roleSelect" class="btn" title="切换身份"></select>
+        <button type="button" class="btn" id="btnSwitchProject">项目</button>
+        <button type="button" class="btn primary" id="btnExportPackage" disabled>导出需求包</button>
+        <button type="button" class="btn" id="btnGoNextStep" disabled>下一步</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="nav" id="sideNav">
+        <button type="button" class="nav-btn active" data-panel="project">项目工作台</button>
+        <button type="button" class="nav-btn" data-panel="requirements">要求与制度库</button>
+        <button type="button" class="nav-btn" data-panel="clauses" disabled title="解析后可用">条款清单</button>
+        <button type="button" class="nav-btn" data-panel="evidence">迎审资料库</button>
+        <button type="button" class="nav-btn" data-panel="evaluate" disabled title="需条款与资料">智能评估</button>
+        <button type="button" class="nav-btn" data-panel="remediation" disabled title="需完成评估">整改复核</button>
+        <button type="button" class="nav-btn" data-panel="consult">审计咨询</button>
+        <button type="button" class="nav-btn" data-panel="report" disabled title="需完成评估">成册导出</button>
+      </nav>
+
+      <main class="main">
+        <div class="workflow-bar" id="workflowBar"></div>
+        <p class="workflow-hint muted" id="workflowHint"></p>
+
+        <section class="panel active" id="panelProject" data-panel="project">
+          <div class="card">
+            <h2>组织账号（本地）</h2>
+            <p class="muted">同一组织成员可共享项目归属标识；数据仍仅存本机 IndexedDB。</p>
+            <div class="field-row">
+              <label for="orgName">组织名称</label>
+              <input type="text" id="orgName" placeholder="例如：某某单位内审组">
+            </div>
+            <div class="field-row">
+              <label for="orgMember">添加成员钱包</label>
+              <input type="text" id="orgMember" placeholder="0x… 可选">
+            </div>
+            <button type="button" class="btn" id="btnSaveOrg">保存组织</button>
+            <div id="orgInfo" class="muted" style="margin-top:8px"></div>
+          </div>
+          <div class="card">
+            <h2>审计知识库（AnythingLLM）</h2>
+            <p class="muted">按项目自动创建独立工作区，上传/编辑的资料会同步向量化，支持全库 RAG 分析与项目级对话记忆。</p>
+            <div id="kbStatus" class="muted" style="margin-bottom:8px">检测中…</div>
+            <div class="btn-row">
+              <button type="button" class="btn primary" id="btnSyncKb">立即同步知识库</button>
+              <button type="button" class="btn" id="btnAnalyzeProject">全项目分析</button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>审计项目</h2>
+            <p class="muted">创建或选择项目。MVP 默认模板：专项/马斯克式（成本、流程、采购异常）。</p>
+            <div class="field-row">
+              <label for="projectName">项目名称</label>
+              <input type="text" id="projectName" placeholder="例如：2026 年度专项审计">
+            </div>
+            <div class="field-row">
+              <label for="projectTemplate">项目类型</label>
+              <select id="projectTemplate"></select>
+            </div>
+            <div class="field-row">
+              <label for="projectPeriod">期间</label>
+              <input type="text" id="projectPeriod" placeholder="例如：2026-01 ~ 2026-12">
+            </div>
+            <div class="field-row">
+              <label for="projectCode">项目编号</label>
+              <input type="text" id="projectCode" placeholder="例如：OAO-2026-001">
+            </div>
+            <div class="field-row">
+              <label for="projectAuditType">审计类型</label>
+              <select id="projectAuditType">
+                <option value="专项审计">专项审计</option>
+                <option value="内部审计">内部审计</option>
+                <option value="外部审计">外部审计</option>
+                <option value="财务审计">财务审计</option>
+                <option value="经济责任审计">经济责任审计</option>
+                <option value="合规审计">合规审计</option>
+                <option value="工程审计">工程审计</option>
+                <option value="采购审计">采购审计</option>
+                <option value="合同审计">合同审计</option>
+                <option value="资金审计">资金审计</option>
+                <option value="风险审计">风险审计</option>
+                <option value="自定义审计">自定义审计</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="projectClient">委托单位</label>
+              <input type="text" id="projectClient" placeholder="甲方/主管单位">
+            </div>
+            <div class="field-row">
+              <label for="projectAuditorUnit">审计单位</label>
+              <input type="text" id="projectAuditorUnit" placeholder="审计方">
+            </div>
+            <div class="field-row">
+              <label for="projectAuditee">被审计单位</label>
+              <input type="text" id="projectAuditee" placeholder="迎审单位">
+            </div>
+            <div class="field-row">
+              <label for="projectOwner">审计负责人</label>
+              <input type="text" id="projectOwner" placeholder="审计组长/负责人">
+            </div>
+            <div class="field-row">
+              <label for="projectStart">开始时间</label>
+              <input type="date" id="projectStart">
+              <label for="projectEnd">计划结束</label>
+              <input type="date" id="projectEnd">
+            </div>
+            <div class="field-row">
+              <label for="projectTarget">审计目标</label>
+              <textarea id="projectTarget" rows="2" placeholder="例如：核实采购程序、成本与制度执行情况"></textarea>
+            </div>
+            <div class="field-row">
+              <label for="projectScope">审计范围</label>
+              <textarea id="projectScope" rows="2" placeholder="例如：2026 年 1-6 月采购、合同与费用支出"></textarea>
+            </div>
+            <div class="field-row">
+              <label for="projectKeyAreas">重点领域</label>
+              <textarea id="projectKeyAreas" rows="2" placeholder="例如：采购比价、供应商集中度、异常报销"></textarea>
+            </div>
+            <div class="field-row">
+              <label for="projectBasis">审计依据</label>
+              <textarea id="projectBasis" rows="2" placeholder="制度、法律法规或委托要求"></textarea>
+            </div>
+            <div class="field-row">
+              <label for="projectStatus">项目状态</label>
+              <select id="projectStatus">
+                <option value="planning">立项/计划</option>
+                <option value="in_progress">实施中</option>
+                <option value="review">复核中</option>
+                <option value="remediation">整改中</option>
+                <option value="completed">已完成</option>
+                <option value="archived">已归档</option>
+              </select>
+            </div>
+            <button type="button" class="btn primary" id="btnSaveProject">保存项目</button>
+          </div>
+          <div class="card">
+            <h2>已有项目</h2>
+            <div id="projectList" class="file-list"></div>
+          </div>
+        </section>
+
+        <section class="panel" id="panelRequirements" data-panel="requirements">
+          <div class="card">
+            <h2>上传审计要求 / 制度文件</h2>
+            <p class="muted">支持 PDF、Word、Excel、TXT/MD。解析后按科目生成《审计需求包》。需本机 Ollama 时可提升结构化质量。</p>
+            <div class="dropzone" id="reqDropzone">
+              <p>拖拽文件到此处，或点击选择</p>
+              <p class="muted">PDF / DOCX / XLSX / TXT / MD</p>
+            </div>
+            <input type="file" id="reqFileInput" hidden multiple accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.md,.csv">
+            <div class="field-row" style="margin-top:12px">
+              <label><input type="checkbox" id="chkUseLlm" checked> 使用 Ollama 智能解析</label>
+            </div>
+            <button type="button" class="btn primary" id="btnParseRequirements" disabled>解析并生成条款</button>
+            <div id="reqFileList" class="file-list"></div>
+          </div>
+        </section>
+
+        <section class="panel" id="panelClauses" data-panel="clauses">
+          <div class="stats" id="clauseStats"></div>
+          <div class="card">
+            <h2>结构化条款（按科目）</h2>
+            <div class="clause-table-wrap">
+              <table class="clause-table">
+                <thead>
+                  <tr>
+                    <th>编号</th>
+                    <th>一级科目</th>
+                    <th>二级科目</th>
+                    <th>条款摘要</th>
+                    <th>强制</th>
+                    <th>来源</th>
+                  </tr>
+                </thead>
+                <tbody id="clauseTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panelEvidence" data-panel="evidence">
+          <div class="card">
+            <h2>迎审资料库</h2>
+            <p class="muted" id="evidenceHint">被审计单位/审计组长可上传迎审资料。支持分类型校验并关联条款。</p>
+            <div class="field-row">
+              <label for="evidenceType">资料类型</label>
+              <select id="evidenceType"></select>
+            </div>
+            <div class="field-row">
+              <label for="evidenceClause">关联条款</label>
+              <select id="evidenceClause">
+                <option value="">（可选）不指定条款</option>
+              </select>
+            </div>
+            <div class="dropzone" id="evDropzone">
+              <p>拖拽迎审资料到此处，或点击选择</p>
+              <p class="muted">PDF / Word / Excel / 图片 / TXT</p>
+            </div>
+            <input type="file" id="evFileInput" hidden multiple accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.md,.jpg,.jpeg,.png,.webp">
+            <div id="evidenceList" class="file-list"></div>
+          </div>
+        </section>
+
+        <section class="panel" id="panelEvaluate" data-panel="evaluate">
+          <div class="stats" id="findingStats"></div>
+          <div class="card">
+            <h2>智能评估</h2>
+            <p class="muted">对照条款与迎审资料生成 Finding（重大/重要/一般/提示）。需本机 Ollama 可提升分析质量。</p>
+            <div class="field-row">
+              <label><input type="checkbox" id="chkEvalRag" checked> 使用知识库 RAG 全库评估</label>
+            </div>
+            <div class="field-row">
+              <label><input type="checkbox" id="chkEvalLlm" checked> Ollama 补充评估（RAG 不可用时）</label>
+            </div>
+            <button type="button" class="btn primary" id="btnRunEvaluation">运行一次评估</button>
+            <div class="clause-table-wrap" style="margin-top:12px">
+              <table class="clause-table">
+                <thead>
+                  <tr>
+                    <th>严重度</th>
+                    <th>标题</th>
+                    <th>条款</th>
+                    <th>状态</th>
+                    <th>描述</th>
+                    <th>建议</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="findingTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panelRemediation" data-panel="remediation">
+          <div class="card">
+            <h2>整改与再审计</h2>
+            <p class="muted" id="remediationHint">对重大/重要 Finding 提交整改说明，补充佐证后发起再审计复核。</p>
+            <div class="field-row">
+              <label for="remFindingSelect">关联发现</label>
+              <select id="remFindingSelect"></select>
+            </div>
+            <div class="field-row">
+              <label for="remNote">整改说明</label>
+              <textarea id="remNote" rows="3" placeholder="说明整改措施、完成时间、责任人…"></textarea>
+            </div>
+            <div class="field-row">
+              <label for="remEvidenceSelect">佐证资料</label>
+              <select id="remEvidenceSelect">
+                <option value="">（可选）选择已上传资料</option>
+              </select>
+            </div>
+            <button type="button" class="btn primary" id="btnSubmitRemediation">提交整改</button>
+            <button type="button" class="btn" id="btnReAudit">再审计复核</button>
+            <div id="remediationList" class="file-list" style="margin-top:12px"></div>
+          </div>
+        </section>
+
+        <section class="panel" id="panelConsult" data-panel="consult">
+          <div class="card consult-card">
+            <h2>AI 审计咨询</h2>
+            <p class="muted">基于本项目 AnythingLLM 知识库回答（含历史记忆）；离线时降级 Ollama。</p>
+            <div id="consultMessages" class="consult-messages"></div>
+            <div class="consult-input-row">
+              <textarea id="consultInput" rows="2" placeholder="例如：采购比价的强制性条款通常需要哪些佐证？"></textarea>
+              <button type="button" class="btn primary" id="btnConsultSend">发送</button>
+            </div>
+            <button type="button" class="btn" id="btnExportConsult">导出咨询话术</button>
+          </div>
+        </section>
+
+        <section class="panel" id="panelReport" data-panel="report">
+          <div class="card">
+            <h2>成册导出</h2>
+            <p class="muted" id="reportHint">根据身份导出单份报告，或一键成册（需求包 + 报告 + 整改台账 + 咨询话术）。</p>
+            <div class="btn-row">
+              <button type="button" class="btn primary" id="btnExportReport">导出报告</button>
+              <button type="button" class="btn primary" id="btnExportBundle">导出成册档案</button>
+              <button type="button" class="btn" id="btnExportBundleJson">导出 JSON 备份</button>
+            </div>
+            <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
+            <h3 style="margin:0 0 8px;font-size:1rem">导入 JSON 备份</h3>
+            <p class="muted">恢复项目、条款、迎审资料（含原文件）、发现与整改记录。导入后可重新同步知识库。</p>
+            <div class="field-row">
+              <label><input type="radio" name="importMode" value="new" checked> 另存为新项目</label>
+              <label><input type="radio" name="importMode" value="overwrite"> 覆盖同 ID 项目</label>
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn" id="btnImportBundleJson">选择备份文件并导入</button>
+              <input type="file" id="importBundleInput" hidden accept=".json,application/json">
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="findingDetailModal" class="overlay hidden" role="dialog" aria-modal="true">
+      <div class="modal finding-detail-modal">
+        <button type="button" class="btn" id="btnCloseFindingDetail" style="float:right">关闭</button>
+        <h2 id="findingDetailTitle">审计发现问题</h2>
+        <div id="findingDetailBody" class="finding-detail-body"></div>
+        <div class="btn-row" style="margin-top:12px">
+          <button type="button" class="btn primary" id="btnConfirmFinding" hidden>确认问题</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="status-bar" id="statusBar">就绪</footer>
+  </div>
+
+  <script>
+    // pdf.js worker 由 audit-vendor.js 配置（本地 vendor 优先，CDN 降级）
+  </script>
+  <script src="audit-roles.js"></script>
+  <script src="audit-store.js"></script>
+  <script src="audit-ai.js"></script>
+  <script src="audit-parser.js"></script>
+  <script src="audit-evidence.js"></script>
+  <script src="audit-evaluator.js"></script>
+  <script src="audit-reports.js"></script>
+  <script src="audit-remediation.js"></script>
+  <script src="audit-workflow.js"></script>
+  <script src="audit-org.js"></script>
+  <script src="audit-bundle.js"></script>
+  <script src="audit-kb.js"></script>
+  <script src="audit-import.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

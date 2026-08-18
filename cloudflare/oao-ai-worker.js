@@ -152,6 +152,28 @@ export default {
       }));
     }
 
+    if (path === '/' && request.method === 'GET') {
+      return withCors(new Response(JSON.stringify({
+        service: 'OAO AI Worker',
+        status: 'online',
+        glm: env.ZHIPU_API_KEY ? 'configured' : 'missing ZHIPU_API_KEY secret',
+        platform: env.DB ? 'd1_bound' : 'd1_missing',
+        model: env.ZHIPU_MODEL || 'glm-4.7-flash',
+        endpoints: [
+          '/glm/health', '/glm/chat',
+          '/api/user/sync', '/api/user/me', '/api/user/meetings', '/api/user/translate',
+          '/admin/login', '/admin/api/stats', '/admin/api/users',
+          '/web-search', '/ollama/*', '/api/*', '/meeting', '/auth/wechat/config',
+        ],
+      }), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      }));
+    }
+
+    if (path === '/favicon.ico') {
+      return withCors(new Response(null, { status: 204 }));
+    }
+
     if (path.startsWith('/ollama')) {
       const origin = env.OLLAMA_ORIGIN;
       if (!origin) {

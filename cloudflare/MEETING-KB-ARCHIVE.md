@@ -8,7 +8,7 @@
 
 ## 本地使用前提
 
-- 通过 `打开OAO.bat` 访问 `http://127.0.0.1:8777/OAO.html`
+- 通过 `本地测试OAO.bat` 访问 `http://127.0.0.1:8777/OAO.html`
 - 已启动 **Ollama**、**AnythingLLM**（工作区 `oaoeth`）
 - `local-config.js` 中配置 `OAO_ANYTHINGLLM_API_KEY`
 

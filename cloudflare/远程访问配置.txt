@@ -14,7 +14,7 @@
 
 【链路】
   浏览器 -> GitHub Pages -> Cloudflare Worker -> Tunnel -> 本机 AI
-  Tunnel 离线时自动备援智谱 GLM（需已部署 Worker Secret）
+  外网默认通过 Tunnel 走本机 AI；只有显式设置 OAO_FORCE_GLM = true 才使用智谱 GLM
 
 ───────────────────────────────────────────────────
 一、一次性配置（约 10 分钟）
@@ -52,7 +52,7 @@
   5. 选 6 检测，Tunnel 与 Worker 代理应 HTTP 200
   6. 外网打开 OAO.html 测试 AI 对话
 
-  注意: 关机或关闭 Tunnel 窗口后，外网只能走智谱备援。
+  注意: 关机或关闭 Tunnel 窗口后，外网本机 AI 将不可用，除非显式设置 OAO_FORCE_GLM。
 
 ───────────────────────────────────────────────────
 三、常见问题

@@ -1,6 +1,6 @@
 ﻿# 小O会议 — AnythingLLM RAG 知识库配置
 
-本地打开 OAO（`打开OAO.bat` → `http://127.0.0.1:8777`）时，小O会议生成纪要可自动使用 AnythingLLM 工作区 **oaoeth** 中的文档作为背景知识（RAG）。
+本地打开 OAO（`本地测试OAO.bat` → `http://127.0.0.1:8777`）时，小O会议生成纪要可自动使用 AnythingLLM 工作区 **oaoeth** 中的文档作为背景知识（RAG）。
 
 ## 特性开关
 

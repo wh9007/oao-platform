@@ -180,14 +180,14 @@ export async function handleWebSearch(request, env, corsHeaders) {
   if (searxError === 'searxng_tunnel_offline') {
     return json({
       error: 'searxng_tunnel_offline',
-      hint: 'SearXNG 未连通。请：1) 打开 Docker Desktop  2) 运行 searxng\\启动SearXNG.bat  3) 保持 OAO服务器.bat 窗口打开',
+      hint: 'SearXNG 未连通。请双击 OAO服务器.bat（自动启动 Docker + SearXNG）并保持窗口打开',
     }, 502, corsHeaders);
   }
 
   if (!serperKey) {
     return json({
       error: searxError || 'no_results',
-      hint: 'SearXNG 无结果或未运行。请启动 Docker + SearXNG(:8080)，或在 Worker 配置 SERPER_API_KEY 作为云端备用',
+      hint: 'SearXNG 无结果或未运行。请双击 OAO服务器.bat，或在 Worker 配置 SERPER_API_KEY 作为云端备用',
     }, 502, corsHeaders);
   }
 

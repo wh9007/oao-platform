@@ -3,50 +3,53 @@
 ═══════════════════════════════════════════════════
 
 【正式网站】
-  https://wh9007.github.io/oao-platform/
+  OAO.ETH  →  https://oao.eth.limo
+  GitHub Pages →  https://wh9007.github.io/oao-platform/
 
 【日常只需 3 个脚本】
 
-  ① 打开OAO.bat          本地功能测试
-  ② 启动远程AI.bat       外网远程访问本机 AI（合并版，每次运行即可）
-  ③ 一键上传GitHub.bat   版本更新 / 发布到 GitHub Pages
+  ① 本地测试OAO.bat       本地功能测试
+  ② OAO服务器.bat         外网远程访问本机 AI
+  ③ 一键上传GitHub.bat    版本更新 / 发布到 GitHub Pages
 
-  需要外网访问本机 AI 时：打开 AnythingLLM + 双击「启动远程AI.bat」，保持窗口不关
+  需要外网访问本机 AI 时：打开 AnythingLLM + 双击「OAO服务器.bat」，保持窗口不关
   首次运行会自动配置 Worker
-  高级菜单：启动远程AI.bat menu
-  连通检测：启动远程AI.bat check
-  V2Ray 共存：启动远程AI.bat v2ray（或 V2Ray与Tunnel共存.bat）
+  高级菜单：OAO服务器.bat menu
+  连通检测：OAO服务器.bat check
+  V2Ray 共存：OAO服务器.bat v2ray
   上传后等约 2 分钟，正式站 Ctrl+F5 强制刷新。
-
-  ※ OAO服务器.bat 仍可用，内部已转发到「启动远程AI.bat」
+  若上传包含 cloudflare/ 变更，会自动部署 Worker。
 
 
 ───────────────────────────────────────────────────
 一、三个主脚本说明
 ───────────────────────────────────────────────────
 
-  【1. 打开OAO.bat — 本地测试】
+  【1. 本地测试OAO.bat — 本地测试】
+    · 使用 Node.js 内置静态服务器，不再依赖 Python
     · 启动 http://127.0.0.1:8777/OAO.html
     · 检测 Ollama / AnythingLLM 是否就绪
     · 用于：AI 对话、小O会议、OAO翻译 功能验证
-    · 不启动 Tunnel，不影响外网
+    · 不启动 Tunnel / Docker，不影响外网
 
-  【2. 启动远程AI.bat — 远程 AI 一键启动（推荐）】
+  【2. OAO服务器.bat — 远程 AI 一键启动】
     · 每次需要外网访问时双击运行，自动完成：
+        Docker + SearXNG 联网搜索
         检查 AnythingLLM / Ollama
         检查 DNS 与 V2Ray 提示
         首次自动配置 Worker
         启动 Cloudflare Tunnel
     · 可选参数：
-        menu   — 高级菜单（原 OAO服务器 菜单）
+        menu   — 高级菜单（Worker 部署、连通检测等）
         check  — 仅检测连通性
-        v2ray  — V2Ray 与 Tunnel 共存修复
+        v2ray  — V2Ray 与 Tunnel 共存修复说明
     · 须保持本窗口打开，直到日志出现 Registered tunnel connection
     · 外网用户访问：https://wh9007.github.io/oao-platform/OAO.html
 
   【3. 一键上传GitHub.bat — 版本更新】
     · 自动 commit + push 到 wh9007/oao-platform
     · 首次需配置 git-token.txt（GitHub Token，repo 权限）
+    · 若本次提交包含 cloudflare/ 文件，上传成功后自动部署 Worker
     · 日志：upload-log.txt
 
 
@@ -58,7 +61,7 @@
     OAO.html               主页面
     index.html             跳转 OAO.html
     assets/css/            样式
-    oao-meeting-signal.js  小O会议信令
+    cloudflare/meeting-room.js  小O会议信令（Cloudflare Durable Object）
     oao-translate/embed/   OAO翻译（浏览器模式）
 
   【内部脚本（勿删）】
@@ -89,11 +92,13 @@
 四、AI 架构（本地 + 云端）
 ───────────────────────────────────────────────────
 
-  默认：AnythingLLM + Ollama 优先；Tunnel 离线时智谱 GLM 备援
+  默认：AnythingLLM + Ollama（本地预览与外网 Tunnel 均优先本机 AI）
+  可选：设置 OAO_FORCE_GLM = true 后，外网可改用 Cloudflare Worker → 智谱 GLM
 
-  本地测试：打开OAO.bat + 本机 Ollama + AnythingLLM
-  外网连本机：启动远程AI.bat + Worker 配置 LLM_ORIGIN / OLLAMA_ORIGIN
-  智谱备援：cloudflare\部署智谱Worker.bat
+  想强制本机 AI：local-config.js 打开 window.OAO_FORCE_LOCAL_AI = true
+  外网连本机：OAO服务器.bat + Worker 配置 LLM_ORIGIN / OLLAMA_ORIGIN
+  Worker 首次配置：cloudflare\deploy-worker.ps1（设置 ZHIPU_API_KEY）
+  Worker 日常更新：cloudflare\deploy-worker-quick.ps1
 
 
 ───────────────────────────────────────────────────
@@ -104,12 +109,15 @@
   A：小O会议 → 识别灵敏度选「最高」；调高系统麦克风；两人尽量靠近麦克风
 
   Q：外网 AI 无响应？
-  A：启动远程AI.bat check；确认 Tunnel Token 与 Worker 变量
+  A：先打开 https://oao-ai.wh529007.workers.dev/glm/health
+     正常应为 ok:true；若 false 或提示 zhipu_not_configured，运行
+     cloudflare\deploy-worker.ps1 设置 ZHIPU_API_KEY。
+     若使用本机 AI，再运行 OAO服务器.bat check 检查 Tunnel。
 
   Q：上传失败？
   A：查看 upload-log.txt；重新生成 GitHub Token（repo 权限）。
 
 
 ═══════════════════════════════════════════════════
-  更新：2026-08-08  脚本整合 · 可调语音识别灵敏度
+  更新：2026-08-18  本地预览改为 Node.js；外网默认云端 AI
 ═══════════════════════════════════════════════════

@@ -1,5 +1,5 @@
 ﻿@echo off
-rem OAO 脚本公共库 — 由打开OAO.bat / OAO服务器.bat 调用
+rem OAO 脚本公共库 — 由 本地测试OAO.bat / OAO服务器.bat 调用
 rem 用法: call "%~dp0scripts\lib.cmd" <子程序名> [参数...]
 if "%~1"=="" exit /b 1
 goto %~1

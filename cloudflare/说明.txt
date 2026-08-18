@@ -13,22 +13,27 @@
 
 本地开发（可选，不影响外网用户）
 --------------------------------
-  双击「打开OAO.bat」→ 仍可使用本机 AnythingLLM / Ollama
-  外网访问 GitHub Pages 时自动走 Worker → 智谱，无需本机开机
+  双击「本地测试OAO.bat」→ 使用 Node.js 静态服务器 + 本机 AnythingLLM / Ollama
+  外网访问 GitHub Pages 时默认走 Worker → Tunnel → 本机 AnythingLLM / Ollama
+  如需不依赖本机，可在 local-config.js 或前端配置设置 OAO_FORCE_GLM = true
 
 部署 Worker（首次或更新代码后）
 --------------------------------
-  1. 进入 cloudflare 目录
-  2. 复制 wrangler.toml.example → wrangler.toml，填写 account_id
-  3. 双击「部署智谱Worker.bat」
-     - 浏览器登录 Cloudflare（wrangler login）
-     - 粘贴智谱 API Key（wrangler secret put ZHIPU_API_KEY）
-     - 自动 wrangler deploy
+  方式一（推荐）：双击「一键上传GitHub.bat」
+    - 若本次提交包含 cloudflare/ 变更，上传成功后自动运行 deploy-worker-quick.ps1
+
+  方式二（手动）：
+    1. 进入 cloudflare 目录
+    2. 复制 wrangler.toml.example → wrangler.toml，填写 account_id
+    3. 首次运行 deploy-worker.ps1（会登录并设置 ZHIPU_API_KEY）
+    4. 日常更新运行 deploy-worker-quick.ps1
 
 验收
 ----
   GET https://oao-ai.wh529007.workers.dev/glm/health
   → {"ok":true,"model":"glm-4.7-flash",...}
+  GET https://oao-ai.wh529007.workers.dev/
+  → 应返回服务状态 JSON，而不是 Cloudflare 1033 错误页
 
   GitHub Pages 打开 OAO.html → AI 侧栏对话 → 应正常回复
   小O会议 → 停止后「生成纪要」→ 应输出结构化纪要

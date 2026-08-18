@@ -2,7 +2,7 @@
 
 ## 前置
 
-- 本地：`打开OAO.bat` + AnythingLLM (:3001) + Ollama (:11434, `qwen2.5:7b`)
+- 本地：`本地测试OAO.bat` + AnythingLLM (:3001) + Ollama (:11434, `qwen2.5:7b`)
 - 控制台打开 F12，观察 `[OAO Meeting Minutes] resolved via:` 日志
 
 ## 1. AnythingLLM 正常路径

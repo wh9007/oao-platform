@@ -5,18 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OAO.ETH — Web3 AI 入口平台</title>
-    <meta name="description" content="OAO.ETH — 开放 Web3 入口平台。连接加密钱包，本地 AI 对话，小O会议，OAO 实时翻译，ENS 身份，Decentraland 世界探索。">
+    <meta name="description" content="OAO.ETH — 开放 Web3 入口平台。连接加密钱包，AI 对话，小O会议，OAO 实时翻译，ENS 身份，Decentraland 世界探索。">
     <meta name="keywords" content="OAO, Web3, ENS, AI, Ollama, 翻译, 会议, Decentraland, 以太坊">
     <meta name="author" content="OAO.ETH">
     <meta name="theme-color" content="#ff5e00">
     <meta name="color-scheme" content="light dark">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://wh9007.github.io/oao-platform/OAO.html">
+    <link rel="canonical" href="https://oao.eth.limo/OAO.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="OAO.ETH">
     <meta property="og:title" content="OAO.ETH — Web3 AI 入口平台">
-    <meta property="og:description" content="连接加密钱包，本地 AI 对话，小O会议，OAO 实时翻译。">
-    <meta property="og:url" content="https://wh9007.github.io/oao-platform/OAO.html">
+    <meta property="og:description" content="连接加密钱包，AI 对话，小O会议，OAO 实时翻译。">
+    <meta property="og:url" content="https://oao.eth.limo/OAO.html">
     <meta property="og:locale" content="zh_CN">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="OAO.ETH">
@@ -24,19 +24,18 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://cse.google.com">
-    <link rel="preconnect" href="http://127.0.0.1:3011">
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk@3.0.0/dist/coinbase-wallet-sdk.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@depay/coinbase-wallet-sdk@4.0.0/dist/umd/index.min.js"></script>
     <script>
         // ========== OAO 个人使用说明 ==========
-        // 1. 本地测试：双击「打开OAO.bat」
+        // 1. 本地测试：双击「本地测试OAO.bat」
         // 2. 外网远程本机 AI：双击「OAO服务器.bat」（保持窗口打开）
         // 3. 版本发布：双击「一键上传GitHub.bat」
         // 4. 外网站点：https://wh9007.github.io/oao-platform/
-        // 5. AI：AnythingLLM 知识库 + Ollama；AI联网：SearXNG（Worker /web-search）+ Ollama 总结
-        // 8. 视频会议信令：window.OAO_MEETING_SIGNAL_URL = 'wss://oao-ai.wh529007.workers.dev/meeting';
+        // 5. AI：默认使用本机 AnythingLLM + Ollama；如需纯云端可设置 OAO_FORCE_GLM = true
+        // 6. AI联网：OAO服务器.bat 可启动 Docker+SearXNG；也可在 Worker 配置 SERPER_API_KEY
         // 7. OAO翻译（可选覆盖云端地址）：window.OAO_TRANSLATE_URL = 'https://your-translate-host/oao-translate/embed/index.html';
         // 联网搜索默认经 Worker → Tunnel → 本机 SearXNG；可选 Tavily/Serper Key 增强
         // window.OAO_TAVILY_API_KEY = 'tvly-xxxxxxxx';
@@ -3548,7 +3547,8 @@
         }
 
         .oao-tool-meeting-icon,
-        .oao-tool-translate-icon {
+        .oao-tool-translate-icon,
+        .oao-tool-audit-icon {
             width: 56px;
             height: 56px;
             display: flex;
@@ -3597,6 +3597,31 @@
         @keyframes oao-icon-translate-badge {
             0%, 100% { opacity: 0.75; transform: translateY(0); }
             50% { opacity: 1; transform: translateY(-2px); }
+        }
+
+        .oao-tool-audit-icon {
+            font-size: 22px;
+            font-weight: 800;
+            color: #c2410c;
+        }
+
+        .oao-tool-audit-icon::after {
+            content: '审';
+            position: absolute;
+            right: 4px;
+            bottom: 4px;
+            font-size: 9px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 2px 3px;
+            border-radius: 4px;
+            background: rgba(255, 94, 0, 0.85);
+            color: #fff;
+            pointer-events: none;
+        }
+
+        [data-theme="dark"] .oao-tool-audit-icon {
+            color: #fb923c;
         }
 
         .oao-desktop-app:hover:not(:disabled) .oao-tool-meeting-icon .oao-face-svg {
@@ -7687,6 +7712,10 @@
                                 <span class="oao-desktop-icon oao-tool-translate-icon" id="oaoToolTranslateIcon" aria-hidden="true"></span>
                                 <span class="oao-desktop-label" id="oaoToolTranslateLabel">OAO翻译</span>
                             </button>
+                            <button type="button" class="oao-desktop-app" id="oaoToolAudit" data-app="audit" disabled>
+                                <span class="oao-desktop-icon oao-tool-audit-icon" id="oaoToolAuditIcon" aria-hidden="true">📋</span>
+                                <span class="oao-desktop-label" id="oaoToolAuditLabel">OAO审计</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -8418,6 +8447,7 @@
                 </div>
             </div>
         </div>
+        <div id="oaoMeetingOverlayHint" class="oao-translate-overlay-hint hidden" role="status" aria-live="polite"></div>
     </div>
 
     <!-- OAO翻译（模态窗口，参考小O会议） -->
@@ -8462,6 +8492,35 @@
         </div>
     </div>
 
+    <!-- OAO审计（模态窗口） -->
+    <div id="oaoAuditModal" class="modal hidden oao-translate-modal">
+        <div class="modal-overlay" id="oaoAuditModalOverlay"></div>
+        <div class="modal-content oao-translate-content">
+            <button class="close-btn" id="oaoAuditModalClose" type="button" aria-label="关闭">×</button>
+            <button type="button" class="oao-translate-fullscreen-btn" id="oaoAuditFullscreenBtn" title="全屏" aria-label="全屏">⛶</button>
+            <header class="oao-translate-topbar">
+                <div>
+                    <h2 id="oaoAuditModalTitle">OAO审计</h2>
+                    <p id="oaoAuditModalTagline">本地知识库 · 制度解析 · 持续审计</p>
+                </div>
+            </header>
+            <div class="oao-translate-frame-wrap">
+                <iframe id="oaoAuditFrame" title="OAO Audit" src="about:blank" allow="clipboard-write; fullscreen"></iframe>
+                <div id="oaoAuditLoading" class="oao-translate-loading hidden">
+                    <div class="oao-translate-loading-spinner" aria-hidden="true"></div>
+                    <p id="oaoAuditLoadingTitle">正在打开 OAO审计…</p>
+                    <p id="oaoAuditLoadingHint" class="oao-translate-loading-hint">IndexedDB 本地档案 · AnythingLLM 项目知识库</p>
+                </div>
+                <div id="oaoAuditFallback" class="oao-translate-fallback hidden">
+                    <p id="oaoAuditFallbackTitle">无法加载 OAO审计</p>
+                    <p id="oaoAuditFallbackDesc">请通过本地测试OAO.bat 访问 http://127.0.0.1:8777/OAO.html</p>
+                    <button type="button" id="oaoAuditRetryBtn" class="oao-meeting-btn oao-meeting-btn-primary">重试</button>
+                </div>
+            </div>
+        </div>
+        <div id="oaoAuditOverlayHint" class="oao-translate-overlay-hint hidden" role="status" aria-live="polite"></div>
+    </div>
+
     <!-- 本地能力首次使用引导（小O会议 / OAO翻译） -->
     <div id="oaoLocalSetupModal" class="modal hidden oao-local-setup-modal">
         <div class="modal-overlay" id="oaoLocalSetupOverlay"></div>
@@ -8473,7 +8532,7 @@
             </header>
             <div class="oao-local-setup-body">
                 <ol id="oaoLocalSetupSteps" class="oao-local-setup-steps">
-                    <li>本地测试：双击 <strong>打开OAO.bat</strong>，访问 <strong>http://127.0.0.1:8777/OAO.html</strong></li>
+                    <li>本地测试：双击 <strong>本地测试OAO.bat</strong>，访问 <strong>http://127.0.0.1:8777/OAO.html</strong></li>
                     <li>外网远程 AI：双击 <strong>OAO服务器.bat</strong>，选 [1] 启动全部</li>
                     <li>请安装 <strong>Ollama</strong> 与 <strong>AnythingLLM</strong>（oaoeth 工作区）</li>
                 </ol>
@@ -8501,6 +8560,7 @@
             const oaoToolbarToggle = document.getElementById('oaoToolbarToggle');
             const oaoToolMeeting = document.getElementById('oaoToolMeeting');
             const oaoToolTranslate = document.getElementById('oaoToolTranslate');
+            const oaoToolAudit = document.getElementById('oaoToolAudit');
             const pageHome = document.getElementById('pageHome');
             const aiHomeClearBtn = document.getElementById('aiHomeClearBtn');
             const aiHomeToggle = document.getElementById('aiHomeToggle');
@@ -8537,6 +8597,7 @@
                     if (oaoToolbarContainer) oaoToolbarContainer.hidden = false;
                     if (oaoToolMeeting) oaoToolMeeting.disabled = false;
                     if (oaoToolTranslate) oaoToolTranslate.disabled = false;
+                    if (oaoToolAudit) oaoToolAudit.disabled = false;
                     oaoToolbarToggle?.classList.add('visible');
                     aiHomeToggle?.classList.add('visible');
                     oaoToolbarToggle.textContent = isToolbarCollapsed ? '>' : '<';
@@ -8546,6 +8607,7 @@
                     if (oaoToolbarContainer) oaoToolbarContainer.hidden = true;
                     if (oaoToolMeeting) oaoToolMeeting.disabled = true;
                     if (oaoToolTranslate) oaoToolTranslate.disabled = true;
+                    if (oaoToolAudit) oaoToolAudit.disabled = true;
                     if (aiHomeMessages) aiHomeMessages.innerHTML = '';
                     aiHomeMessagesContainer?.classList.remove('has-messages', 'collapsed');
                     oaoToolbarContainer?.classList.remove('collapsed');
@@ -8768,12 +8830,12 @@
                 return false;
             }
 
-            /** 智谱已停用；保留函数兼容旧配置 */
+            /** 保留函数兼容旧配置；当前不自动回退，可由 OAO_FORCE_GLM 明确启用 */
             function shouldUseZhipuFallback() {
                 return false;
             }
 
-            /** @deprecated 别名，与 useCloudGlmAi 相同 */
+            /** 兼容旧名称，与 useCloudGlmAi 相同 */
             function useZhipuAi() {
                 return useCloudGlmAi();
             }
@@ -8820,7 +8882,7 @@
             function getGlmConnectionHint() {
                 const worker = resolveWorkerBaseUrl();
                 return currentLang === 'zh'
-                    ? `无法连接智谱 AI 服务。\n\n请确认：\n1. 已运行 cloudflare\\部署智谱Worker.bat\n2. Worker Secret 已设置 ZHIPU_API_KEY\n3. 打开 ${worker}/glm/health 应显示 ok:true\n\n控制台：OAO_Diagnostic.testGlm()`
+                    ? `无法连接智谱 AI 服务。\n\n请确认：\n1. 已运行 cloudflare\\deploy-worker.ps1 完成首次配置\n2. Worker Secret 已设置 ZHIPU_API_KEY\n3. 打开 ${worker}/glm/health 应显示 ok:true\n\n控制台：OAO_Diagnostic.testGlm()`
                     : `Cannot reach Zhipu AI.\n\nDeploy Worker, set ZHIPU_API_KEY, check ${worker}/glm/health\nConsole: OAO_Diagnostic.testGlm()`;
             }
 
@@ -8847,7 +8909,7 @@
                 }
                 if (/402|403|余额|quota|insufficient|额度|资源包|欠费|balance|exceeded/i.test(msg)) {
                     return currentLang === 'zh'
-                        ? '智谱账户余额或免费额度可能已用完。\n\n请登录 https://open.bigmodel.cn/usercenter 查看资源包与账单；确认后可在 cloudflare 目录重新执行「部署智谱Worker.bat」更新 Key。'
+                        ? '智谱账户余额或免费额度可能已用完。\n\n请登录 https://open.bigmodel.cn/usercenter 查看资源包与账单；确认后在 cloudflare 目录重新运行 deploy-worker.ps1 更新 Key。'
                         : 'Zhipu balance or quota may be exhausted. Check open.bigmodel.cn/usercenter.';
                 }
                 if (/401|invalid.*key|unauthorized|鉴权|API key/i.test(msg)) {
@@ -9251,8 +9313,8 @@
                         ? '1. 启动 AnythingLLM（默认 http://127.0.0.1:3001）'
                         : '1. Start AnythingLLM on http://127.0.0.1:3001');
                     lines.push(currentLang === 'zh'
-                        ? '2. 本地测试可先双击「打开OAO.bat」；远程需「OAO服务器.bat」'
-                        : '2. Run 打开OAO.bat locally or OAO服务器.bat for remote');
+                        ? '2. 本地测试可先双击「本地测试OAO.bat」；远程需「OAO服务器.bat」'
+                        : '2. Run 本地测试OAO.bat locally or OAO服务器.bat for remote');
                 } else if (!h.workspaceOk) {
                     lines.push(currentLang === 'zh'
                         ? `1. 在 AnythingLLM 中创建工作区「OAOeth」（当前 API 返回 ${h.workspaceStatus || '404'}）`
@@ -9390,17 +9452,17 @@
                 const hint = lastWebSearchProxyHint;
                 if (err === 'searxng_tunnel_offline') {
                     return currentLang === 'zh'
-                        ? 'AI联网失败：SearXNG 未连通。\n\n请按顺序检查：\n1. 打开 Docker Desktop\n2. 双击 searxng\\启动SearXNG.bat（等到显示启动成功）\n3. 双击 OAO服务器.bat 并保持窗口打开\n4. 浏览器打开 http://127.0.0.1:8080/search?q=test&format=json 应有 JSON\n\n可选加速：在 local-config.js 配置 OAO_SERPER_API_KEY（Google 搜索 API，免费额度）\n或在 Worker 执行: npx wrangler secret put SERPER_API_KEY'
-                        : 'AI Web failed: SearXNG tunnel offline. Start Docker, searxng\\启动SearXNG.bat, OAO服务器.bat.';
+                        ? 'AI联网失败：SearXNG 未连通。\n\n请按顺序检查：\n1. 双击 OAO服务器.bat（会自动启动 Docker + SearXNG）并保持窗口打开\n2. 浏览器打开 http://127.0.0.1:8080/search?q=test&format=json 应有 JSON\n\n可选加速：在 local-config.js 配置 OAO_SERPER_API_KEY（Google 搜索 API，免费额度）\n或在 Worker 执行: npx wrangler secret put SERPER_API_KEY'
+                        : 'AI Web failed: SearXNG tunnel offline. Run OAO服务器.bat and keep the window open.';
                 }
                 if (err === 'searxng_not_configured' || err === 'searxng_unreachable') {
                     return currentLang === 'zh'
-                        ? 'AI联网失败：本机 SearXNG 未运行。\n\n' + (hint || '请启动 Docker + searxng\\启动SearXNG.bat')
-                        : 'AI Web failed: SearXNG not running.';
+                        ? 'AI联网失败：本机 SearXNG 未运行。\n\n' + (hint || '请双击 OAO服务器.bat（自动启动 Docker + SearXNG :8080）')
+                        : 'AI Web failed: SearXNG not running. Run OAO服务器.bat.';
                 }
                 return currentLang === 'zh'
-                    ? 'AI联网暂不可用。\n\n' + (hint || '请确认 Docker/SearXNG(:8080)、OAO服务器.bat、Worker 已部署。\n诊断：OAO_Diagnostic.testWebSearch()')
-                    : 'AI Web unavailable. Run OAO_Diagnostic.testWebSearch().';
+                    ? 'AI联网暂不可用。\n\n' + (hint || '请双击 OAO服务器.bat（Docker + SearXNG + Tunnel），并保持窗口打开。\n诊断：OAO_Diagnostic.testWebSearch()')
+                    : 'AI Web unavailable. Run OAO服务器.bat. Diagnostic: OAO_Diagnostic.testWebSearch().';
             }
 
             function normalizeNoKbAnswer(answer) {
@@ -10226,7 +10288,7 @@
                         const data = await res.json();
                         console.log('health:', data);
                         if (!data.ok) {
-                            console.error('❌ Worker 未配置 ZHIPU_API_KEY，请运行 cloudflare\\部署智谱Worker.bat');
+                            console.error('❌ Worker 未配置 ZHIPU_API_KEY，请运行 cloudflare\\deploy-worker.ps1');
                             return { success: false, error: 'zhipu_not_configured' };
                         }
                         const chat = await callZhipuPrompt('回复 OK 两个字母', { max_tokens: 16, temperature: 0.2 });
@@ -14466,7 +14528,7 @@ Answer:`;
                     uploadInvalidFile: { zh: '不支持的音频格式', en: 'Unsupported audio format' },
                     uploadTooLarge: { zh: '文件过大（最大 100MB）', en: 'File too large (max 100MB)' },
                     uploadNeedOllama: {
-                        zh: '上传转写需要本地 Ollama + Whisper 模型。请启动 Ollama 并执行：ollama pull whisper，然后用「打开OAO.bat」本地打开。',
+                        zh: '上传转写需要本地 Ollama + Whisper 模型。请启动 Ollama 并执行：ollama pull whisper，然后用「本地测试OAO.bat」本地打开。',
                         en: 'Upload transcription requires local Ollama + Whisper. Run: ollama pull whisper, then open OAO locally.'
                     },
                     uploadConfirmStop: {
@@ -16761,6 +16823,7 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
 
             function forceCloseOaoMeetingModal() {
                 hideMeetingCloseConfirm();
+                document.getElementById('oaoMeetingOverlayHint')?.classList.add('hidden');
                 setMeetingModule('workspace');
                 oaoMeetingModal?.classList.add('hidden');
                 oaoMeetingSubtitleBar?.classList.add('hidden');
@@ -16933,7 +16996,7 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                 const status = await checkOaoLocalRuntimeStatus();
                 const lines = [];
                 if (status.isFile) {
-                    lines.push('⚠ 当前为 file:// 打开，本地功能不可用。请通过 打开OAO.bat 访问。');
+                    lines.push('⚠ 当前为 file:// 打开，本地功能不可用。请通过 本地测试OAO.bat 访问。');
                 } else if (!status.usingBat) {
                     lines.push('⚠ 建议通过 http://127.0.0.1:8777/OAO.html 访问以启用本地服务。');
                 }
@@ -16999,8 +17062,8 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
             function getOaoTranslateFallbackDesc() {
                 if (isOaoLocalPreview()) {
                     return currentLang === 'zh'
-                        ? '翻译界面加载失败。请确认已通过「打开OAO.bat」访问 http://127.0.0.1:8777/OAO.html，或稍候后重试。'
-                        : 'Failed to load translate UI. Open via 打开OAO.bat at http://127.0.0.1:8777/OAO.html and retry.';
+                        ? '翻译界面加载失败。请确认已通过「本地测试OAO.bat」访问 http://127.0.0.1:8777/OAO.html，或稍候后重试。'
+                        : 'Failed to load translate UI. Open via 本地测试OAO.bat at http://127.0.0.1:8777/OAO.html and retry.';
                 }
                 return currentLang === 'zh'
                     ? '翻译界面暂时无法加载，请检查网络后重试。浏览器模式无需安装任何本地服务。'
@@ -17120,7 +17183,36 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
             }
 
             let oaoTranslateCloseConfirmResolver = null;
-            let oaoTranslateOverlayHintTimer = 0;
+            let oaoToolbarOverlayHintTimer = 0;
+
+            const OAO_TOOLBAR_OVERLAY_HINTS = {
+                translate: {
+                    hintId: 'oaoTranslateOverlayHint',
+                    zh: '为避免误触丢失数据，请点击右上角 × 关闭 OAO翻译',
+                    en: 'Click × in the top-right corner to close OAO Translate and avoid losing data'
+                },
+                audit: {
+                    hintId: 'oaoAuditOverlayHint',
+                    zh: '为避免误触丢失数据，请点击右上角 × 关闭 OAO审计',
+                    en: 'Click × in the top-right corner to close OAO Audit and avoid losing data'
+                },
+                meeting: {
+                    hintId: 'oaoMeetingOverlayHint',
+                    zh: '为避免误触丢失数据，请点击右上角 × 关闭 小O会议',
+                    en: 'Click × in the top-right corner to close OAO Meeting and avoid losing data'
+                }
+            };
+
+            function showOaoToolbarOverlayHint(toolKey) {
+                const config = OAO_TOOLBAR_OVERLAY_HINTS[toolKey];
+                if (!config) return;
+                const hint = document.getElementById(config.hintId);
+                if (!hint) return;
+                hint.textContent = currentLang === 'zh' ? config.zh : config.en;
+                hint.classList.remove('hidden');
+                clearTimeout(oaoToolbarOverlayHintTimer);
+                oaoToolbarOverlayHintTimer = setTimeout(() => hint.classList.add('hidden'), 3200);
+            }
 
             function hideOaoTranslateCloseConfirm() {
                 document.getElementById('oaoTranslateCloseConfirm')?.classList.add('hidden');
@@ -17163,14 +17255,7 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
             }
 
             function showOaoTranslateOverlayHint() {
-                const hint = document.getElementById('oaoTranslateOverlayHint');
-                if (!hint) return;
-                hint.textContent = currentLang === 'zh'
-                    ? '为避免误触丢失数据，请点击右上角 × 关闭 OAO翻译'
-                    : 'Click × in the top-right corner to close and avoid losing data';
-                hint.classList.remove('hidden');
-                clearTimeout(oaoTranslateOverlayHintTimer);
-                oaoTranslateOverlayHintTimer = setTimeout(() => hint.classList.add('hidden'), 3200);
+                showOaoToolbarOverlayHint('translate');
             }
 
             function closeOaoTranslateModal(force) {
@@ -17232,7 +17317,144 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
             document.getElementById('oaoTranslateFullscreenBtn')?.addEventListener('click', toggleOaoTranslateFullscreen);
             document.getElementById('oaoTranslateRetryBtn')?.addEventListener('click', openOaoTranslateModal);
             document.getElementById('oaoTranslateSetupBtn')?.addEventListener('click', () => showOaoLocalSetupGuide('translate'));
+
+            function resolveOaoAuditUrl() {
+                if (window.OAO_AUDIT_URL) return String(window.OAO_AUDIT_URL).replace(/\/$/, '');
+                if (location.protocol === 'http:' || location.protocol === 'https:') {
+                    return location.origin + getOaoSiteBase() + '/oao-audit/embed/index.html';
+                }
+                return 'http://127.0.0.1:8777/oao-audit/embed/index.html';
+            }
+
+            function buildOaoAuditEmbedUrl(base) {
+                const url = new URL(base, location.href);
+                url.pathname = url.pathname.replace(/\/index\.html\/+/gi, '/index.html');
+                if (!/\/index\.html$/i.test(url.pathname)) {
+                    url.pathname = url.pathname.replace(/\/?$/, '/') + 'index.html';
+                }
+                const qs = new URLSearchParams(url.search);
+                qs.set('embed', '1');
+                const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                qs.set('theme', theme);
+                const uid = typeof window.getOAOUserId === 'function' ? window.getOAOUserId() : '';
+                if (uid) qs.set('uid', uid);
+                const display = document.getElementById('userAddress')?.textContent?.trim();
+                if (display && display.length < 48) qs.set('user', display);
+                try {
+                    const ollamaBase = typeof resolveOllamaBaseUrl === 'function'
+                        ? resolveOllamaBaseUrl()
+                        : (window.OAO_OLLAMA_BASE_URL || 'http://127.0.0.1:11434');
+                    if (ollamaBase) qs.set('ollama_base', ollamaBase);
+                    if (window.OAO_OLLAMA_MODEL) qs.set('ollama_model', window.OAO_OLLAMA_MODEL);
+                    if (window.OAO_AI_BASE_URL) qs.set('ai_base', window.OAO_AI_BASE_URL);
+                } catch (_) {}
+                url.search = qs.toString();
+                return url.toString();
+            }
+
+            function setOaoAuditLoadingVisible(visible, message) {
+                const loading = document.getElementById('oaoAuditLoading');
+                const fallback = document.getElementById('oaoAuditFallback');
+                const frame = document.getElementById('oaoAuditFrame');
+                if (visible) {
+                    fallback?.classList.add('hidden');
+                    loading?.classList.remove('hidden');
+                    if (message) {
+                        const title = document.getElementById('oaoAuditLoadingTitle');
+                        if (title) title.textContent = message;
+                    }
+                } else {
+                    loading?.classList.add('hidden');
+                    frame?.classList.remove('hidden');
+                }
+            }
+
+            function openOaoAuditModal() {
+                const authed = typeof window.isOAOAuthenticated === 'function'
+                    ? window.isOAOAuthenticated()
+                    : isLoggedIn;
+                if (!authed) {
+                    showConnectionToast?.(
+                        currentLang === 'zh'
+                            ? '请先登录后再使用 OAO审计'
+                            : 'Please login before using OAO Audit',
+                        'error'
+                    );
+                    window.openLoginModal?.('admin');
+                    return;
+                }
+                if (window.location.protocol === 'file:') {
+                    showOaoLocalSetupGuide('translate');
+                    return;
+                }
+
+                const modal = document.getElementById('oaoAuditModal');
+                const frame = document.getElementById('oaoAuditFrame');
+                const fallback = document.getElementById('oaoAuditFallback');
+                if (!modal || !frame || !fallback) return;
+
+                modal.classList.remove('hidden', 'is-fullscreen');
+                fallback.classList.add('hidden');
+                frame.classList.remove('hidden');
+
+                const embedUrl = buildOaoAuditEmbedUrl(resolveOaoAuditUrl());
+                setOaoAuditLoadingVisible(true, currentLang === 'zh' ? '正在打开 OAO审计…' : 'Opening OAO Audit…');
+
+                let loadSettled = false;
+                const settleLoad = (ok) => {
+                    if (loadSettled) return;
+                    loadSettled = true;
+                    clearTimeout(loadWatchdog);
+                    if (ok) {
+                        setOaoAuditLoadingVisible(false);
+                        frame.classList.remove('hidden');
+                        fallback.classList.add('hidden');
+                    } else {
+                        setOaoAuditLoadingVisible(false);
+                        frame.classList.add('hidden');
+                        fallback.classList.remove('hidden');
+                    }
+                };
+
+                frame.onload = () => settleLoad(true);
+                frame.onerror = () => settleLoad(false);
+                const loadWatchdog = setTimeout(() => {
+                    try {
+                        const doc = frame.contentDocument;
+                        if (doc && doc.getElementById('appRoot')) {
+                            settleLoad(true);
+                            return;
+                        }
+                    } catch (_) {}
+                    settleLoad(false);
+                }, 10000);
+                frame.src = embedUrl;
+            }
+
+            function closeOaoAuditModal() {
+                const modal = document.getElementById('oaoAuditModal');
+                const frame = document.getElementById('oaoAuditFrame');
+                document.getElementById('oaoAuditLoading')?.classList.add('hidden');
+                document.getElementById('oaoAuditOverlayHint')?.classList.add('hidden');
+                modal?.classList.add('hidden');
+                modal?.classList.remove('is-fullscreen');
+                if (frame) frame.src = 'about:blank';
+            }
+
+            function toggleOaoAuditFullscreen() {
+                document.getElementById('oaoAuditModal')?.classList.toggle('is-fullscreen');
+            }
+
+            document.getElementById('oaoToolAudit')?.addEventListener('click', openOaoAuditModal);
+            document.getElementById('oaoAuditModalClose')?.addEventListener('click', closeOaoAuditModal);
+            document.getElementById('oaoAuditModalOverlay')?.addEventListener('click', () => showOaoToolbarOverlayHint('audit'));
+            document.getElementById('oaoAuditFullscreenBtn')?.addEventListener('click', toggleOaoAuditFullscreen);
+            document.getElementById('oaoAuditRetryBtn')?.addEventListener('click', openOaoAuditModal);
+
+            window.OAOAudit = { open: openOaoAuditModal, close: closeOaoAuditModal };
+
             oaoMeetingModalClose?.addEventListener('click', closeOaoMeetingModal);
+            document.getElementById('oaoMeetingModalOverlay')?.addEventListener('click', () => showOaoToolbarOverlayHint('meeting'));
             oaoMeetingCloseSaveBtn?.addEventListener('click', () => resolveMeetingCloseConfirm('save'));
             oaoMeetingCloseDiscardBtn?.addEventListener('click', () => resolveMeetingCloseConfirm('discard'));
             oaoMeetingCloseCancelBtn?.addEventListener('click', () => resolveMeetingCloseConfirm('cancel'));
@@ -17529,7 +17751,7 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
 
         // 全局变量定义
         let isLoggedIn = false;
-        let currentLang = 'en';
+        let currentLang = 'zh';
         window.getOAOLang = () => currentLang;
         const translations = {
             zh: {
@@ -17588,10 +17810,13 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                 aiHomeLoginHint: '请点击右上角「登录」后使用 AI 功能',
                 oaoToolMeeting: '小O会议',
                 oaoToolTranslate: 'OAO翻译',
+                oaoToolAudit: 'OAO审计',
+                oaoAuditModalTitle: 'OAO审计',
+                oaoAuditModalTagline: '本地部署 · 制度解析 · 需求包',
                 oaoTranslateModalTitle: 'OAO翻译',
                 oaoTranslateModalTagline: '浏览器模式 · 零安装',
                 oaoTranslateFallbackTitle: '无法加载 OAO翻译服务',
-                oaoTranslateFallbackDesc: '翻译界面加载失败。请确认已通过「打开OAO.bat」访问 http://127.0.0.1:8777/OAO.html，或稍候后重试。',
+                oaoTranslateFallbackDesc: '翻译界面加载失败。请确认已通过「本地测试OAO.bat」访问 http://127.0.0.1:8777/OAO.html，或稍候后重试。',
                 oaoTranslateRetry: '重试',
                 oaoTranslateFullscreen: '全屏',
                 oaoMeetingModalTitle: '小O会议',
@@ -17752,7 +17977,7 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                 wechatLoginSuccess: '微信登录成功',
                 wechatLoginFailed: '微信登录失败，请重试',
                 logoutSuccess: '已退出登录',
-                walletEnvFile: '钱包功能无法通过本地文件打开。请先双击「打开OAO.bat」，再在 Chrome / Edge 中访问下方链接。',
+                walletEnvFile: '钱包功能无法通过本地文件打开。请先双击「本地测试OAO.bat」，再在 Chrome / Edge 中访问下方链接。',
                 walletEnvEmbedded: '当前预览窗口无法加载钱包插件。请点击右侧按钮，在 Chrome / Edge 中打开同一地址后再连接钱包。',
                 walletEnvOpenBrowser: '在浏览器中打开',
                 timeTag: '时间是唯一不可复制的资产',
@@ -17815,6 +18040,9 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                 aiHomeLoginHint: 'Click「Login」at top-right to use AI features',
                 oaoToolMeeting: 'Xiao O Meeting',
                 oaoToolTranslate: 'OAO Translate',
+                oaoToolAudit: 'OAO Audit',
+                oaoAuditModalTitle: 'OAO Audit',
+                oaoAuditModalTagline: 'Local · Requirements · Compliance',
                 oaoTranslateModalTitle: 'OAO Translate',
                 oaoTranslateModalTagline: 'Browser mode · zero install',
                 oaoTranslateFallbackTitle: 'Unable to load OAO Translate',
@@ -17979,7 +18207,7 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                 wechatLoginSuccess: 'WeChat login successful',
                 wechatLoginFailed: 'WeChat login failed, please retry',
                 logoutSuccess: 'Logged out',
-                walletEnvFile: 'Wallet features do not work when opening the HTML file directly. Run「打开OAO.bat」first, then open the link below in Chrome or Edge.',
+                walletEnvFile: 'Wallet features do not work when opening the HTML file directly. Run「本地测试OAO.bat」first, then open the link below in Chrome or Edge.',
                 walletEnvEmbedded: 'This preview cannot load wallet extensions. Click the button to open the same page in Chrome or Edge, then connect your wallet.',
                 walletEnvOpenBrowser: 'Open in browser',
                 heroTitle: 'This is not a launch.<br>This is a time anchor.',
@@ -18139,6 +18367,13 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
 
             const oaoToolTranslateLabel = document.getElementById('oaoToolTranslateLabel');
             if (oaoToolTranslateLabel) oaoToolTranslateLabel.textContent = translations[lang].oaoToolTranslate;
+
+            const oaoToolAuditLabel = document.getElementById('oaoToolAuditLabel');
+            if (oaoToolAuditLabel) oaoToolAuditLabel.textContent = translations[lang].oaoToolAudit;
+            const oaoAuditModalTitle = document.getElementById('oaoAuditModalTitle');
+            if (oaoAuditModalTitle) oaoAuditModalTitle.textContent = translations[lang].oaoAuditModalTitle;
+            const oaoAuditModalTagline = document.getElementById('oaoAuditModalTagline');
+            if (oaoAuditModalTagline) oaoAuditModalTagline.textContent = translations[lang].oaoAuditModalTagline;
 
             const oaoTranslateModalTitle = document.getElementById('oaoTranslateModalTitle');
             if (oaoTranslateModalTitle) oaoTranslateModalTitle.textContent = translations[lang].oaoTranslateModalTitle;
@@ -18654,8 +18889,8 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
             if (env.isFile) {
                 showConnectionToast(
                     currentLang === 'zh'
-                        ? `${actionLabel}需通过本地服务器访问。请双击「打开OAO.bat」，在浏览器打开 ${previewUrl}`
-                        : `${actionLabel} requires a local server. Run「打开OAO.bat」and open ${previewUrl} in your browser.`,
+                        ? `${actionLabel}需通过本地服务器访问。请双击「本地测试OAO.bat」，在浏览器打开 ${previewUrl}`
+                        : `${actionLabel} requires a local server. Run「本地测试OAO.bat」and open ${previewUrl} in your browser.`,
                     'error'
                 );
             } else {
@@ -18692,19 +18927,16 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
                     walletconnect: {
                         package: window.WalletConnectProvider?.default || window.WalletConnectProvider,
                         options: {
-                            infuraId: 'beb906ed3b2e499abce01fa6d0e1a7e7',
                             rpc: {
-                                1: 'https://mainnet.infura.io/v3/beb906ed3b2e499abce01fa6d0e1a7e7',
-                                5: 'https://goerli.infura.io/v3/beb906ed3b2e499abce01fa6d0e1a7e7'
+                                1: 'https://ethereum.publicnode.com'
                             }
                         }
                     },
                     coinbasewallet: {
-                        package: window.CoinbaseWalletSDK?.default || window.CoinbaseWalletSDK,
+                        package: window.CoinbaseWalletSdk || window.CoinbaseWalletSDK,
                         options: {
                             appName: 'OAO',
-                            infuraId: 'beb906ed3b2e499abce01fa6d0e1a7e7',
-                            rpc: 'https://mainnet.infura.io/v3/beb906ed3b2e499abce01fa6d0e1a7e7'
+                            rpc: 'https://ethereum.publicnode.com'
                         }
                     }
                 };
@@ -19852,6 +20084,73 @@ ${buildMeetingMinutesTableHtml(meta, contentHtml)}
             return text.replace(/[&<>"']/g, m => map[m]);
         }
 
+        async function buildLocalEnsReport(targetENS) {
+            const normalized = String(targetENS || '').trim().toLowerCase();
+            if (!window.ethers) {
+                return {
+                    analysis: currentLang === 'zh'
+                        ? '无法加载以太坊工具库，请检查网络后重试。'
+                        : 'Unable to load Ethereum library. Please check your network and retry.'
+                };
+            }
+
+            const lines = [];
+            let address = '';
+            let resolverAddress = '';
+            let avatar = '';
+            let contentHash = '';
+            let reverseName = '';
+
+            try {
+                const rpc = new ethers.providers.JsonRpcProvider('https://ethereum.publicnode.com');
+                address = (await rpc.resolveName(normalized)) || '';
+                const resolver = address ? await rpc.getResolver(normalized) : null;
+                resolverAddress = resolver?.address || '';
+
+                const results = await Promise.allSettled([
+                    resolver?.getAvatar?.(),
+                    resolver?.getContentHash?.(),
+                    address ? rpc.lookupAddress(address) : null,
+                    fetch(`https://metadata.ens.domains/mainnet/name/${encodeURIComponent(normalized)}`, {
+                        cache: 'no-store',
+                        signal: AbortSignal.timeout(3500),
+                    }).then((res) => (res.ok ? res.json() : null)).catch(() => null),
+                ]);
+
+                const [avatarResult, contentResult, reverseResult, metadataResult] = results;
+                avatar = avatarResult.status === 'fulfilled' ? (avatarResult.value || '') : '';
+                contentHash = contentResult.status === 'fulfilled' ? (contentResult.value || '') : '';
+                reverseName = reverseResult.status === 'fulfilled' ? (reverseResult.value || '') : '';
+                const metadata = metadataResult.status === 'fulfilled' ? metadataResult.value : null;
+                avatar = avatar || metadata?.avatar || metadata?.avatar_url || '';
+                contentHash = contentHash || metadata?.contenthash || metadata?.content_hash || '';
+                reverseName = reverseName || metadata?.name || '';
+            } catch (error) {
+                console.warn('[OAO ENS] local fallback error:', error);
+            }
+
+            lines.push((currentLang === 'zh' ? 'ENS 名称：' : 'ENS name: ') + normalized);
+            lines.push((currentLang === 'zh' ? '解析地址：' : 'Resolved address: ') + (address || '—'));
+            lines.push((currentLang === 'zh' ? 'Resolver：' : 'Resolver: ') + (resolverAddress || '—'));
+            lines.push((currentLang === 'zh' ? '反向解析：' : 'Reverse record: ') + (reverseName || '—'));
+            lines.push((currentLang === 'zh' ? '内容哈希：' : 'Content hash: ') + (contentHash || '—'));
+            lines.push((currentLang === 'zh' ? '头像：' : 'Avatar: ') + (avatar || '—'));
+            lines.push((currentLang === 'zh' ? 'ENS 应用：' : 'ENS app: ') + `https://app.ens.domains/${encodeURIComponent(normalized)}`);
+
+            const statusLine = address
+                ? (currentLang === 'zh' ? '状态：该 ENS 名称可正常解析。' : 'Status: the ENS name resolves correctly.')
+                : (currentLang === 'zh' ? '状态：未解析到链上地址，请确认名称存在且记录有效。' : 'Status: no on-chain address was resolved.');
+
+            return {
+                analysis: `${statusLine}\n\n${lines.join('\n')}`,
+                address,
+                resolverAddress,
+                avatar,
+                contentHash,
+                reverseName,
+            };
+        }
+
         async function callENSMain() {
             const targetENS = document.getElementById('ensInputMain').value.trim();
             if (!targetENS) {
@@ -19951,7 +20250,10 @@ Generated by OAO ENS Identity Lab
                 showShareButtons();
             } catch (error) {
                 console.error('调用失败:', error);
-                resultElement.textContent = '❌ ' + (currentLang === 'zh' ? '调用失败：' : 'Call failed: ') + error.message;
+                const fallback = await buildLocalEnsReport(targetENS);
+                const title = currentLang === 'zh' ? 'OAO ENS 身份分析报告（本地解析）' : 'OAO ENS Identity Report (local resolver)';
+                resultElement.innerHTML = `<div class="report-title">📋 ${title}</div><div class="report-ens">${escapeHtml(targetENS)}</div>${escapeHtml(fallback.analysis)}`;
+                showShareButtons();
             }
         }
 
@@ -20819,7 +21121,7 @@ Generated by OAO ENS Identity Lab
         updateScrollIndicators();
 
         window.addEventListener('load', async () => {
-            const savedLang = localStorage.getItem('oao-language') || 'en';
+            const savedLang = localStorage.getItem('oao-language') || 'zh';
             updateLanguage(savedLang);
             parseWeChatCallbackOnLoad();
             if (!tryRestoreWeChatSession()) {

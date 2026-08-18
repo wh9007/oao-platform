@@ -5,6 +5,7 @@ $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 $Root = Split-Path $PSScriptRoot -Parent
 $Lib = Join-Path $Root 'scripts\lib.cmd'
 $Url = 'http://127.0.0.1:8777/OAO.html'
+$Host.UI.RawUI.WindowTitle = 'OAO 本地测试'
 
 if (-not (Test-Path (Join-Path $Root 'OAO.html'))) {
     Write-Host ''
@@ -14,12 +15,9 @@ if (-not (Test-Path (Join-Path $Root 'OAO.html'))) {
     exit 1
 }
 
-$py = $null
-if (Get-Command python -ErrorAction SilentlyContinue) { $py = 'python' }
-elseif (Get-Command py -ErrorAction SilentlyContinue) { $py = 'py -3' }
-if (-not $py) {
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     Write-Host ''
-    Write-Host ' [错误] 未找到 Python 3.8+，请安装 Python' -ForegroundColor Red
+    Write-Host ' [错误] 未找到 Node.js，请先安装 Node.js LTS：https://nodejs.org' -ForegroundColor Red
     Read-Host '按回车退出'
     exit 1
 }
@@ -31,8 +29,8 @@ Write-Host ' ============================================================' -Fore
 Write-Host " 主页: $Url"
 Write-Host ''
 Write-Host ' 用途: 本地功能测试（AI / 小O会议 / OAO翻译）'
-Write-Host ' 外网远程 AI: 请使用「启动远程AI.bat」'
-Write-Host ' 版本发布: 请使用「一键上传GitHub.bat」'
+Write-Host ' 外网远程 AI: OAO服务器.bat'
+Write-Host ' 版本发布: 一键上传GitHub.bat'
 Write-Host ''
 
 & cmd /c "call `"$Lib`" FreePort 8777"
@@ -53,11 +51,8 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host ''
 Write-Host ' 正在启动本地预览...'
-if ($py -eq 'py -3') {
-    Start-Process -FilePath 'py' -ArgumentList '-3','-m','http.server','8777','--bind','127.0.0.1' -WindowStyle Hidden
-} else {
-    Start-Process -FilePath 'python' -ArgumentList '-m','http.server','8777','--bind','127.0.0.1' -WindowStyle Hidden
-}
+$launcher = Join-Path $Root 'scripts\run-dev-server.ps1'
+Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $launcher + '"') -WorkingDirectory $Root -WindowStyle Hidden
 
 $ok = $false
 for ($i = 0; $i -lt 8; $i++) {

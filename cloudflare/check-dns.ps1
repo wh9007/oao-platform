@@ -31,7 +31,7 @@ $xray = Get-DnsClientServerAddress -AddressFamily IPv4 -ErrorAction SilentlyCont
     Where-Object { $_.InterfaceAlias -match 'xray|v2ray|clash|sing-box' }
 if ($xray -and -not $srvOk) {
     Write-Host ''
-    Write-Host '  检测到代理 TUN 网卡，请运行「V2Ray与Tunnel共存.bat」' -ForegroundColor Yellow
+    Write-Host '  检测到代理 TUN 网卡，请运行 OAO服务器.bat v2ray' -ForegroundColor Yellow
 }
 
 foreach ($h in $hosts) {
@@ -51,8 +51,8 @@ if ($fail) {
     Write-Host '2. 编辑 DNS，选手动，IPv4 开启'
     Write-Host '3. 首选 DNS: 1.1.1.1   备用 DNS: 8.8.8.8'
     Write-Host '4. 保存后，以管理员身份打开 CMD，运行: ipconfig /flushdns'
-    Write-Host '5. 若仍失败: 运行 V2Ray与Tunnel共存.bat，或暂时关闭 V2Ray'
-    Write-Host '6. 修复后重新运行 OAO服务器.bat 选 1'
+    Write-Host '5. 若仍失败: 运行 OAO服务器.bat v2ray，或暂时关闭 V2Ray'
+    Write-Host '6. 修复后重新运行 OAO服务器.bat'
     Write-Host ''
     exit 1
 }

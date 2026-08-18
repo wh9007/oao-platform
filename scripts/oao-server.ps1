@@ -40,7 +40,7 @@ function Show-Menu {
     Write-Host '  2 = 仅后台服务 - Ollama / 翻译 / 主页'
     Write-Host '  3 = 仅 Tunnel - 须保持本窗口打开'
     Write-Host '  4 = 构建翻译服务 端口 3011 可选'
-    Write-Host '  5 = 部署智谱 Worker 一次性'
+    Write-Host '  5 = 部署 Worker（快速）'
     Write-Host '  6 = 检测远程 AI 连通性'
     Write-Host '  7 = 一键配置远程 Worker（首次必做）'
     Write-Host '  0 = 退出'
@@ -127,7 +127,7 @@ function Start-Tunnel {
         Where-Object { $_.InterfaceAlias -match 'xray|v2ray|clash|sing-box' }
     if ($xray) {
         Write-Host ' [警告] 检测到 V2Ray/Xray TUN 网卡，可能导致 Tunnel DNS 失败' -ForegroundColor Yellow
-        Write-Host ' 请先运行项目根目录「V2Ray与Tunnel共存.bat」按说明添加 Cloudflare 直连规则' -ForegroundColor Yellow
+        Write-Host ' 请先运行 OAO服务器.bat v2ray 按说明添加 Cloudflare 直连规则' -ForegroundColor Yellow
         Write-Host ' 或启动 Tunnel 前暂时关闭 V2Ray' -ForegroundColor Yellow
     }
     $dnsScript = Join-Path $Root 'cloudflare\check-dns.ps1'
@@ -202,13 +202,13 @@ function Start-Build {
 }
 
 function Start-Worker {
-    $bat = Join-Path $Root 'cloudflare\部署智谱Worker.bat'
-    if (-not (Test-Path $bat)) {
-        Write-Host ' [错误] 未找到 cloudflare\部署智谱Worker.bat' -ForegroundColor Red
+    $script = Join-Path $Root 'cloudflare\deploy-worker-quick.ps1'
+    if (-not (Test-Path $script)) {
+        Write-Host ' [错误] 未找到 cloudflare\deploy-worker-quick.ps1' -ForegroundColor Red
         Read-Host '按回车退出'
         exit 1
     }
-    & cmd /c "`"$bat`""
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $script
 }
 
 function Start-SetupRemote {
