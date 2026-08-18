@@ -374,7 +374,9 @@ function Start-TunnelCore {
         if (Suspend-XrayTunForTunnel) {
             $global:OAO_XRAY_WAS_DISABLED = $true
         } else {
-            Write-Host '  [重要] 当前 Tunnel 可能无法连接；请按上述提示处理后重试。' -ForegroundColor Yellow
+            Write-Host '  [重要] 当前 Tunnel 无法在 xray_tun 运行时连接。' -ForegroundColor Red
+            Write-Host '  请右键「OAO服务器.bat」选择“以管理员身份运行”，或暂时退出 V2Ray/Xray 后重试。' -ForegroundColor Yellow
+            return $false
         }
     }
 
