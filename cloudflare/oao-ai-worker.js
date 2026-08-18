@@ -112,6 +112,46 @@ async function handleMeeting(request, env) {
   return stub.fetch(request);
 }
 
+async function handleGatewayHealth(request, env) {
+  const origin = String(env.LOCAL_AI_ORIGIN || env.LLM_ORIGIN || '').replace(/\/$/, '');
+  if (!origin) {
+    return withCors(new Response(JSON.stringify({
+      error: 'LOCAL_AI_ORIGIN not configured',
+      hint: 'Set Worker variable LOCAL_AI_ORIGIN to https://llm.wh9007.dpdns.org',
+    }), { status: 503, headers: { 'Content-Type': 'application/json; charset=utf-8' } }));
+  }
+  try {
+    const upstream = await fetch(`${origin}/health`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(10000),
+    });
+    const text = await upstream.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (_) {
+      data = { raw: text.slice(0, 300) };
+    }
+    return withCors(new Response(JSON.stringify({
+      ok: upstream.ok,
+      status: upstream.status,
+      origin,
+      gateway: data,
+    }), {
+      status: upstream.ok ? 200 : 502,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    }));
+  } catch (error) {
+    return withCors(new Response(JSON.stringify({
+      ok: false,
+      error: 'gateway_unreachable',
+      message: error?.message || 'Local AI gateway unavailable',
+      origin,
+    }), { status: 502, headers: { 'Content-Type': 'application/json; charset=utf-8' } }));
+  }
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === 'OPTIONS') return corsPreflight();
@@ -137,6 +177,10 @@ export default {
 
     if (path === '/web-search' || path.startsWith('/web-search/')) {
       return withCors(await handleWebSearch(request, env, CORS));
+    }
+
+    if (path === '/gateway/health' && request.method === 'GET') {
+      return handleGatewayHealth(request, env);
     }
 
     if (path.startsWith('/glm/')) {
@@ -175,17 +219,20 @@ export default {
     }
 
     if (path.startsWith('/ollama')) {
-      const origin = env.OLLAMA_ORIGIN;
+      const unified = !!env.LOCAL_AI_ORIGIN;
+      const origin = unified ? env.LOCAL_AI_ORIGIN : env.OLLAMA_ORIGIN;
       if (!origin) {
         return withCors(new Response(JSON.stringify({
-          error: 'OLLAMA_ORIGIN not configured',
-          hint: 'Set Worker variable OLLAMA_ORIGIN to your Tunnel hostname for localhost:11434',
+          error: unified ? 'LOCAL_AI_ORIGIN not configured' : 'OLLAMA_ORIGIN not configured',
+          hint: unified
+            ? 'Set Worker variable LOCAL_AI_ORIGIN to your OAO local AI gateway hostname'
+            : 'Set Worker variable OLLAMA_ORIGIN to your Tunnel hostname for localhost:11434',
         }), { status: 503, headers: { 'Content-Type': 'application/json; charset=utf-8' } }));
       }
-      return proxyHttp(request, origin, { stripPrefix: '/ollama' });
+      return proxyHttp(request, origin, { stripPrefix: unified ? '' : '/ollama' });
     }
 
-    const llmOrigin = env.LLM_ORIGIN;
+    const llmOrigin = env.LOCAL_AI_ORIGIN || env.LLM_ORIGIN;
     if (llmOrigin) {
       return proxyHttp(request, llmOrigin, {
         injectAuth: env.ANYTHINGLLM_API_KEY || '',

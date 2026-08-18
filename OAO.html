@@ -34,16 +34,17 @@
         // 2. 外网远程本机 AI：双击「OAO服务器.bat」（保持窗口打开）
         // 3. 版本发布：双击「一键上传GitHub.bat」
         // 4. 外网站点：https://wh9007.github.io/oao-platform/
-        // 5. AI：默认使用本机 AnythingLLM + Ollama；如需纯云端可设置 OAO_FORCE_GLM = true
-        // 6. AI联网：OAO服务器.bat 可启动 Docker+SearXNG；也可在 Worker 配置 SERPER_API_KEY
+        // 5. AI：所有本地 AI 统一经 OAO AI 网关；外网统一经 Worker，不再散落直连端口
+        // 6. AI联网：OAO服务器.bat 后台启动 SearXNG；也可在 Worker 配置 SERPER_API_KEY
         // 7. OAO翻译（可选覆盖云端地址）：window.OAO_TRANSLATE_URL = 'https://your-translate-host/oao-translate/embed/index.html';
-        // 联网搜索默认经 Worker → Tunnel → 本机 SearXNG；可选 Tavily/Serper Key 增强
+        // 联网搜索默认经 Worker → Tunnel(:3001 网关) → 本机 SearXNG；可选 Tavily/Serper Key 增强
         // window.OAO_TAVILY_API_KEY = 'tvly-xxxxxxxx';
         (function () {
             var worker = window.OAO_WORKER_URL || 'https://oao-ai.wh529007.workers.dev';
             if (!window.OAO_WORKER_URL) window.OAO_WORKER_URL = worker;
             if (!window.OAO_WEB_SEARCH_PROXY) window.OAO_WEB_SEARCH_PROXY = worker + '/web-search';
             if (!window.OAO_ANYTHINGLLM_WORKSPACE) window.OAO_ANYTHINGLLM_WORKSPACE = 'oaoeth';
+            if (!window.OAO_LOCAL_AI_GATEWAY_URL) window.OAO_LOCAL_AI_GATEWAY_URL = 'http://127.0.0.1:3001';
             window.OAO_DISABLE_GLM = true;
             window.OAO_DISABLE_GLM_FALLBACK = true;
         })();
@@ -8801,6 +8802,14 @@
                 return 'https://oao-ai.wh529007.workers.dev';
             }
 
+            function resolveLocalAiGatewayUrl() {
+                if (window.OAO_LOCAL_AI_GATEWAY_URL) {
+                    return String(window.OAO_LOCAL_AI_GATEWAY_URL).replace(/\/$/, '');
+                }
+                if (isOaoLocalPreview()) return 'http://127.0.0.1:3001';
+                return resolveWorkerBaseUrl();
+            }
+
             function resolveAiBaseUrl() {
                 if (window.OAO_AI_BASE_URL) {
                     return String(window.OAO_AI_BASE_URL).replace(/\/$/, '');
@@ -8808,7 +8817,7 @@
                 if (window.__oaoAnythingLLMBase) {
                     return String(window.__oaoAnythingLLMBase).replace(/\/$/, '');
                 }
-                if (isOaoLocalPreview()) return 'http://localhost:3001';
+                if (isOaoLocalPreview()) return resolveLocalAiGatewayUrl();
                 return resolveWorkerBaseUrl();
             }
 
@@ -8864,8 +8873,8 @@
                 if (window.OAO_OLLAMA_BASE_URL) {
                     return String(window.OAO_OLLAMA_BASE_URL).replace(/\/$/, '');
                 }
-                if (isOaoLocalPreview()) return 'http://localhost:11434';
-                return resolveAiBaseUrl() + '/ollama';
+                if (isOaoLocalPreview()) return resolveLocalAiGatewayUrl() + '/ollama';
+                return resolveWorkerBaseUrl() + '/ollama';
             }
 
             function isTunnelUnavailableBody(text) {
@@ -8948,12 +8957,13 @@
                         '无法通过 Cloudflare Tunnel 连接本机 AI（不是智谱额度问题）。',
                         '',
                         '请在本机依次确认：',
-                        '1. AnythingLLM 桌面版已打开（端口 3001，工作区 oaoeth，模式 Query）',
-                        '2. Ollama 已运行（端口 11434，模型 qwen2.5:7b 等）',
-                        '3. 双击「OAO服务器.bat」，保持窗口打开直到 Tunnel 连通',
-                        '4. 首次远程使用：在 cloudflare 目录运行 setup-remote-access.ps1，写入 Worker Secret ANYTHINGLLM_API_KEY',
+                        '1. AnythingLLM 桌面版已打开（端口 3002，工作区 oaoeth，模式 Query）',
+                        '2. OAO 本地 AI 网关已运行（端口 3001，自动转发 AnythingLLM/Ollama/SearXNG）',
+                        '3. Ollama 已运行（端口 11434，模型 qwen2.5:7b 等）',
+                        '4. 双击「OAO服务器.bat」，保持窗口打开直到 Tunnel 连通',
+                        '5. 首次远程使用：在 cloudflare 目录运行 setup-remote-access.ps1，写入 Worker Secret ANYTHINGLLM_API_KEY',
                         '',
-                        `5. 浏览器可访问 ${worker}/api/ping 应返回 online`,
+                        `6. 浏览器可访问 ${worker}/api/ping 应返回 online`,
                         `   ${worker}/ollama/api/tags 应返回模型列表`,
                         '',
                         '诊断：控制台执行 OAO_Diagnostic.checkRemoteTunnel()',
@@ -8963,12 +8973,13 @@
                         'Cannot reach home AI via Cloudflare Tunnel (not a Zhipu quota issue).',
                         '',
                         'On your PC:',
-                        '1. Start AnythingLLM (:3001, workspace oaoeth, Query mode)',
-                        '2. Start Ollama (:11434)',
-                        '3. Run OAO服务器.bat and keep the window open',
-                        '4. First-time: run cloudflare/setup-remote-access.ps1 for ANYTHINGLLM_API_KEY secret',
+                        '1. Start AnythingLLM (:3002, workspace oaoeth, Query mode)',
+                        '2. Start the OAO local AI gateway (:3001)',
+                        '3. Start Ollama (:11434)',
+                        '4. Run OAO服务器.bat and keep the window open',
+                        '5. First-time: run cloudflare/setup-remote-access.ps1 for ANYTHINGLLM_API_KEY secret',
                         '',
-                        `5. ${worker}/api/ping should respond`,
+                        `6. ${worker}/api/ping should respond`,
                         '',
                         'Run OAO_Diagnostic.checkRemoteTunnel() in the console.',
                     ];
@@ -9310,8 +9321,8 @@
                 const lines = [];
                 if (!h.systemOk) {
                     lines.push(currentLang === 'zh'
-                        ? '1. 启动 AnythingLLM（默认 http://127.0.0.1:3001）'
-                        : '1. Start AnythingLLM on http://127.0.0.1:3001');
+                        ? '1. 启动 AnythingLLM（本地统一网关 http://127.0.0.1:3001 -> AnythingLLM :3002）'
+                        : '1. Start AnythingLLM (local gateway http://127.0.0.1:3001 -> :3002)');
                     lines.push(currentLang === 'zh'
                         ? '2. 本地测试可先双击「本地测试OAO.bat」；远程需「OAO服务器.bat」'
                         : '2. Run 本地测试OAO.bat locally or OAO服务器.bat for remote');
@@ -9452,16 +9463,16 @@
                 const hint = lastWebSearchProxyHint;
                 if (err === 'searxng_tunnel_offline') {
                     return currentLang === 'zh'
-                        ? 'AI联网失败：SearXNG 未连通。\n\n请按顺序检查：\n1. 双击 OAO服务器.bat（会自动启动 Docker + SearXNG）并保持窗口打开\n2. 浏览器打开 http://127.0.0.1:8080/search?q=test&format=json 应有 JSON\n\n可选加速：在 local-config.js 配置 OAO_SERPER_API_KEY（Google 搜索 API，免费额度）\n或在 Worker 执行: npx wrangler secret put SERPER_API_KEY'
-                        : 'AI Web failed: SearXNG tunnel offline. Run OAO服务器.bat and keep the window open.';
+                        ? 'AI联网失败：SearXNG 未连通。\n\n请双击 OAO服务器.bat 并保持窗口打开；SearXNG 会在后台启动，不会阻塞本地 AI。\n统一链路：Worker → Tunnel(:3001 网关) → SearXNG(:8080)。\n\n可选加速：在 Worker 配置 SERPER_API_KEY，或 local-config.js 配置 OAO_SERPER_API_KEY。'
+                        : 'AI Web failed: SearXNG tunnel offline. Run OAO服务器.bat; SearXNG starts in the background and does not block local AI.';
                 }
                 if (err === 'searxng_not_configured' || err === 'searxng_unreachable') {
                     return currentLang === 'zh'
-                        ? 'AI联网失败：本机 SearXNG 未运行。\n\n' + (hint || '请双击 OAO服务器.bat（自动启动 Docker + SearXNG :8080）')
-                        : 'AI Web failed: SearXNG not running. Run OAO服务器.bat.';
+                        ? 'AI联网失败：本机 SearXNG 未运行。\n\n' + (hint || '请双击 OAO服务器.bat；SearXNG 在后台启动，不阻塞本地 AI。')
+                        : 'AI Web failed: SearXNG not running. Run OAO服务器.bat (background start).';
                 }
                 return currentLang === 'zh'
-                    ? 'AI联网暂不可用。\n\n' + (hint || '请双击 OAO服务器.bat（Docker + SearXNG + Tunnel），并保持窗口打开。\n诊断：OAO_Diagnostic.testWebSearch()')
+                    ? 'AI联网暂不可用。\n\n' + (hint || '请双击 OAO服务器.bat，并保持窗口打开。诊断：OAO_Diagnostic.testWebSearch()')
                     : 'AI Web unavailable. Run OAO服务器.bat. Diagnostic: OAO_Diagnostic.testWebSearch().';
             }
 

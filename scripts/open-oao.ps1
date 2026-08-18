@@ -22,6 +22,8 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
+. (Join-Path $PSScriptRoot 'oao-ai-gateway.ps1')
+
 Write-Host ''
 Write-Host ' ============================================================' -ForegroundColor Cyan
 Write-Host '   OAO 本地测试' -ForegroundColor Cyan
@@ -32,6 +34,9 @@ Write-Host ' 用途: 本地功能测试（AI / 小O会议 / OAO翻译）'
 Write-Host ' 外网远程 AI: OAO服务器.bat'
 Write-Host ' 版本发布: 一键上传GitHub.bat'
 Write-Host ''
+
+Write-Host ' 正在确保本地 AI 网关 (3001 -> AnythingLLM 3002 / Ollama / SearXNG)...' -ForegroundColor Cyan
+Ensure-OaoAiGateway | Out-Null
 
 & cmd /c "call `"$Lib`" FreePort 8777"
 & cmd /c "call `"$Lib`" EnsureTranslateEnv"
@@ -46,7 +51,7 @@ if ($LASTEXITCODE -ne 0) {
 if ($LASTEXITCODE -ne 0) {
     Write-Host ' [提示] AnythingLLM 未运行 — 知识库检索不可用' -ForegroundColor Yellow
 } else {
-    Write-Host ' [正常] AnythingLLM 已就绪' -ForegroundColor Green
+    Write-Host ' [正常] AnythingLLM 已就绪（统一网关 :3001 -> :3002）' -ForegroundColor Green
 }
 
 Write-Host ''

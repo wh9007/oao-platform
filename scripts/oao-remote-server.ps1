@@ -31,6 +31,7 @@ $ServicesScript = Join-Path $Root 'scripts\oao-services.ps1'
 $Host.UI.RawUI.WindowTitle = 'OAO 服务器 — 外网访问本机 AI'
 
 . (Join-Path $PSScriptRoot 'tunnel-health.ps1')
+. (Join-Path $PSScriptRoot 'oao-ai-gateway.ps1')
 
 function Wait-BeforeExit {
     param([int]$Code = 0)
@@ -82,8 +83,8 @@ function Show-Banner {
     Write-Host ' ============================================================' -ForegroundColor Cyan
     Write-Host ''
     Write-Host '  外网打开:' $Cfg.github_pages_url
-    Write-Host '  链路: 浏览器 -> Worker -> Tunnel -> 本机 AI / SearXNG 联网'
-    Write-Host '  本脚本自动: Docker Desktop + SearXNG(:8080) + Ollama + Tunnel'
+    Write-Host '  统一链路: 浏览器 -> Worker -> Tunnel(:3001 网关) -> AnythingLLM(:3002)/Ollama/SearXNG'
+    Write-Host '  本脚本自动: AI 网关 + AnythingLLM + Ollama + Tunnel；SearXNG 后台启动不阻塞'
     Write-Host '  只需保持本窗口打开，关闭 = 外网无法访问本机 AI'
     Write-Host '  高级菜单: OAO服务器.bat menu' -ForegroundColor DarkGray
     Write-Host ''
@@ -107,6 +108,24 @@ function Ensure-BackgroundServices {
     ) -WindowStyle Minimized
     Start-Sleep -Seconds 3
     Write-Host '  (完成) 后台服务已启动（可最小化，勿关闭）' -ForegroundColor Green
+}
+
+function Start-SearXngBackground {
+    Write-Host ''
+    Write-Host ' [1/6] SearXNG 联网搜索 (8080，后台启动，不阻塞 Tunnel)' -ForegroundColor Cyan
+    $searxScript = Join-Path $PSScriptRoot 'searxng-start.ps1'
+    if (-not (Test-Path $searxScript)) {
+        Write-Host '  (跳过) 未找到 searxng-start.ps1' -ForegroundColor Yellow
+        return
+    }
+    if (Test-LocalPort -Port 8080 -Path '/search?q=test&format=json') {
+        Write-Host '  (正常) SearXNG 已在 :8080 运行' -ForegroundColor Green
+        return
+    }
+    Write-Host '  (后台) 已在后台启动 SearXNG，AI 对话/知识库不会因此等待。' -ForegroundColor Yellow
+    Start-Process -FilePath 'powershell.exe' -ArgumentList @(
+        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$searxScript`""
+    ) -WindowStyle Hidden
 }
 
 function Ensure-SearXNGService {
@@ -173,9 +192,9 @@ function Find-AnythingLLMExe {
 
 function Ensure-AnythingLLM {
     Write-Host ''
-    Write-Host ' [3/6] AnythingLLM (3001)' -ForegroundColor Cyan
-    if (Test-LocalPort -Port 3001 -Path '/api/ping') {
-        Write-Host '  (正常) AnythingLLM 已运行' -ForegroundColor Green
+    Write-Host ' [3/6] AnythingLLM (3002，经网关 3001 对外)' -ForegroundColor Cyan
+    if (Test-LocalPort -Port 3002 -Path '/api/ping') {
+        Write-Host '  (正常) AnythingLLM 已运行 (:3002)' -ForegroundColor Green
         return $true
     }
     $exe = Find-AnythingLLMExe
@@ -184,8 +203,8 @@ function Ensure-AnythingLLM {
         Start-Process -FilePath $exe
         for ($i = 1; $i -le 30; $i++) {
             Start-Sleep -Seconds 2
-            if (Test-LocalPort -Port 3001 -Path '/api/ping') {
-                Write-Host '  (正常) AnythingLLM 已就绪' -ForegroundColor Green
+            if (Test-LocalPort -Port 3002 -Path '/api/ping') {
+                Write-Host '  (正常) AnythingLLM 已就绪 (:3002)' -ForegroundColor Green
                 return $true
             }
             if ($i % 5 -eq 0) {
@@ -196,14 +215,14 @@ function Ensure-AnythingLLM {
         Write-Host '  (提示) 未找到 AnythingLLM 安装路径，请手动打开桌面版' -ForegroundColor Yellow
     }
     Write-Host ''
-    Write-Host '  AnythingLLM 需手动打开（工作区 oaoeth，模式 Query）' -ForegroundColor Yellow
+    Write-Host '  AnythingLLM 需手动打开（工作区 oaoeth，模式 Query，端口 3002）' -ForegroundColor Yellow
     $w = Read-Host '  已打开后按回车继续，输入 N 退出'
     if ($w -match '^[Nn]') { return $false }
-    if (Test-LocalPort -Port 3001 -Path '/api/ping') {
-        Write-Host '  (正常) AnythingLLM 已连接' -ForegroundColor Green
+    if (Test-LocalPort -Port 3002 -Path '/api/ping') {
+        Write-Host '  (正常) AnythingLLM 已连接 (:3002)' -ForegroundColor Green
         return $true
     }
-    Write-Host '  (警告) 3001 仍无响应，Tunnel 可启动但知识库 AI 可能不可用' -ForegroundColor Yellow
+    Write-Host '  (警告) 3002 仍无响应，Tunnel 可启动但知识库 AI 可能不可用' -ForegroundColor Yellow
     return $false
 }
 
@@ -392,6 +411,7 @@ function Start-TunnelCore {
 
 function Invoke-CheckOnly {
     param($Cfg)
+    Ensure-OaoAiGateway | Out-Null
     Ensure-SearXNGService | Out-Null
     Ensure-Ollama | Out-Null
     Ensure-AnythingLLM | Out-Null
@@ -415,8 +435,9 @@ try {
         Invoke-CheckOnly -Cfg $cfg
     }
 
+    Ensure-OaoAiGateway | Out-Null
     Ensure-BackgroundServices
-    Ensure-SearXNGService | Out-Null
+    Start-SearXngBackground
     Ensure-Ollama | Out-Null
     Ensure-AnythingLLM | Out-Null
     Ensure-FirstTimeWorker

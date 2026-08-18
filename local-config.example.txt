@@ -6,6 +6,7 @@
 
 window.OAO_ANYTHINGLLM_WORKSPACE = 'oaoeth';
 
+// 本地 AI 统一网关（AnythingLLM 3002 / Ollama / SearXNG 都经网关 3001）
 window.OAO_AI_BASE_URL = 'http://127.0.0.1:3001';
 
 
@@ -23,9 +24,13 @@ window.OAO_ANYTHINGLLM_API_KEY = '你的-AnythingLLM-API-Key';
 
 
 // ========== AI 模式（本地覆盖配置，不提交 GitHub）==========
-// 默认使用本机 AnythingLLM / Ollama。
+// 本地 AI 统一走 OAO AI 网关（默认 http://127.0.0.1:3001）。
+// 外网站点统一走 Cloudflare Worker，无需在本文件写 Worker URL。
 // 如果想让外网站点不依赖本机，改为使用 Cloudflare Worker + 智谱 GLM：
 // window.OAO_FORCE_GLM = true;
+
+// Ollama 也走网关，不要直接写 127.0.0.1:11434。
+window.OAO_OLLAMA_BASE_URL = 'http://127.0.0.1:3001/ollama';
 
 
 // ========== AI联网 增强（推荐，SearXNG/Docker 不可用时仍可用）==========

@@ -70,7 +70,8 @@ async function fetchSerperResults(query, apiKey, options = {}) {
 }
 
 async function fetchSearxngResults(origin, query, options) {
-  const searxUrl = new URL('/search', origin);
+  const unified = options.unified === true;
+  const searxUrl = new URL(unified ? '/searxng/search' : '/search', origin);
   searxUrl.searchParams.set('q', query);
   searxUrl.searchParams.set('format', 'json');
   searxUrl.searchParams.set('language', options.lang || 'zh-CN');
@@ -121,7 +122,8 @@ export async function handleWebSearch(request, env, corsHeaders) {
   const categories = (url.searchParams.get('categories') || 'general').trim() || 'general';
   const timeRange = (url.searchParams.get('time_range') || '').trim();
   const excludeWiki = url.searchParams.get('exclude') === 'wiki';
-  const origin = String(env.SEARXNG_ORIGIN || '').replace(/\/$/, '');
+  const unified = !!env.LOCAL_AI_ORIGIN;
+  const origin = String(unified ? env.LOCAL_AI_ORIGIN : env.SEARXNG_ORIGIN || '').replace(/\/$/, '');
   const serperKey = String(env.SERPER_API_KEY || '').trim();
 
   let searxError = null;
@@ -134,6 +136,7 @@ export async function handleWebSearch(request, env, corsHeaders) {
         categories,
         engines,
         timeRange,
+        unified,
       });
       searxError = searx.error;
       merged = searx.results || [];

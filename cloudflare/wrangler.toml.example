@@ -29,4 +29,6 @@ ZHIPU_MODEL = "glm-4.7-flash"
 # OAO_GLM_DAILY_ALERT = "500"
 # LLM_ORIGIN = "https://llm.你的域名.com"
 # OLLAMA_ORIGIN = "https://ollama.你的域名.com"
+# 统一本地 AI 网关（推荐，所有本地 AI 都走这一个 Tunnel 入口）
+# LOCAL_AI_ORIGIN = "https://llm.你的域名.com"
 # ANYTHINGLLM_API_KEY = "（可选，仅 Tunnel 代理 AnythingLLM 时使用）"
