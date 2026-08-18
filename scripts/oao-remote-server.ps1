@@ -291,6 +291,38 @@ function Show-RunningBanner {
     Write-Host ''
 }
 
+function Test-XrayTunActive {
+    $adapter = Get-NetAdapter -Name 'xray_tun' -ErrorAction SilentlyContinue
+    return $null -ne $adapter -and $adapter.Status -eq 'Up'
+}
+
+function Suspend-XrayTunForTunnel {
+    if (-not (Test-XrayTunActive)) { return $false }
+    Write-Host ''
+    Write-Host '  [Tunnel 兼容] 检测到 xray_tun 正在运行，会拦截 Cloudflare Tunnel DNS。' -ForegroundColor Yellow
+    try {
+        Disable-NetAdapter -Name 'xray_tun' -Confirm:$false -ErrorAction Stop | Out-Null
+        Write-Host '  [Tunnel 兼容] 已临时关闭 xray_tun；OAO服务器退出后会自动恢复。' -ForegroundColor Green
+        return $true
+    } catch {
+        Write-Host '  [Tunnel 兼容] 自动关闭 xray_tun 失败（可能缺少管理员权限）。' -ForegroundColor Red
+        Write-Host '  请先右键「OAO服务器.bat」选择“以管理员身份运行”，或暂时退出 V2Ray/Xray。' -ForegroundColor Yellow
+        return $false
+    }
+}
+
+function Restore-XrayTun {
+    if ($global:OAO_XRAY_WAS_DISABLED) {
+        try {
+            Enable-NetAdapter -Name 'xray_tun' -Confirm:$false -ErrorAction Stop | Out-Null
+            Write-Host '  [Tunnel 兼容] xray_tun 已恢复。' -ForegroundColor Green
+        } catch {
+            Write-Host '  [Tunnel 兼容] 请手动重新启用 xray_tun。' -ForegroundColor Yellow
+        }
+        $global:OAO_XRAY_WAS_DISABLED = $false
+    }
+}
+
 function Start-TunnelMonitor {
     param($Cfg)
     Show-RunningBanner -Cfg $Cfg -Mode 'monitor'
@@ -336,7 +368,21 @@ function Start-TunnelCore {
     Write-Host ''
     Write-Host ' [6/6] 启动 Cloudflare Tunnel' -ForegroundColor Cyan
     Show-RunningBanner -Cfg $Cfg -Mode 'tunnel'
-    & $cf tunnel run --token $Token --protocol http2
+
+    $global:OAO_XRAY_WAS_DISABLED = $false
+    if (Test-XrayTunActive) {
+        if (Suspend-XrayTunForTunnel) {
+            $global:OAO_XRAY_WAS_DISABLED = $true
+        } else {
+            Write-Host '  [重要] 当前 Tunnel 可能无法连接；请按上述提示处理后重试。' -ForegroundColor Yellow
+        }
+    }
+
+    try {
+        & $cf tunnel run --token $Token --protocol http2
+    } finally {
+        Restore-XrayTun
+    }
     Write-Host ''
     Write-Host ' Tunnel 已退出' -ForegroundColor Yellow
     return $true

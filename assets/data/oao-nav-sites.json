@@ -1,0 +1,1247 @@
+[
+  {
+    "name": "Facebook",
+    "url": "https://www.facebook.com",
+    "description": "全球最大的社交网络平台，用户生成内容与社交互动"
+  },
+  {
+    "name": "Twitter (X)",
+    "url": "https://twitter.com",
+    "description": "全球社交媒体平台，以短文本互动为主"
+  },
+  {
+    "name": "YouTube",
+    "url": "https://www.youtube.com",
+    "description": "最大视频分享平台，UGC/视听服务"
+  },
+  {
+    "name": "Google",
+    "url": "https://www.google.com",
+    "description": "全球最大搜索引擎"
+  },
+  {
+    "name": "Amazon",
+    "url": "https://www.amazon.com",
+    "description": "全球领先电商平台"
+  },
+  {
+    "name": "智汇天宸",
+    "url": "https://www.zhihuitc.com.cn",
+    "description": "打造 T 型人才 · 赋能超级个体"
+  },
+  {
+    "name": "智汇天宸",
+    "url": "https://zhihuitc.ai/",
+    "description": "打造 T 型人才 · 赋能超级个体"
+  },
+  {
+    "name": "OpenSea",
+    "url": "https://opensea.io",
+    "description": "最大 NFT 市场，链上资产交易与收藏"
+  },
+  {
+    "name": "Decentraland",
+    "url": "https://decentraland.org",
+    "description": "去中心化3D虚拟世界，用户可拥有、交易虚拟土地和资产"
+  },
+  {
+    "name": "Steemit",
+    "url": "https://steemit.com",
+    "description": "链上博客/社交平台，用户发布内容可赚取加密奖励"
+  },
+  {
+    "name": "Mastodon",
+    "url": "https://mastodon.social",
+    "description": "去中心化微博服务，可加入多个分布式实例"
+  },
+  {
+    "name": "MeWe",
+    "url": "https://mewe.com",
+    "description": "注重隐私的中心化社交平台（正向探索区块链项目）"
+  },
+  {
+    "name": "Lens Protocol 应用",
+    "url": "https://lenster.xyz",
+    "description": "基于 Lens 协议的去中心化社交平台"
+  },
+  {
+    "name": "Audius",
+    "url": "https://audius.co",
+    "description": "去中心化音乐分享平台，音乐人可直接发布与赚取收入"
+  },
+  {
+    "name": "Sandbox",
+    "url": "https://www.sandbox.game",
+    "description": "区块链驱动的虚拟世界与创作经济平台"
+  },
+  {
+    "name": "OAO",
+    "url": "oao.eth",
+    "description": "让存在成为价值"
+  },
+  {
+    "name": "oaoai",
+    "url": "oaoai.eth",
+    "description": "简单而纯粹，彰显去中心化的力量与理念"
+  },
+  {
+    "name": "ELELE",
+    "url": "elele.eth",
+    "description": "不被定義，但可被驗證"
+  },
+  {
+    "name": "Uniswap",
+    "url": "https://uniswap.org",
+    "description": "去中心化交易协议，可在链上交易 ERC‑20 代币，是 Web3 生态核心 DEX 之一。"
+  },
+  {
+    "name": "CoinMarketCap",
+    "url": "https://coinmarketcap.com",
+    "description": "提供全球加密资产价格、交易量和市值排行等数据。"
+  },
+  {
+    "name": "DefiLlama",
+    "url": "https://defillama.com",
+    "description": "提供 DeFi 项目 TVL（总锁仓价值）排行和跨链 DeFi 数据。"
+  },
+  {
+    "name": "Etherscan",
+    "url": "https://etherscan.io",
+    "description": "以太坊区块链浏览器，可查看链上交易/合约/地址等信息。"
+  },
+  {
+    "name": "MetaMask",
+    "url": "https://metamask.io",
+    "description": "流行的 Web3 钱包，支持以太坊及多链生态资产管理。"
+  },
+  {
+    "name": "DappRadar",
+    "url": "https://dappradar.com",
+    "description": "提供全球 DApp 统计、热门链上应用排行（NFT/DeFi/GameFi）。"
+  },
+  {
+    "name": "CoinDesk",
+    "url": "https://www.coindesk.com",
+    "description": "专注加密货币与区块链新闻、市场分析、深度报道。"
+  },
+  {
+    "name": "Cointelegraph",
+    "url": "https://cointelegraph.com",
+    "description": "全球加密新闻平台，覆盖市场动态和技术分析。"
+  },
+  {
+    "name": "CryptoSlam",
+    "url": "https://cryptoslam.io",
+    "description": "NFT 排名网站，按照交易规模/时间展示热门 NFT 指标。"
+  },
+  {
+    "name": "NFTGo",
+    "url": "https://nftgo.io",
+    "description": "提供 NFT 市场分析与排行榜，包括价格/稀有度/交易量等。"
+  },
+  {
+    "name": "Web3nav",
+    "url": "https://www.w3nav.com",
+    "description": "集合 DeFi、NFT、钱包、浏览器等 Web3 工具与入口资源。"
+  },
+  {
+    "name": "Binance",
+    "url": "https://www.binance.com",
+    "description": "全球领先的加密货币交易所，支持多链和 DeFi 生态服务。"
+  },
+  {
+    "name": "OKX",
+    "url": "https://www.okx.com",
+    "description": "综合加密交易所，集现货/期权/质押/钱包服务于一体。"
+  },
+  {
+    "name": "Awesome Web3",
+    "url": "https://awesome-web3.com",
+    "description": "Web3 资源集合，涵盖工具、库、教程、协议等开发资料。"
+  },
+  {
+    "name": "Magic Eden",
+    "url": "https://magiceden.io",
+    "description": "主要 Solana 网络的 NFT 交易平台，用户人数众多。"
+  },
+  {
+    "name": "Vitalik Buterin",
+    "url": "https://vitalik.eth",
+    "description": "以太坊共同创始人官方个人网站，发表技术文章及观点"
+  },
+  {
+    "name": "Gavin Wood",
+    "url": "https://gavwood.com",
+    "description": "波卡（Polkadot）与 Substrate 创始人个人主页"
+  },
+  {
+    "name": "Stani Kulechov",
+    "url": "https://stani.substack.com",
+    "description": "Aave 创始人官方文章与通讯页"
+  },
+  {
+    "name": "Devin Finzer",
+    "url": "https://devinfinzer.com",
+    "description": "OpenSea 联合创始人个人官网"
+  },
+  {
+    "name": "Anatoly Yakovenko",
+    "url": "https://solana.com",
+    "description": "Solana 协议创始人官方站点（团队）"
+  },
+  {
+    "name": "Protocol Labs",
+    "url": "https://protocol.ai",
+    "description": "IPFS / Filecoin 创始团队（Juan Benet 领导）"
+  },
+  {
+    "name": "Chris Dixon",
+    "url": "https://cdixon.org",
+    "description": "Andreessen Horowitz 投资合伙人，Web3 思想输出者"
+  },
+  {
+    "name": "Emin Gün Sirer",
+    "url": "https://avn.com",
+    "description": "Avalanche 创始人之一个人站点与学术信息"
+  },
+  {
+    "name": "Sergey Nazarov",
+    "url": "https://chain.link",
+    "description": "Chainlink 联合创始人官方品牌主页"
+  },
+  {
+    "name": "Balaji Srinivasan",
+    "url": "https://balajis.com",
+    "description": "前 Coinbase CTO / Web3 独立思想者"
+  },
+  {
+    "name": "Optimism",
+    "url": "optimism.io",
+    "description": "基于乐观回滚技术的以太坊二层网络，注重低廉费用"
+  },
+  {
+    "name": "Polygon",
+    "url": "https://polygon.technology",
+    "description": "以太坊多链扩展网络，提供多样化的侧链与扩容工具"
+  },
+  {
+    "name": "Aave",
+    "url": "https://aave.com",
+    "description": "全球最大的开源去中心化借贷协议，支持多种资产质押"
+  },
+  {
+    "name": "Zapper",
+    "url": "https://zapper.fi",
+    "description": "Web3 资产看板，一站式追踪 DeFi 收益、NFT 及链上钱包地址"
+  },
+  {
+    "name": "Axie Infinity",
+    "url": "https://axieinfinity.com",
+    "description": "全球知名的 Play-to-Earn 区块链游戏代表作"
+  },
+  {
+    "name": "LooksRare",
+    "url": "https://looksrare.org",
+    "description": "社区驱动的 NFT 市场，为交易者和创作者提供奖励"
+  },
+  {
+    "name": "Mirror",
+    "url": "https://mirror.xyz",
+    "description": "去中心化内容发布平台，支持将文章铸造为 NFT 永久保存"
+  },
+  {
+    "name": "Bankless",
+    "url": "bankless.eth",
+    "description": "著名的加密货币媒体，倡导“无银行”生活方式与金融教育"
+  },
+  {
+    "name": "1inch",
+    "url": "1inch.eth",
+    "description": "分散式交易所聚合器，自动寻找链上交易的最优价格"
+  },
+  {
+    "name": "Gitcoin",
+    "url": "gitcoin.eth",
+    "description": "Web3 公共物品资助平台，通过平方捐赠法支持开源项目"
+  },
+  {
+    "name": "Dune Analytics",
+    "url": "https://dune.com",
+    "description": "强大的链上数据分析平台，用户可自定义可视化仪表盘"
+  },
+  {
+    "name": "Revoke.cash",
+    "url": "https://revoke.cash",
+    "description": "关键的安全工具，用于检查并撤销已授权的代币访问权限"
+  },
+  {
+    "name": "Arbitrum",
+    "url": "https://arbitrum.io",
+    "description": "领先的以太坊 Layer 2 扩容方案，降低交易成本并提升速度"
+  },
+  {
+    "name": "Avalanche",
+    "url": "avax.network",
+    "description": "高性能公链，支持自定义子网，兼容 EVM"
+  },
+  {
+    "name": "Solana",
+    "url": "https://solana.com",
+    "description": "高吞吐量、低延迟的全球性公链，生态极其丰富"
+  },
+  {
+    "name": "Cosmos",
+    "url": "https://cosmos.network",
+    "description": "跨链枢纽，旨在实现“区块链的互联网”"
+  },
+  {
+    "name": "Polkadot",
+    "url": "https://polkadot.network",
+    "description": "异构多链协议，通过插槽连接实现各链互通"
+  },
+  {
+    "name": "Curve Finance",
+    "url": "https://curve.fi",
+    "description": "专注于稳定币交易的去中心化交易所，低滑点交易核心"
+  },
+  {
+    "name": "Lido Finance",
+    "url": "https://lido.fi",
+    "description": "以太坊流动性质押协议，质押 ETH 即可获得 stETH 奖励"
+  },
+  {
+    "name": "GMX",
+    "url": "https://gmx.io",
+    "description": "去中心化永续合约交易所，支持低费率现货和杠杆交易"
+  },
+  {
+    "name": "MakerDAO",
+    "url": "https://makerdao.com",
+    "description": "去中心化超额抵押借贷，稳定币 DAI 的发行方"
+  },
+  {
+    "name": "Compound",
+    "url": "https://compound.finance",
+    "description": "算法驱动的利率协议，Web3 借贷领域的基石之一"
+  },
+  {
+    "name": "Yearn Finance",
+    "url": "https://yearn.fi",
+    "description": "DeFi 收益聚合器，自动切换协议以获取最高年化收益"
+  },
+  {
+    "name": "CyberConnect",
+    "url": "https://cyberconnect.me",
+    "description": "去中心化社交图谱协议，助力开发者构建社交 DApp"
+  },
+  {
+    "name": "Debank",
+    "url": "https://debank.com",
+    "description": "领先的 Web3 社交钱包与资产追踪器，支持多链分析"
+  },
+  {
+    "name": "Farcaster",
+    "url": "farcaster.xyz",
+    "description": "足够去中心化的社交网络协议，强调身份自主权"
+  },
+  {
+    "name": "Snapshot",
+    "url": "https://snapshot.org",
+    "description": "链上治理投票平台，DAO 组织进行决策的主流工具"
+  },
+  {
+    "name": "POAP",
+    "url": "https://poap.xyz",
+    "description": "出勤证明协议，用于记录用户参与活动或贡献的 NFT 勋章"
+  },
+  {
+    "name": "Foundation",
+    "url": "https://foundation.app",
+    "description": "高品质数字艺术 NFT 策展与交易平台"
+  },
+  {
+    "name": "NFTScan",
+    "url": "https://nftscan.com",
+    "description": "专业的多链 NFT 浏览器与数据分析平台"
+  },
+  {
+    "name": "DexScreener",
+    "url": "https://dexscreener.com",
+    "description": "实时追踪去中心化交易所(DEX)币价行情"
+  },
+  {
+    "name": "Galxe",
+    "url": "https://galxe.com",
+    "description": "领先的 Web3 凭证数据网络，营销活动聚集地"
+  },
+  {
+    "name": "Layer3",
+    "url": "https://layer3.xyz",
+    "description": "通过交互任务带用户探索 Web3 生态的平台"
+  },
+  {
+    "name": "Coingecko",
+    "url": "coingecko.com",
+    "description": "独立且客观的加密货币数据排名与分析网站"
+  },
+  {
+    "name": "Aleo",
+    "url": "https://aleo.org",
+    "description": "基于零知识证明(ZK)的去中心化应用平台"
+  },
+  {
+    "name": "GitHub",
+    "url": "https://github.com",
+    "description": "全球最大的开源代码托管与协作平台"
+  },
+  {
+    "name": "Figma",
+    "url": "figma.com",
+    "description": "全球领先的协作式 UI/UX 设计工具"
+  },
+  {
+    "name": "Notion",
+    "url": "notion.so",
+    "description": "一站式笔记、文档与团队协作知识库"
+  },
+  {
+    "name": "OpenAI",
+    "url": "openai.com",
+    "description": "ChatGPT 开发商，人工智能领域领军企业"
+  },
+  {
+    "name": "Anthropic",
+    "url": "anthropic.com",
+    "description": "领先的 AI 安全研究及 Claude 大模型开发商"
+  },
+  {
+    "name": "彭博社",
+    "url": "bloomberg.com",
+    "description": "全球商业、金融信息和新闻资讯平台"
+  },
+  {
+    "name": "LinkedIn",
+    "url": "linkedin.com",
+    "description": "全球最大的职业社交及招聘网络"
+  },
+  {
+    "name": "Airbnb",
+    "url": "airbnb.com",
+    "description": "全球知名的民宿预订与旅行体验平台"
+  },
+  {
+    "name": "Coursera",
+    "url": "coursera.org",
+    "description": "全球领先的在线公开课平台，合作顶尖大学"
+  },
+  {
+    "name": "Stack Overflow",
+    "url": "https://stackoverflow.com",
+    "description": "全球最大的程序开发技术问答社区"
+  },
+  {
+    "name": "Slack",
+    "url": "https://slack.com",
+    "description": "全球主流的企业团队协作与即时通讯软件"
+  },
+  {
+    "name": "Netflix",
+    "url": "netflix.com",
+    "description": "全球最大的订阅式付费视频流媒体平台"
+  },
+  {
+    "name": "Dribbble",
+    "url": "https://dribbble.com",
+    "description": "全球顶尖设计师展示作品与找灵感的平台"
+  },
+  {
+    "name": "TradingView",
+    "url": "tradingview.com",
+    "description": "全球最受欢迎的金融行情图表与分析社区"
+  },
+  {
+    "name": "Wikipedia",
+    "url": "wikipedia.org",
+    "description": "全球最大的多语言在线百科全书"
+  },
+  {
+    "name": "百度",
+    "url": "baidu.com",
+    "description": "中国最大的中文搜索引擎"
+  },
+  {
+    "name": "淘宝",
+    "url": "taobao.com",
+    "description": "亚太地区较大的网络零售、商圈"
+  },
+  {
+    "name": "京东",
+    "url": "jd.com",
+    "description": "中国领先的自营式电商平台"
+  },
+  {
+    "name": "抖音",
+    "url": "douyin.com",
+    "description": "国内最受欢迎的短视频社交平台"
+  },
+  {
+    "name": "哔哩哔哩",
+    "url": "bilibili.com",
+    "description": "年轻人高度聚集的综合性视频社区"
+  },
+  {
+    "name": "脉脉",
+    "url": "https://maimai.cn",
+    "description": "中国领先的实名职场社交平台"
+  },
+  {
+    "name": "知乎",
+    "url": "zhihu.com",
+    "description": "中文互联网高质量问答社区和内容平台"
+  },
+  {
+    "name": "美团",
+    "url": "meituan.com",
+    "description": "领先的生活服务电子商务平台"
+  },
+  {
+    "name": "36氪",
+    "url": "https://36kr.com",
+    "description": "关注互联网创业及科技前沿的媒体平台"
+  },
+  {
+    "name": "CSDN",
+    "url": "csdn.net",
+    "description": "中国专业的 IT 开发者技术社区"
+  },
+  {
+    "name": "站酷",
+    "url": "zcool.com.cn",
+    "description": "中国极具影响力的设计师互动平台"
+  },
+  {
+    "name": "贝壳找房",
+    "url": "ke.com",
+    "description": "领先的线上线下房产交易和服务平台"
+  },
+  {
+    "name": "Base",
+    "url": "https://base.org",
+    "description": "Coinbase 推出的 L2 网络，深度集成加密用户"
+  },
+  {
+    "name": "1inch",
+    "url": "https://1inch.io",
+    "description": "自动寻找全网最低交易滑点的 DEX 聚合器"
+  },
+  {
+    "name": "ENS",
+    "url": "https://ens.domains",
+    "description": "以太坊域名服务，Web3 世界的去中心化身份"
+  },
+  {
+    "name": "Messari",
+    "url": "https://messari.io",
+    "description": "提供专业的加密行业研究、指标与透明度数据"
+  },
+  {
+    "name": "Voxels",
+    "url": "cryptovoxels.com",
+    "description": "基于以太坊的虚拟世界，支持用户自由建造与展示"
+  },
+  {
+    "name": "Infura",
+    "url": "infura.io",
+    "description": "领先的 Web3 API 节点服务商，连接以太坊生态"
+  },
+  {
+    "name": "Chainlink",
+    "url": "https://chain.link",
+    "description": "去中心化预言机网络，为智能合约提供现实数据"
+  },
+  {
+    "name": "bankless.eth",
+    "url": "https://bankless.com",
+    "description": "全球最具影响力的 Web3 教育与媒体门户"
+  },
+  {
+    "name": "gitcoin.eth",
+    "url": "https://gitcoin.co",
+    "description": "著名的 Web3 开源项目融资与公共物品建设平台"
+  },
+  {
+    "name": "腾讯·QQ空间",
+    "url": "qq.com",
+    "description": "腾讯旗下的个性展示与社交分享社区"
+  },
+  {
+    "name": "网易邮箱",
+    "url": "163.com",
+    "description": "中国主流的电子邮箱服务商，含163/126等后缀"
+  },
+  {
+    "name": "搜狐新闻",
+    "url": "sohu.com",
+    "description": "综合性新闻资讯平台，涵盖国内外实时热点"
+  },
+  {
+    "name": "新浪微博",
+    "url": "https://weibo.com",
+    "description": "中国领先的社交媒体平台，实时热点发现与传播中心"
+  },
+  {
+    "name": "凤凰军事",
+    "url": "ifeng.com",
+    "description": "凤凰网旗下专业的全球军事动态与评论平台"
+  },
+  {
+    "name": "央视频",
+    "url": "yangshipin.cn",
+    "description": "中央广播电视总台推出的综合性视听新媒体平台"
+  },
+  {
+    "name": "阿里巴巴1688",
+    "url": "1688.com",
+    "description": "全球领先的 B2B 采购批发平台，源头货源聚集地"
+  },
+  {
+    "name": "抖音超超超变",
+    "url": "douyin.com",
+    "description": "抖音生态内的“超变”系列传奇手游相关资讯与入口"
+  },
+  {
+    "name": "超变传奇·高爆",
+    "url": "9377.com",
+    "description": "经典的超高爆率版本传奇，主打快速升级与神装体验"
+  },
+  {
+    "name": "0氪传奇·打金",
+    "url": "tanwan.com",
+    "description": "针对散人玩家设计的自由交易、零门槛打金传奇版本"
+  },
+  {
+    "name": "37游戏传奇专区",
+    "url": "37.com",
+    "description": "37网游旗下的传奇系列游戏聚合频道与礼包发放中心"
+  },
+  {
+    "name": "新传奇·开服榜",
+    "url": "kaifu.com",
+    "description": "实时更新的全网传奇类游戏新服开启时间与资讯表"
+  },
+  {
+    "name": "爱奇艺",
+    "url": "iqiyi.com",
+    "description": "中国领先的综合性影视视频平台，主打正版高清内容"
+  },
+  {
+    "name": "天猫",
+    "url": "tmall.com",
+    "description": "阿里巴巴旗下主打品牌正品的综合性购物商城"
+  },
+  {
+    "name": "爱奇艺",
+    "url": "https://www.iqiyi.com",
+    "description": "领先的综合视频服务平台，提供海量正版高清影视及原创综艺"
+  },
+  {
+    "name": "腾讯视频",
+    "url": "https://v.qq.com",
+    "description": "腾讯旗下的综合视频平台，以热门影视剧和王牌自制综艺著称"
+  },
+  {
+    "name": "QQ音乐",
+    "url": "https://y.qq.com",
+    "description": "腾讯音乐旗下的主流数字音乐服务，支持海量正版歌曲及数字专辑"
+  },
+  {
+    "name": "西瓜视频",
+    "url": "https://www.ixigua.com",
+    "description": "字节跳动旗下的中短视频聚合平台，涵盖纪录片、影视及生活Vlog"
+  },
+  {
+    "name": "1905电影网",
+    "url": "1905.com",
+    "description": "国家级电影门户网站，由电影频道（CCTV-6）官方运营"
+  },
+  {
+    "name": "虎牙直播",
+    "url": "https://www.huya.com",
+    "description": "领先的弹幕式互动直播平台，专注于电子竞技、网游及娱乐直播"
+  },
+  {
+    "name": "电视猫",
+    "url": "tvmao.com",
+    "description": "专业的电视节目指南网站，提供实时节目单、影视导视及追剧提示"
+  },
+  {
+    "name": "新浪视频",
+    "url": "https://video.sina.com.cn",
+    "description": "新浪网旗下的视频资讯平台，涵盖新闻热点、娱乐、体育等短视频"
+  },
+  {
+    "name": "豆瓣",
+    "url": "https://www.douban.com",
+    "description": "提供关于书籍、电影、音乐等内容的评分、评论及社区互动平台"
+  },
+  {
+    "name": "哔哩哔哩",
+    "url": "https://www.bilibili.com",
+    "description": "年轻人高度聚集的文化社区，主打二次元周边、ACG及长尾UGC视频"
+  },
+  {
+    "name": "优酷",
+    "url": "https://www.youku.com",
+    "description": "阿里巴巴旗下核心视频平台，支持影视点播、体育直播及少儿教育"
+  },
+  {
+    "name": "网易云音乐",
+    "url": "https://music.163.com",
+    "description": "以“乐评”社区氛围著称的音乐平台，强调发现与分享个性化歌单"
+  },
+  {
+    "name": "芒果TV",
+    "url": "https://www.mgtv.com",
+    "description": "湖南广电旗下官方视频平台，拥有《浪姐》等湖南卫视核心综艺独播权"
+  },
+  {
+    "name": "央视网",
+    "url": "https://www.cctv.com",
+    "description": "中央广播电视总台主办的国家级门户网站，提供权威新闻直播与点播"
+  },
+  {
+    "name": "斗鱼",
+    "url": "douyu.com",
+    "description": "以游戏直播为主的综合性直播平台，涵盖电竞赛事、二次元与户外直播"
+  },
+  {
+    "name": "迅雷",
+    "url": "xunlei.com",
+    "description": "全球领先的多媒体下载与云存储服务商，提供高速传输及离线下载服务"
+  },
+  {
+    "name": "网易视频",
+    "url": "https://v.163.com",
+    "description": "网易旗下的视频资讯板块，涵盖公开课、新闻、游戏视频及娱乐资讯"
+  },
+  {
+    "name": "腾讯元宝",
+    "url": "tencent.com",
+    "description": "腾讯推出的 AI 助手，深度集成微信搜索与腾讯生态内容"
+  },
+  {
+    "name": "稿定AI",
+    "url": "gaoding.com",
+    "description": "提供 AI 文生图、智能设计、AI 一键抠图等商业设计工具"
+  },
+  {
+    "name": "通义千问",
+    "url": "aliyun.com",
+    "description": "阿里巴巴打造的超大规模语言模型，支持多轮对话与文档理解"
+  },
+  {
+    "name": "讯飞星火",
+    "url": "xfyun.cn",
+    "description": "科大讯飞推出的认知大模型，长项在于语音识别与垂直行业应用"
+  },
+  {
+    "name": "智谱清言",
+    "url": "https://chatglm.cn",
+    "description": "基于 GLM 大模型的 AI 助手，由智谱 AI 推出的国产顶尖模型"
+  },
+  {
+    "name": "DeepSeek",
+    "url": "deepseek.com",
+    "description": "深度求索推出的开源高性能大模型，在编程和数理逻辑表现卓越"
+  },
+  {
+    "name": "天工AI助手",
+    "url": "tiangong.cn",
+    "description": "昆仑万维出品的 AI 搜索助手，主打实时联网精准搜索"
+  },
+  {
+    "name": "智谱AI",
+    "url": "zhipuai.cn",
+    "description": "源自清华系的 AI 领先企业，提供企业级大模型 API 服务"
+  },
+  {
+    "name": "秘塔写作猫",
+    "url": "https://xiezuocat.com",
+    "description": "专业的 AI 写作与校对工具，支持论文润色及公文创作"
+  },
+  {
+    "name": "即梦",
+    "url": "douyin.com",
+    "description": "抖音旗下的一站式 AI 创作平台，支持高质量生图与动态视频"
+  },
+  {
+    "name": "未音AI作歌",
+    "url": "https://vocaloid.com",
+    "description": "专注于 AI 词曲创作与人声合成的音乐创作平台"
+  },
+  {
+    "name": "新传奇·刚开一秒",
+    "url": "9k9k.com",
+    "description": "专业的手游/页游开服表，实时更新每日新开传奇服信息"
+  },
+  {
+    "name": "176传奇·精品",
+    "url": "176cq.com",
+    "description": "专注于 1.76 复古版本的传奇合集，还原经典点卡制体验"
+  },
+  {
+    "name": "热血传奇官网",
+    "url": "sdo.com",
+    "description": "盛趣游戏（原盛大）官方正版传奇，二十年经典动作网游"
+  },
+  {
+    "name": "17173热门游戏榜",
+    "url": "17173.com",
+    "description": "中国权威的游戏媒体排行榜，涵盖传奇类及全品类热度数据"
+  },
+  {
+    "name": "超超变传奇·合集",
+    "url": "8864.com",
+    "description": "汇聚上线满级、满切割、神装全靠爆的超高倍率变态服"
+  },
+  {
+    "name": "装备二合一专服",
+    "url": "5pk.com",
+    "description": "独特合成机制版本，支持低级装备两两合成极品神装"
+  },
+  {
+    "name": "月灵召唤版",
+    "url": "3977.com",
+    "description": "强化道士职业及月灵宝宝的特殊版本，适合单刷 BOSS"
+  },
+  {
+    "name": "沙城高爆版",
+    "url": "shacheng.com",
+    "description": "强化沙巴克攻城玩法的版本，提升团战爆率与爆装体验"
+  },
+  {
+    "name": "零氪打宝·全爆版",
+    "url": "chuanqi.com",
+    "description": "强调地图全开放、元宝全靠捡的纯净打宝复古版本"
+  },
+  {
+    "name": "传奇大合集",
+    "url": "cq8.com",
+    "description": "综合性传奇资源站，涵盖单机版、联机版及各种Mod资源"
+  },
+  {
+    "name": "复古 1.76 圣域",
+    "url": "mir2.com",
+    "description": "坚持原汁原味的 1.76 版本，无干扰、无会员的怀旧服"
+  },
+  {
+    "name": "冰雪高爆版",
+    "url": "bingxue.com",
+    "description": "传奇中最火爆的单职业分支，主打冰雪地图与极致爆率"
+  },
+  {
+    "name": "番茄小说",
+    "url": "https://fanqienovel.com",
+    "description": "字节跳动旗下领先的免费阅读平台，海量正版网文"
+  },
+  {
+    "name": "小说阅读网",
+    "url": "readnovel.com",
+    "description": "阅文集团旗下综合性原创文学网站，涵盖全品类网文"
+  },
+  {
+    "name": "中国国家图书馆",
+    "url": "nlc.cn",
+    "description": "国家级数字图书馆，提供权威的古籍、论文及图书检索"
+  },
+  {
+    "name": "红袖添香",
+    "url": "hongxiu.com",
+    "description": "领先的女性言情小说原创基地，阅文旗下的核心女频平台"
+  },
+  {
+    "name": "全历史",
+    "url": "allhistory.com",
+    "description": "以时空地图和关系图谱呈现全球历史的创新百科平台"
+  },
+  {
+    "name": "起点女生网",
+    "url": "qdmm.com",
+    "description": "阅文旗下知名女频网文站，主打精品女性原创内容"
+  },
+  {
+    "name": "七猫免费小说",
+    "url": "qimao.com",
+    "description": "百度投资的免费正版阅读平台，主打看书不花钱的阅读体验"
+  },
+  {
+    "name": "起点中文网",
+    "url": "qidian.com",
+    "description": "全球最大的原创文学平台，网文商业化模式的开创者"
+  },
+  {
+    "name": "纵横中文网",
+    "url": "zongheng.com",
+    "description": "百度文学旗下核心站点，汇聚多位网文顶级大神作家"
+  },
+  {
+    "name": "晋江文学城",
+    "url": "jjwxc.net",
+    "description": "全球最大的女性向文学社区，IP 影视化改编的高产地"
+  },
+  {
+    "name": "潇湘书院",
+    "url": "xxsy.net",
+    "description": "阅文集团旗下资深的女性原创文学网站，侧重穿越、言情"
+  },
+  {
+    "name": "17k小说网",
+    "url": "17k.com",
+    "description": "中文在线旗下核心文学站，历史悠久的原创小说门户"
+  },
+  {
+    "name": "喜马拉雅",
+    "url": "ximalaya.com",
+    "description": "全球知名的音频分享平台，涵盖有声书、电台与播客"
+  },
+  {
+    "name": "懒人听书",
+    "url": "lrts.me",
+    "description": "专业的移动有声阅读平台，提供高品质有声小说与评书"
+  },
+  {
+    "name": "苏宁易购",
+    "url": "suning.com",
+    "description": "领先的 O2O 智慧零售商，涵盖家电、3C及超市品类"
+  },
+  {
+    "name": "安居客",
+    "url": "anjuke.com",
+    "description": "国内领先的房产信息服务平台，涵盖二手房、租房、新房"
+  },
+  {
+    "name": "链家",
+    "url": "lianjia.com",
+    "description": "提供二手房、新房、租房等真实房产交易服务的平台"
+  },
+  {
+    "name": "搜房网 (房天下)",
+    "url": "fang.com",
+    "description": "全球最大的房地产家居网络平台，提供房源搜索与装修资讯"
+  },
+  {
+    "name": "赶集网",
+    "url": "ganji.com",
+    "description": "专业的同城生活服务平台，主打招聘、房产及本地服务"
+  },
+  {
+    "name": "下厨房",
+    "url": "xiachufang.com",
+    "description": "专注于美食文化和菜谱分享的垂直社交平台"
+  },
+  {
+    "name": "豆果美食",
+    "url": "douguo.com",
+    "description": "领先的美食互动社区，提供海量精品菜谱及美食课程"
+  },
+  {
+    "name": "薄荷健身",
+    "url": "boohee.com",
+    "description": "专注于食物热量查询、减肥减脂与身材管理的健康平台"
+  },
+  {
+    "name": "天气网",
+    "url": "tianqi.com",
+    "description": "提供全球城市天气预报、空气质量及生活指数查询"
+  },
+  {
+    "name": "钉钉",
+    "url": "dingtalk.com",
+    "description": "阿里巴巴旗下的企业级协同办公与应用开发平台"
+  },
+  {
+    "name": "飞书文档",
+    "url": "feishu.cn",
+    "description": "字节跳动旗下先进的企业协作与文档处理工作台"
+  },
+  {
+    "name": "石墨文档",
+    "url": "https://shimo.im",
+    "description": "中国首款在线协同办公实验室，主打纯净的办公体验"
+  },
+  {
+    "name": "必应 (Bing)",
+    "url": "bing.com",
+    "description": "微软推出的全球搜索引擎，集成 AI 搜索增强功能"
+  },
+  {
+    "name": "搜狗百科",
+    "url": "sogou.com",
+    "description": "搜狗旗下的百科知识库，由用户共同维护的百科平台"
+  },
+  {
+    "name": "即时设计",
+    "url": "https://js.design",
+    "description": "专业级云端 UI 设计工具，支持团队协作与原型交互"
+  },
+  {
+    "name": "千图网",
+    "url": "58pic.com",
+    "description": "国内主流的设计素材库，提供矢量图、PSD、背景图等"
+  },
+  {
+    "name": "PPT之家",
+    "url": "pptzj.com",
+    "description": "专业的 PPT 模板下载与幻灯片设计素材分享平台"
+  },
+  {
+    "name": "AI思维导图",
+    "url": "gitmind.cn",
+    "description": "融合 AI 技术的在线思维导图工具，一键生成结构化内容"
+  },
+  {
+    "name": "谷歌翻译",
+    "url": "google.com",
+    "description": "全球使用最广泛的翻译服务，支持多种语言即时互译"
+  },
+  {
+    "name": "有道翻译",
+    "url": "youdao.com",
+    "description": "网易旗下专业的在线翻译平台，支持文档翻译与精传"
+  },
+  {
+    "name": "企查查",
+    "url": "qcc.com",
+    "description": "专业的企业信用信息查询平台，提供工商、法律等背景查询"
+  },
+  {
+    "name": "中国新闻网",
+    "url": "chinanews.com.cn",
+    "description": "全球最大的中文新闻平台之一，提供权威的国内外动态"
+  },
+  {
+    "name": "环球网",
+    "url": "huanqiu.com",
+    "description": "聚焦国际新闻、军事、科技的权威媒体平台"
+  },
+  {
+    "name": "观察者网",
+    "url": "guancha.cn",
+    "description": "关注中国及全球政治、经济、社会的深度新闻平台"
+  },
+  {
+    "name": "澎湃新闻",
+    "url": "thepaper.cn",
+    "description": "以深度报道和时政分析著称的原创互联网新闻媒体"
+  },
+  {
+    "name": "新京报",
+    "url": "bjnews.com.cn",
+    "description": "具有全球影响力的主流媒体，提供全方位的深度报道"
+  },
+  {
+    "name": "参考消息",
+    "url": "cankaoxiaoxi.com",
+    "description": "中国最权威的译丛式报纸，汇总全球重要军情与动态"
+  },
+  {
+    "name": "光明军事",
+    "url": "gmw.cn",
+    "description": "光明日报旗下的军事频道，聚焦国防教育与战略分析"
+  },
+  {
+    "name": "米尔军情",
+    "url": "miercn.com",
+    "description": "国内知名的军事爱好者社区，提供武器库与军事情报"
+  },
+  {
+    "name": "央广网",
+    "url": "cnr.cn",
+    "description": "中央广播电视总台旗下的核心新闻门户与广播平台"
+  },
+  {
+    "name": "东方财富网",
+    "url": "eastmoney.com",
+    "description": "中国流量最大的财经信息平台，提供行情、资讯及开户"
+  },
+  {
+    "name": "新浪财经",
+    "url": "sina.com.cn",
+    "description": "全球华人首选的财经资讯平台，实时行情与大 V 观点"
+  },
+  {
+    "name": "雪球",
+    "url": "https://xueqiu.com",
+    "description": "领先的投资者社交平台，提供股票、基金、私募等理财交流"
+  },
+  {
+    "name": "同花顺",
+    "url": "10jqka.com.cn",
+    "description": "国内主流的金融服务平台，提供软件下载及股市行情分析"
+  },
+  {
+    "name": "萝卜投研",
+    "url": "robofund.com",
+    "description": "AI 驱动的智能投研平台，提供深度研报与数据分析"
+  },
+  {
+    "name": "证券之星",
+    "url": "stockstar.com",
+    "description": "资深的证券资讯网站，提供精准的股市动态与个股诊断"
+  },
+  {
+    "name": "工商银行",
+    "url": "icbc.com.cn",
+    "description": "全球资产规模领先的银行，提供全方位的在线金融服务"
+  },
+  {
+    "name": "建设银行",
+    "url": "ccb.com",
+    "description": "国内主要的综合性商业银行，提供个人与企业网银服务"
+  },
+  {
+    "name": "中国银行",
+    "url": "boc.cn",
+    "description": "中国国际化程度最高的银行，擅长跨境金融与外汇服务"
+  },
+  {
+    "name": "农业银行",
+    "url": "abchina.com",
+    "description": "深耕城乡金融服务的国有商业银行官方平台"
+  },
+  {
+    "name": "高德地图",
+    "url": "amap.com",
+    "description": "领先的数字地图内容与位置服务提供商，主打导航精准度"
+  },
+  {
+    "name": "12306",
+    "url": "12306.cn",
+    "description": "中国铁路唯一官方车票预订平台，权威可靠"
+  },
+  {
+    "name": "携程",
+    "url": "ctrip.com",
+    "description": "全球领先的一站式旅行服务商，涵盖机票酒店度假全品类"
+  },
+  {
+    "name": "去哪儿",
+    "url": "qunar.com",
+    "description": "领先的在线旅游搜索平台，主打比价优势与低价策略"
+  },
+  {
+    "name": "飞猪",
+    "url": "fliggy.com",
+    "description": "阿里巴巴旗下旅游平台，深受年轻用户喜爱的旅行工具"
+  },
+  {
+    "name": "Booking (缤客)",
+    "url": "booking.com",
+    "description": "全球最大的酒店预订平台，涵盖全球数百万家住宿"
+  },
+  {
+    "name": "天巡网",
+    "url": "skyscanner.com.cn",
+    "description": "全球知名的特价机票与租车比价平台"
+  },
+  {
+    "name": "蚂蜂窝",
+    "url": "mafengwo.cn",
+    "description": "中国知名的旅行社交网站，主打旅游攻略与游记分享"
+  },
+  {
+    "name": "穷游",
+    "url": "qyer.com",
+    "description": "专注于出境游的社区平台，提供专业的攻略与电子地图"
+  },
+  {
+    "name": "中国知网 (CNKI)",
+    "url": "cnki.net",
+    "description": "全球最大的中文学术资源库，查重及论文下载核心平台"
+  },
+  {
+    "name": "万方数据",
+    "url": "wanfangdata.com.cn",
+    "description": "权威的科技、经济、文化领域数字资源检索库"
+  },
+  {
+    "name": "学堂在线",
+    "url": "xuetangx.com",
+    "description": "清华大学发起的精品慕课平台，合作全球顶级大学"
+  },
+  {
+    "name": "Duolingo (多邻国)",
+    "url": "duolingo.com",
+    "description": "全球流行的游戏化语言学习平台，免费学习几十种语言"
+  },
+  {
+    "name": "扇贝单词",
+    "url": "shanbay.com",
+    "description": "专注于高效记单词与阅读的在线英语学习平台"
+  },
+  {
+    "name": "牛客网",
+    "url": "nowcoder.com",
+    "description": "专注于 IT 领求职的技术交流平台，提供真题与面试经"
+  },
+  {
+    "name": "虎扑体育",
+    "url": "hupu.com",
+    "description": "以 NBA、足球为主的专业体育社区，球迷互动中心"
+  },
+  {
+    "name": "直播吧",
+    "url": "zhibo8.com",
+    "description": "全球知名的体育赛事直播导航，涵盖足球、篮球、F1"
+  },
+  {
+    "name": "懂车帝",
+    "url": "dongchedi.com",
+    "description": "字节跳动旗下专业的汽车资讯平台，提供实拍视频与底价查询"
+  },
+  {
+    "name": "易车网",
+    "url": "yiche.com",
+    "description": "提供专业的汽车报价、测评、降价动态与车友社区"
+  },
+  {
+    "name": "太平洋汽车",
+    "url": "pcauto.com.cn",
+    "description": "资深的汽车门户，提供详尽的参数对比与购车参考"
+  },
+  {
+    "name": "小红书",
+    "url": "xiaohongshu.com",
+    "description": "年轻人的生活方式分享平台，涵盖美妆、穿搭及旅行"
+  },
+  {
+    "name": "LOFTER",
+    "url": "lofter.com",
+    "description": "网易旗下的原创图片社交社区，摄影师与画师的聚集地"
+  },
+  {
+    "name": "猎聘",
+    "url": "liepin.com",
+    "description": "领先的中高端人才招聘平台，主打猎头服务与名企直招"
+  },
+  {
+    "name": "实习僧",
+    "url": "shixiseng.com",
+    "description": "中国领先的大学生实习校招平台，提供海量名企实习机会"
+  },
+  {
+    "name": "中国福利彩票",
+    "url": "cwl.gov.cn",
+    "description": "福彩官方网站，提供双色球等开奖结果查询与公益资讯"
+  },
+  {
+    "name": "面向 Web3 的抗审查聊天",
+    "url": "https://spritz.chat/",
+    "description": "面向 Web3 的抗审查聊天"
+  },
+  {
+    "name": "ENS扫雷",
+    "url": "https://ens-minesweeper-quest.lovable.app/",
+    "description": "避开 ENS 地雷！右键点击标记可疑单元格。"
+  }
+]
