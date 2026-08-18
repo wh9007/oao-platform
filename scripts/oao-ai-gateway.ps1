@@ -114,6 +114,7 @@ function Start-OaoAiGateway {
     if ($owner -and $owner.CommandLine -notmatch 'oao-ai-gateway\.js') {
         Write-Host '  (提示) 端口 3001 被旧 AnythingLLM 占用，正在迁移…' -ForegroundColor Yellow
         Migrate-AnythingLLMPort | Out-Null
+        Stop-AnythingLLMProcesses
     }
 
     Write-Host '  (启动) 正在启动 OAO 本地 AI 网关…' -ForegroundColor Yellow

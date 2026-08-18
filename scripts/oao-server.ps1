@@ -11,6 +11,8 @@ $Root = Split-Path $PSScriptRoot -Parent
 $Lib = Join-Path $Root 'scripts\lib.cmd'
 $TokenFile = Join-Path $Root 'cloudflare\tunnel-token.txt'
 
+. (Join-Path $PSScriptRoot 'oao-ai-gateway.ps1')
+
 function Show-Prereq {
     Write-Host ''
     cmd /c "call `"$Lib`" CheckOllamaPort" | Out-Null
@@ -77,6 +79,9 @@ function Find-Cloudflared {
 }
 
 function Start-Tunnel {
+    Write-Host ''
+    Write-Host ' 正在确保 OAO 本地 AI 网关运行...' -ForegroundColor Cyan
+    Ensure-OaoAiGateway | Out-Null
     Show-Prereq
     $cf = Find-Cloudflared
     if (-not $cf) {

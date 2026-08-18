@@ -34,8 +34,8 @@
 
   【2. OAO服务器.bat — 远程 AI 一键启动】
     · 每次需要外网访问时双击运行，自动完成：
-        Docker + SearXNG 联网搜索
-        检查 AnythingLLM / Ollama
+        后台启动 SearXNG 联网搜索（不阻塞 Tunnel）
+        自动迁移 AnythingLLM 到 3002，并启动本地 AI 网关 3001
         检查 DNS 与 V2Ray 提示
         首次自动配置 Worker
         启动 Cloudflare Tunnel
@@ -92,11 +92,12 @@
 四、AI 架构（本地 + 云端）
 ───────────────────────────────────────────────────
 
-  默认：AnythingLLM + Ollama（本地预览与外网 Tunnel 均优先本机 AI）
+  默认：本地 AI 统一网关（AnythingLLM 3002 + Ollama + SearXNG）
+  外网统一：GitHub Pages → Cloudflare Worker → Tunnel(:3001 网关) → 本机 AI
   可选：设置 OAO_FORCE_GLM = true 后，外网可改用 Cloudflare Worker → 智谱 GLM
 
   想强制本机 AI：local-config.js 打开 window.OAO_FORCE_LOCAL_AI = true
-  外网连本机：OAO服务器.bat + Worker 配置 LLM_ORIGIN / OLLAMA_ORIGIN
+  外网连本机：OAO服务器.bat + Worker 配置 LOCAL_AI_ORIGIN
   Worker 首次配置：cloudflare\deploy-worker.ps1（设置 ZHIPU_API_KEY）
   Worker 日常更新：cloudflare\deploy-worker-quick.ps1
 

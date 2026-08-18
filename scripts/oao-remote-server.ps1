@@ -201,28 +201,22 @@ function Ensure-AnythingLLM {
     if ($exe) {
         Write-Host "  (启动) 正在打开 AnythingLLM…" -ForegroundColor Yellow
         Start-Process -FilePath $exe
-        for ($i = 1; $i -le 30; $i++) {
+        for ($i = 1; $i -le 12; $i++) {
             Start-Sleep -Seconds 2
             if (Test-LocalPort -Port 3002 -Path '/api/ping') {
                 Write-Host '  (正常) AnythingLLM 已就绪 (:3002)' -ForegroundColor Green
                 return $true
             }
-            if ($i % 5 -eq 0) {
-                Write-Host "  (等待) AnythingLLM 启动中… ${i}/30" -ForegroundColor DarkGray
+            if ($i % 4 -eq 0) {
+                Write-Host "  (等待) AnythingLLM 启动中… ${i}/12" -ForegroundColor DarkGray
             }
         }
     } else {
         Write-Host '  (提示) 未找到 AnythingLLM 安装路径，请手动打开桌面版' -ForegroundColor Yellow
     }
     Write-Host ''
-    Write-Host '  AnythingLLM 需手动打开（工作区 oaoeth，模式 Query，端口 3002）' -ForegroundColor Yellow
-    $w = Read-Host '  已打开后按回车继续，输入 N 退出'
-    if ($w -match '^[Nn]') { return $false }
-    if (Test-LocalPort -Port 3002 -Path '/api/ping') {
-        Write-Host '  (正常) AnythingLLM 已连接 (:3002)' -ForegroundColor Green
-        return $true
-    }
-    Write-Host '  (警告) 3002 仍无响应，Tunnel 可启动但知识库 AI 可能不可用' -ForegroundColor Yellow
+    Write-Host '  (提示) AnythingLLM 需工作区 oaoeth、模式 Query、端口 3002' -ForegroundColor Yellow
+    Write-Host '  (继续) Tunnel 仍会启动；AnythingLLM 就绪后外网知识库 AI 自动可用' -ForegroundColor Yellow
     return $false
 }
 

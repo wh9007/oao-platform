@@ -4,16 +4,16 @@
 
 【目标】
   外网用户打开浏览器访问 GitHub Pages 上的 OAO 页面，
-  可远程调用你本机电脑上的 AnythingLLM + Ollama AI。
+  可远程调用你本机电脑上的 AnythingLLM + Ollama + SearXNG AI。
 
 【访问地址】
   外网页面: https://wh9007.github.io/oao-platform/OAO.html
   Worker:   https://oao-ai.wh529007.workers.dev
-  Tunnel:   https://llm.wh9007.dpdns.org  -> 本机 AnythingLLM :3001
-            https://ollama.wh9007.dpdns.org -> 本机 Ollama :11434
+  Tunnel:   https://llm.wh9007.dpdns.org  -> 本机 OAO 本地 AI 统一网关 :3001
+            网关内部转发 AnythingLLM :3002 / Ollama :11434 / SearXNG :8080
 
 【链路】
-  浏览器 -> GitHub Pages -> Cloudflare Worker -> Tunnel -> 本机 AI
+  浏览器 -> GitHub Pages -> Cloudflare Worker -> Tunnel(:3001 网关) -> 本机 AI
   外网默认通过 Tunnel 走本机 AI；只有显式设置 OAO_FORCE_GLM = true 才使用智谱 GLM
 
 ───────────────────────────────────────────────────
@@ -26,10 +26,8 @@
 
   2. 本机填写 local-config.js 中的 AnythingLLM API Key
 
-  3. Cloudflare Zero Trust 控制台配置 Tunnel 公网路由:
-     Zero Trust -> 网络 -> Tunnels -> 你的 Tunnel -> Public Hostname
+  3. Cloudflare Zero Trust 控制台只保留/确认一条 Tunnel 公网路由:
        llm.wh9007.dpdns.org     -> http://127.0.0.1:3001
-       ollama.wh9007.dpdns.org  -> http://127.0.0.1:11434
 
   4. cloudflare\tunnel-token.txt 已填写 Token（Install connector 复制）
 
@@ -44,9 +42,9 @@
 二、日常使用（每次需要外网 AI 时）
 ───────────────────────────────────────────────────
 
-  1. 打开 AnythingLLM 桌面版（工作区 oaoeth，模式 Query）
-  2. 确认 Ollama 运行（ollama serve，模型 qwen2.5:7b）
-  3. 双击 OAO服务器.bat -> 选 1 启动全部
+  1. 双击 OAO服务器.bat -> 选 1 启动全部（自动迁移 AnythingLLM 到 3002，并启动网关 3001）
+  2. 打开 AnythingLLM 桌面版（工作区 oaoeth，模式 Query）
+  3. 确认 Ollama 运行（ollama serve，模型 qwen2.5:7b）
   4. Tunnel 窗口保持打开，直到日志出现:
        Registered tunnel connection
   5. 选 6 检测，Tunnel 与 Worker 代理应 HTTP 200
@@ -65,8 +63,8 @@
   Q: lookup argotunnel.com: no such host
   A: 本机 DNS 问题。WiFi DNS 改 1.1.1.1 和 8.8.8.8，ipconfig /flushdns
 
-  Q: Worker /api/ping 失败但本机 3001 正常
-  A: 运行选项 7 重新配置 Worker；确认 LLM_ORIGIN 与 Tunnel 域名一致
+  Q: Worker /api/ping 失败但本机 3001 网关正常
+  A: 运行选项 7 重新配置 Worker；确认 LOCAL_AI_ORIGIN 与 Tunnel 域名一致
 
   Q: 外网能打开页面但 AI 无知识库
   A: 确认 Worker Secret ANYTHINGLLM_API_KEY 与 AnythingLLM 中 Key 一致

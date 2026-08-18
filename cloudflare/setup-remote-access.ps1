@@ -39,9 +39,8 @@ Write-Host '============================================================' -Foreg
 Write-Host '  OAO 远程 AI 一键配置' -ForegroundColor Green
 Write-Host '============================================================' -ForegroundColor Green
 Write-Host " Worker: $($cfg.worker_url)"
-Write-Host " LLM Tunnel: $llmOrigin -> 本机 :3001"
-Write-Host " Ollama Tunnel: $ollamaOrigin -> 本机 :11434"
-Write-Host " SearXNG Tunnel: $searxOrigin -> 本机 :8080"
+Write-Host " 本地 AI 网关 Tunnel: $llmOrigin -> 本机 :3001"
+Write-Host "   网关内部: AnythingLLM :3002 / Ollama :11434 / SearXNG :8080"
 Write-Host " 外网页面: $($cfg.github_pages_url)"
 
 # 从 local-config.js 读取 AnythingLLM API Key
@@ -87,6 +86,7 @@ function Set-TomlVar([string]$content, [string]$name, [string]$value) {
 }
 
 $toml = Set-TomlVar $toml 'ZHIPU_MODEL' 'glm-4.7-flash'
+$toml = Set-TomlVar $toml 'LOCAL_AI_ORIGIN' $llmOrigin
 $toml = Set-TomlVar $toml 'LLM_ORIGIN' $llmOrigin
 $toml = Set-TomlVar $toml 'OLLAMA_ORIGIN' $ollamaOrigin
 $toml = Set-TomlVar $toml 'SEARXNG_ORIGIN' $searxOrigin
@@ -119,12 +119,11 @@ Write-Host '  配置完成 — 最后步骤（本机）' -ForegroundColor Green
 Write-Host '============================================================' -ForegroundColor Green
 Write-Host ''
 Write-Host '1. Cloudflare Zero Trust -> 网络 -> Tunnel -> 公网路由 确认:'
-Write-Host "   $($cfg.llm_tunnel_hostname)  -> http://127.0.0.1:3001"
-Write-Host "   $($cfg.ollama_tunnel_hostname) -> http://127.0.0.1:11434"
-Write-Host "   $searxHost -> http://127.0.0.1:8080"
+Write-Host "   $($cfg.llm_tunnel_hostname)  -> http://127.0.0.1:3001  (OAO 本地 AI 统一网关)"
+Write-Host '   所有本地 AI 请求都经此入口；无需再单独开放 Ollama / SearXNG 域名。'
 Write-Host ''
-Write-Host '2. 本机 SearXNG: OAO服务器.bat 会自动 docker compose 启动 searxng/ (需 Docker Desktop)'
-Write-Host '   打开 AnythingLLM 桌面版 + Ollama'
+Write-Host '2. 本机统一网关: 双击 OAO服务器.bat，自动把 AnythingLLM 迁移到 3002 并启动网关 3001'
+Write-Host '   SearXNG 后台启动，不阻塞 Tunnel；打开 AnythingLLM 桌面版 + Ollama'
 Write-Host ''
 Write-Host '3. 若 Tunnel DNS 报错，WiFi DNS 改为 1.1.1.1 / 8.8.8.8，V2Ray 对 cloudflare.com 直连'
 Write-Host ''

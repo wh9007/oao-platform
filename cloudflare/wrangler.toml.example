@@ -7,11 +7,6 @@ compatibility_date = "2024-01-01"
 
 # account_id = "你的 Cloudflare Account ID"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "oao-platform"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
-
 [durable_objects]
 bindings = [
   { name = "MEETING_ROOM", class_name = "MeetingRoom" }

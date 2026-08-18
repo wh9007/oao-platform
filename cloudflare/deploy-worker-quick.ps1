@@ -58,6 +58,7 @@ Write-Host ' ============================================================' -Fore
 Write-Host '  [部署成功]'
 Write-Host '  验证 AI联网: https://oao-ai.wh529007.workers.dev/web-search?q=test'
 Write-Host '  验证 Tunnel:  https://oao-ai.wh529007.workers.dev/api/ping'
+Write-Host '  验证网关:    https://oao-ai.wh529007.workers.dev/gateway/health'
 Write-Host '  前端发布:     双击项目根目录「一键上传GitHub.bat」'
 Write-Host ' ============================================================' -ForegroundColor Green
 

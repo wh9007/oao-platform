@@ -76,12 +76,14 @@ if ($cf) {
 }
 
 $results = @{}
-$results['local_llm'] = Test-Url '本机 AnythingLLM' 'http://127.0.0.1:3001/api/ping'
+$results['local_gateway'] = Test-Url '本机 AI 网关' 'http://127.0.0.1:3001/health'
+$results['local_anythingllm'] = Test-Url '本机 AnythingLLM' 'http://127.0.0.1:3002/api/ping'
 $results['local_ollama'] = Test-Url '本机 Ollama' 'http://127.0.0.1:11434/api/tags'
 $results['local_searx'] = Test-Url '本机 SearXNG' 'http://127.0.0.1:8080/search?q=test&format=json' -JsonOk
-$results['tunnel_llm'] = Test-Url 'Tunnel 域名 LLM' "https://$LlmHost/api/ping"
+$results['tunnel_gateway'] = Test-Url 'Tunnel 统一网关' "https://$LlmHost/health"
 $results['worker_llm'] = Test-Url 'Worker 代理本机 AI' "$WorkerUrl/api/ping"
 $results['worker_ollama'] = Test-Url 'Worker 代理 Ollama' "$WorkerUrl/ollama/api/tags"
+$results['worker_gateway'] = Test-Url 'Worker 网关健康' "$WorkerUrl/gateway/health"
 $results['tunnel_ollama'] = Test-Url 'Tunnel Ollama 域名' "https://$OllamaHost/api/tags"
 $results['tunnel_searx'] = Test-Url 'Tunnel SearXNG 域名' "https://$SearxHost/search?q=test&format=json" -JsonOk
 $results['worker_websearch'] = Test-Url 'Worker 联网搜索' "$WorkerUrl/web-search?q=OpenAI" -JsonOk
@@ -95,13 +97,14 @@ Write-Host ("  通过 {0}/{1} 项" -f $pass, $total) -ForegroundColor $(if ($pas
 Write-Host ''
 Write-Host '外网用户访问: https://wh9007.github.io/oao-platform/OAO.html' -ForegroundColor Cyan
 Write-Host '本机需满足:' -ForegroundColor Cyan
-Write-Host '  1. AnythingLLM 桌面版已打开, 端口 3001, 工作区 oaoeth'
-Write-Host '  2. Ollama 已运行, 端口 11434'
-Write-Host '  3. SearXNG 已运行, 端口 8080 (Docker, OAO服务器.bat 自动启动)'
-Write-Host '  4. Tunnel 公网路由: search.* -> http://127.0.0.1:8080'
-Write-Host '  5. 双击 OAO服务器.bat，保持窗口打开'
-Write-Host '  6. Worker 变量: LLM_ORIGIN / OLLAMA_ORIGIN / SEARXNG_ORIGIN'
-Write-Host '  7. 浏览器控制台: OAO_Diagnostic.testWebSearch()'
+Write-Host '  1. OAO 本地 AI 网关已运行, 端口 3001'
+Write-Host '  2. AnythingLLM 桌面版已打开, 端口 3002, 工作区 oaoeth'
+Write-Host '  3. Ollama 已运行, 端口 11434'
+Write-Host '  4. SearXNG 已运行, 端口 8080 (Docker, OAO服务器.bat 后台启动)'
+Write-Host '  5. Tunnel 公网路由: llm.wh9007.dpdns.org -> http://127.0.0.1:3001'
+Write-Host '  6. 双击 OAO服务器.bat，保持窗口打开'
+Write-Host '  7. Worker 变量: LOCAL_AI_ORIGIN (统一入口)'
+Write-Host '  8. 浏览器控制台: OAO_Diagnostic.testWebSearch()'
 Write-Host ''
 
 Write-Host '--- Tunnel 所需 DNS 检测 ---' -ForegroundColor Cyan
@@ -122,15 +125,15 @@ if ($dnsFail) {
 }
 
 Write-Host ''
-Write-Host '联网搜索链路: 浏览器 -> Worker /web-search -> Tunnel -> SearXNG -> Ollama 总结' -ForegroundColor DarkGray
+Write-Host '联网搜索链路: 浏览器 -> Worker /web-search -> Tunnel(:3001 网关) -> SearXNG -> Ollama 总结' -ForegroundColor DarkGray
 Write-Host ''
 
-if (-not $results['local_searx']) {
-    Write-Host '[提示] 本机 SearXNG 未运行 — 需 Docker Desktop, 或 cd searxng && docker compose up -d' -ForegroundColor Yellow
+if (-not $results['local_gateway']) {
+    Write-Host '[提示] 本地 AI 网关未运行 — 请双击 OAO服务器.bat（自动迁移 AnythingLLM 到 3002 并启动网关）' -ForegroundColor Yellow
+}
+if (-not $results['worker_gateway']) {
+    Write-Host '[提示] Worker 无法访问本地 AI 网关 — 请确认 OAO服务器.bat 已运行，并部署最新 Worker' -ForegroundColor Yellow
 }
 if (-not $results['worker_websearch']) {
-    Write-Host '[提示] Worker /web-search 失败 — 运行 cloudflare\setup-remote-access.ps1 或 npx wrangler deploy' -ForegroundColor Yellow
-}
-if (-not $results['tunnel_searx']) {
-    Write-Host '[提示] Tunnel search 域名失败 — 在 Cloudflare 添加 search.wh9007.dpdns.org -> 127.0.0.1:8080' -ForegroundColor Yellow
+    Write-Host '[提示] Worker /web-search 失败 — 网关启动后即可恢复；也可在 Worker 配置 SERPER_API_KEY 作为云端备用' -ForegroundColor Yellow
 }
