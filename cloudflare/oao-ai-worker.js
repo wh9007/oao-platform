@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OAO 统一 Cloudflare Worker
  *
  * 架构：GitHub Pages（前端）→ 本 Worker（中转 + 鉴权）→ 智谱 GLM / 本机 Tunnel
@@ -24,6 +24,7 @@ import { handleGlmChat, handleGlmHealth } from './glm-handler.js';
 import { handleUserApi } from './user-api.js';
 import { handleAdminApi } from './admin-api.js';
 import { handleWebSearch } from './web-search-handler.js';
+import { FALLBACK_NAV_CSV } from './nav-sites-fallback.js';
 
 export { MeetingRoom };
 
@@ -177,22 +178,50 @@ export default {
 
     if (path === '/nav-sites' && request.method === 'GET') {
       const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1uVxG3qUwmeb5PznGovM2I8GlfYdESGdwEB_TaYqn7jTT8-syGlhHHrVnNxct94GVv-60Y1m7B-Ro/pub?gid=0&single=true&output=csv';
+      const extractCsv = (raw) => {
+        const text = String(raw || '').replace(/^\uFEFF/, '');
+        const idx = text.indexOf('ID,');
+        return (idx >= 0 ? text.slice(idx) : text).trim();
+      };
+      const isCsv = (text) => text.indexOf('ID,') === 0 && text.indexOf(',') > 0 && text[0] !== '<' && text[0] !== '{';
+      const csvResponse = (text, maxAge) => withCors(new Response(text, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Cache-Control': 'public, max-age=' + String(maxAge || 60),
+        },
+      }));
       try {
-        const upstream = await fetch(sheetUrl, {
-          headers: {
-            Accept: 'text/csv,text/plain,*/*',
-            'User-Agent': 'OAO-NavSites/1.0',
-          },
-        });
-        const text = await upstream.text();
-        return withCors(new Response(text, {
-          status: upstream.ok ? 200 : upstream.status,
-          headers: {
-            'Content-Type': 'text/csv; charset=utf-8',
-            'Cache-Control': 'no-store',
-          },
+        const urls = [sheetUrl, 'https://r.jina.ai/' + sheetUrl];
+        for (const url of urls) {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 8000);
+          try {
+            const upstream = await fetch(url, {
+              headers: {
+                Accept: 'text/csv,text/plain,*/*',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+              },
+              redirect: 'follow',
+              signal: ctrl.signal,
+            });
+            const text = extractCsv(await upstream.text());
+            if (upstream.ok && isCsv(text)) return csvResponse(text, 60);
+          } catch (_) { /* try next source */ }
+          finally {
+            clearTimeout(timer);
+          }
+        }
+        if (isCsv(extractCsv(FALLBACK_NAV_CSV))) return csvResponse(extractCsv(FALLBACK_NAV_CSV), 300);
+        return withCors(new Response(JSON.stringify({
+          error: 'nav_sheet_unreachable',
+          message: 'Google Sheets fetch failed',
+        }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json; charset=utf-8' },
         }));
       } catch (error) {
+        if (isCsv(extractCsv(FALLBACK_NAV_CSV))) return csvResponse(extractCsv(FALLBACK_NAV_CSV), 300);
         return withCors(new Response(JSON.stringify({
           error: 'nav_sheet_unreachable',
           message: error?.message || 'Google Sheets fetch failed',

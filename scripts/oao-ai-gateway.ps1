@@ -5,8 +5,12 @@ param(
     [switch]$NoPause
 )
 
-$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
-[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+# Windows PowerShell 5.1 + chcp 65001 会把中文打成「服服务务器器」。
+if ($PSVersionTable.PSVersion.Major -ge 6) {
+    $utf8 = [Text.UTF8Encoding]::new($false)
+    [Console]::OutputEncoding = $utf8
+    $OutputEncoding = $utf8
+}
 $ErrorActionPreference = 'Continue'
 
 $Root = Split-Path $PSScriptRoot -Parent
@@ -48,8 +52,33 @@ function Test-OaoAiGateway {
 }
 
 function Test-AnythingLLMOnPort {
-    param([int]$Port)
-    return Test-HttpJsonService -Uri "http://127.0.0.1:${Port}/api/ping" -MustMatch 'online'
+    param(
+        [int]$Port,
+        [int]$TimeoutSec = 2
+    )
+    return Test-HttpJsonService -Uri "http://127.0.0.1:${Port}/api/ping" -MustMatch 'online' -TimeoutSec $TimeoutSec
+}
+
+function Get-AnythingLLMReadyPort {
+    foreach ($port in @($GatewayPort, $AnythingLLMPort)) {
+        if (Test-AnythingLLMOnPort -Port $port -TimeoutSec 1) { return $port }
+    }
+    return 0
+}
+
+function Stop-OaoAiGatewayProcess {
+    $killed = 0
+    Get-CimInstance Win32_Process -Filter "Name='node.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -match 'oao-ai-gateway\.js' } |
+        ForEach-Object {
+            Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+            $killed++
+        }
+    if ($killed -gt 0) {
+        Start-Sleep -Milliseconds 400
+        return $true
+    }
+    return $false
 }
 
 function Test-HttpPort {
@@ -158,15 +187,19 @@ function Start-OaoAiGateway {
 }
 
 function Ensure-OaoAiGateway {
-    if (Test-AnythingLLMOnPort -Port $GatewayPort) {
-        Write-Host '  (正常) AnythingLLM 桌面版 :3001；Ollama 直连 :11434' -ForegroundColor Green
+    if (Test-AnythingLLMOnPort -Port $GatewayPort -TimeoutSec 1) {
+        Write-Host '  (正常) AnythingLLM :3001 直连，无需本地网关' -ForegroundColor Green
         return $true
+    }
+    if (Test-AnythingLLMOnPort -Port $AnythingLLMPort -TimeoutSec 1) {
+        return Start-OaoAiGateway
     }
     if (Test-OaoAiGateway) {
-        Write-Host '  (正常) OAO 本地 AI 网关已运行 (:3001)' -ForegroundColor Green
-        return $true
+        Write-Host '  (提示) :3001 当前是 OAO 网关，AnythingLLM 桌面版未在线' -ForegroundColor Yellow
+        return $false
     }
-    return Start-OaoAiGateway
+    Write-Host '  (跳过) AnythingLLM 未在线，不抢占 :3001' -ForegroundColor DarkGray
+    return $false
 }
 
 function Show-OaoAiGatewayStatus {

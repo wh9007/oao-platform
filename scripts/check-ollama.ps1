@@ -5,7 +5,9 @@ param(
 )
 
 $ErrorActionPreference = 'Continue'
-$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+if ($PSVersionTable.PSVersion.Major -ge 6) {
+    $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+}
 
 $OllamaRoot = Join-Path $env:LOCALAPPDATA 'Programs\Ollama'
 $LlamaServer = Join-Path $OllamaRoot 'lib\ollama\llama-server.exe'

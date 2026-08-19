@@ -1,6 +1,6 @@
-﻿@echo off
-rem OAO 脚本公共库 — 由 本地测试OAO.bat / OAO服务器.bat 调用
-rem 用法: call "%~dp0scripts\lib.cmd" <子程序名> [参数...]
+@echo off
+rem OAO shared cmd helpers. Called by bat launchers.
+rem Usage: call "scripts\lib.cmd" Label [args]
 if "%~1"=="" exit /b 1
 goto %~1
 
@@ -62,5 +62,5 @@ powershell -NoProfile -Command "try{(Invoke-WebRequest -Uri 'http://127.0.0.1:11
 exit /b %ERRORLEVEL%
 
 :CheckAnythingLLMPort
-powershell -NoProfile -Command "try{(Invoke-WebRequest -Uri 'http://127.0.0.1:3002/api/ping' -UseBasicParsing -TimeoutSec 3).StatusCode; exit 0}catch{try{(Invoke-WebRequest -Uri 'http://127.0.0.1:3001/api/ping' -UseBasicParsing -TimeoutSec 3).StatusCode; exit 0}catch{exit 1}}" >nul 2>&1
+powershell -NoProfile -Command "try{$r=Invoke-WebRequest -Uri 'http://127.0.0.1:3001/api/ping' -UseBasicParsing -TimeoutSec 3; if($r.Content -match 'online'){exit 0}}catch{}; try{$r=Invoke-WebRequest -Uri 'http://127.0.0.1:3002/api/ping' -UseBasicParsing -TimeoutSec 3; if($r.Content -match 'online'){exit 0}}catch{}; exit 1" >nul 2>&1
 exit /b %ERRORLEVEL%

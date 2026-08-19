@@ -97,23 +97,37 @@ function applyWindowsProxy() {
 const NAV_PROXY = applyWindowsProxy();
 const { spawn } = require('child_process');
 
-function fetchSheetCsvViaCurl(proxyUrl) {
+function extractNavCsv(raw) {
+  const text = String(raw || '').replace(/^\uFEFF/, '');
+  const match = text.match(/ID\s*,\s*网站类型[\s\S]*/);
+  return (match ? match[0] : text).trim();
+}
+
+function fetchUrlViaCurl(url, proxyUrl, maxTimeSec) {
   return new Promise((resolve, reject) => {
+    const limit = String(maxTimeSec || 6);
     const args = [
-      '-sS', '-L', '--max-time', '20',
+      '-sS', '-L', '--max-time', limit,
       '-A', 'OAO-NavSites/1.0',
-      '-H', 'Accept: text/csv,text/plain,*/*',
+      '-H', 'Accept: text/csv,text/plain,application/json,*/*',
       '-w', '\n__OAO_HTTP__:%{http_code}',
     ];
     if (proxyUrl) args.push('-x', proxyUrl);
-    args.push(NAV_SHEET_CSV_URL);
+    args.push(url);
     const child = spawn('curl.exe', args, { windowsHide: true });
     const chunks = [];
     let stderr = '';
+    const killer = setTimeout(() => {
+      try { child.kill(); } catch (_) { /* ignore */ }
+    }, (Number(limit) + 1) * 1000);
     child.stdout.on('data', (c) => chunks.push(c));
     child.stderr.on('data', (c) => { stderr += c.toString('utf8'); });
-    child.on('error', reject);
+    child.on('error', (err) => {
+      clearTimeout(killer);
+      reject(err);
+    });
     child.on('close', (code) => {
+      clearTimeout(killer);
       const raw = Buffer.concat(chunks).toString('utf8');
       const marker = raw.lastIndexOf('\n__OAO_HTTP__:');
       const text = marker >= 0 ? raw.slice(0, marker) : raw;
@@ -122,27 +136,81 @@ function fetchSheetCsvViaCurl(proxyUrl) {
         reject(new Error(stderr.trim() || 'curl failed'));
         return;
       }
-      resolve({ status, text });
+      resolve({ status, text: extractNavCsv(text) });
     });
   });
 }
 
-async function fetchSheetCsv(proxyUrl) {
+const NAV_WORKER_BASE = 'https://oao-ai.wh529007.workers.dev';
+const NAV_WORKER_CSV_URL = NAV_WORKER_BASE + '/nav-sites';
+const NAV_JINA_CSV_URL = 'https://r.jina.ai/' + NAV_SHEET_CSV_URL;
+const NAV_CACHE_FILE = path.join(ROOT, 'assets', 'data', 'nav-sites.cache.csv');
+
+let navCsvCache = { at: 0, status: 0, text: '' };
+let workerNavReady = { at: 0, ok: false };
+
+function isGoodNavCsv(result) {
+  return result && result.status === 200 && result.text && /ID\s*,\s*网站类型/.test(result.text) && !/^\s*[<{]/.test(result.text);
+}
+
+function readDiskNavCache() {
   try {
-    const upstream = await fetch(NAV_SHEET_CSV_URL, {
-      headers: {
-        Accept: 'text/csv,text/plain,*/*',
-        'User-Agent': 'OAO-NavSites/1.0',
-      },
-      redirect: 'follow',
-      signal: AbortSignal.timeout(15000),
-    });
-    const text = await upstream.text();
-    if (upstream.ok && text && !/^\s*</.test(text) && text.includes(',')) {
-      return { status: upstream.status, text };
+    const text = extractNavCsv(fs.readFileSync(NAV_CACHE_FILE, 'utf8'));
+    if (/ID\s*,\s*网站类型/.test(text)) return { status: 200, text };
+  } catch (_) { /* ignore */ }
+  return null;
+}
+
+function writeDiskNavCache(text) {
+  try {
+    fs.mkdirSync(path.dirname(NAV_CACHE_FILE), { recursive: true });
+    fs.writeFileSync(NAV_CACHE_FILE, text, 'utf8');
+  } catch (_) { /* ignore */ }
+}
+
+async function probeWorkerNav() {
+  if (workerNavReady.ok && (Date.now() - workerNavReady.at) < 300000) return true;
+  try {
+    const result = await fetchUrlViaCurl(NAV_WORKER_BASE + '/', '', 4);
+    const ok = result.status === 200 && /"\/nav-sites"/.test(result.text);
+    workerNavReady = { at: Date.now(), ok };
+    return ok;
+  } catch (_) {
+    workerNavReady = { at: Date.now(), ok: false };
+    return false;
+  }
+}
+
+async function fetchSheetCsv(proxyUrl) {
+  if (navCsvCache.text && (Date.now() - navCsvCache.at) < 60000) {
+    return { status: navCsvCache.status, text: navCsvCache.text };
+  }
+  const attempts = [];
+  if (await probeWorkerNav()) attempts.push({ url: NAV_WORKER_CSV_URL, proxy: '', time: 8 });
+  attempts.push({ url: NAV_JINA_CSV_URL, proxy: '', time: 8 });
+  if (proxyUrl) attempts.push({ url: NAV_SHEET_CSV_URL, proxy: proxyUrl, time: 5 });
+  attempts.push({ url: NAV_SHEET_CSV_URL, proxy: 'http://127.0.0.1:10808', time: 5 });
+  attempts.push({ url: NAV_SHEET_CSV_URL, proxy: '', time: 5 });
+  let lastError = new Error('Google Sheets fetch failed');
+  for (const attempt of attempts) {
+    try {
+      const result = await fetchUrlViaCurl(attempt.url, attempt.proxy, attempt.time);
+      if (isGoodNavCsv(result)) {
+        navCsvCache = { at: Date.now(), status: result.status, text: result.text };
+        writeDiskNavCache(result.text);
+        return result;
+      }
+      lastError = new Error('HTTP ' + result.status);
+    } catch (err) {
+      lastError = err;
     }
-  } catch (_) { /* fall through to curl, which honors the system proxy */ }
-  return fetchSheetCsvViaCurl(proxyUrl);
+  }
+  const disk = readDiskNavCache();
+  if (disk) {
+    navCsvCache = { at: Date.now(), status: 200, text: disk.text };
+    return disk;
+  }
+  throw lastError;
 }
 
 async function proxyNavSites(res) {
@@ -226,8 +294,21 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, HOST, () => {
-  console.log(`OAO dev server: http://${HOST}:${PORT}/OAO.html`);
-  if (NAV_PROXY) console.log(`OAO nav Google proxy: ${NAV_PROXY}`);
-  console.log('Press Ctrl+C or close this window to stop.');
-});
+function start(port) {
+  server.once('error', (err) => {
+    if (err.code === 'EADDRINUSE' && port === 8777 && !process.env.OAO_DEV_PORT) {
+      console.log('Port 8777 is busy, using 8779.');
+      start(8779);
+      return;
+    }
+    console.error(err && err.message ? err.message : err);
+    process.exit(1);
+  });
+  server.listen(port, HOST, () => {
+    console.log(`OAO dev server: http://${HOST}:${port}/OAO.html`);
+    if (NAV_PROXY) console.log(`OAO nav proxy: ${NAV_PROXY}`);
+    console.log('Press Ctrl+C or close this window to stop.');
+  });
+}
+
+start(PORT);

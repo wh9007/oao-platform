@@ -1,0 +1,250 @@
+ID,网站类型,网站名称,网址,网站说明,联系邮箱 
+1,Web2.0 社交,Facebook,https://www.facebook.com,全球最大的社交网络平台，用户生成内容与社交互动,support@facebook.com 
+2,Web2.0 社交,Twitter (X),https://twitter.com,全球社交媒体平台，以短文本互动为主,support@twitter.com 
+3,Web2.0 视频服务,YouTube,https://www.youtube.com,最大视频分享平台，UGC/视听服务,support@youtube.com 
+4,Web2.0 搜索,Google,https://www.google.com,全球最大搜索引擎,support@google.com 
+5,Web2.0 电商,Amazon,https://www.amazon.com,全球领先电商平台,primary@amazon.com 
+6,Web3.0 Ai,智汇天宸,https://www.zhihuitc.com.cn,打造 T 型人才 · 赋能超级个体,zhihuitc@outlook.com 
+7,Web3.0 Ai,智汇天宸,https://zhihuitc.ai/,打造 T 型人才 · 赋能超级个体,zhihuitc@outlook.com 
+8,Web3.0 NFT 市场,OpenSea,https://opensea.io,最大 NFT 市场，链上资产交易与收藏,support@opensea.io 
+9,Web3.0 虚拟世界,Decentraland,https://decentraland.org,去中心化3D虚拟世界，用户可拥有、交易虚拟土地和资产,contact@decentraland.org 
+10,Web3.0 社交,Steemit,https://steemit.com,链上博客/社交平台，用户发布内容可赚取加密奖励,support@steemit.com 
+11,去中心化社交,Mastodon,https://mastodon.social,去中心化微博服务，可加入多个分布式实例,contact@mastodon.org 
+12,Web2.0 社交隐私,MeWe,https://mewe.com,注重隐私的中心化社交平台（正向探索区块链项目）,support@mewe.com 
+13,Web3.0 社交,Lens Protocol 应用,https://lenster.xyz,基于 Lens 协议的去中心化社交平台,support@lens.xyz 
+14,Web3.0 音乐流媒体,Audius,https://audius.co,去中心化音乐分享平台，音乐人可直接发布与赚取收入,support@audius.co 
+15,Web3.0 元宇宙,Sandbox,https://www.sandbox.game,区块链驱动的虚拟世界与创作经济平台,support@sandbox.game 
+16,Web3.0,OAO,oao.eth,让存在成为价值,wh-9007@live.cn 
+17,Web3.0,oaoai,oaoai.eth,简单而纯粹，彰显去中心化的力量与理念,wh-9007@live.cn 
+18,Web3.0,ELELE,elele.eth,不被定義，但可被驗證,wh-9007@live.cn 
+19,DeFi 智能合约 & 交易,Uniswap,https://uniswap.org,去中心化交易协议，可在链上交易 ERC‑20 代币，是 Web3 生态核心 DEX 之一。,support@uniswap.org 
+20,市场数据,CoinMarketCap,https://coinmarketcap.com,提供全球加密资产价格、交易量和市值排行等数据。,support@coinmarketcap.com 
+21,市场数据,DefiLlama,https://defillama.com,提供 DeFi 项目 TVL（总锁仓价值）排行和跨链 DeFi 数据。,contact@defillama.com 
+22,区块链浏览器,Etherscan,https://etherscan.io,以太坊区块链浏览器，可查看链上交易/合约/地址等信息。,support@etherscan.io 
+23,钱包,MetaMask,https://metamask.io,流行的 Web3 钱包，支持以太坊及多链生态资产管理。,support@metamask.io 
+24,数据与分析,DappRadar,https://dappradar.com,提供全球 DApp 统计、热门链上应用排行（NFT/DeFi/GameFi）。,support@dappradar.com 
+25,区块链资讯,CoinDesk,https://www.coindesk.com,专注加密货币与区块链新闻、市场分析、深度报道。,news@coindesk.com 
+26,区块链资讯,Cointelegraph,https://cointelegraph.com,全球加密新闻平台，覆盖市场动态和技术分析。,editors@cointelegraph.com 
+27,NFT 数据,CryptoSlam,https://cryptoslam.io,NFT 排名网站，按照交易规模/时间展示热门 NFT 指标。,support@cryptoslam.io 
+28,NFT 数据,NFTGo,https://nftgo.io,提供 NFT 市场分析与排行榜，包括价格/稀有度/交易量等。,contact@nftgo.io 
+29,Web3 工具导航,Web3nav,https://www.w3nav.com,集合 DeFi、NFT、钱包、浏览器等 Web3 工具与入口资源。,info@w3nav.com 
+30,交易所,Binance,https://www.binance.com,全球领先的加密货币交易所，支持多链和 DeFi 生态服务。,support@binance.com 
+31,交易所,OKX,https://www.okx.com,综合加密交易所，集现货/期权/质押/钱包服务于一体。,support@okx.com 
+32,教育 & 开发者资源,Awesome Web3,https://awesome-web3.com,Web3 资源集合，涵盖工具、库、教程、协议等开发资料。,无集中邮箱（社区开放收录） 
+33,NFT 市场,Magic Eden,https://magiceden.io,主要 Solana 网络的 NFT 交易平台，用户人数众多。,support@magiceden.io 
+34,Web3 创始人,Vitalik Buterin,https://vitalik.eth,以太坊共同创始人官方个人网站，发表技术文章及观点,通过网站联系表单或 Twitter 
+35,Web3 先驱,Gavin Wood,https://gavwood.com,波卡（Polkadot）与 Substrate 创始人个人主页,通过个人站内链接 
+36,Web3 企业家,Stani Kulechov,https://stani.substack.com,Aave 创始人官方文章与通讯页,默认 Substack 页面 
+37,NFT 领袖,Devin Finzer,https://devinfinzer.com,OpenSea 联合创始人个人官网,官方站内部联络 
+38,Web3 企业家,Anatoly Yakovenko,https://solana.com,Solana 协议创始人官方站点（团队）,support@solana.com 
+39,去中心化存储,Protocol Labs,https://protocol.ai,IPFS / Filecoin 创始团队（Juan Benet 领导）,info@protocol.ai 
+40,Web3 教育者,Chris Dixon,https://cdixon.org,Andreessen Horowitz 投资合伙人，Web3 思想输出者,通过站内信息 
+41,Web3 研究者,Emin Gün Sirer,https://avn.com,Avalanche 创始人之一个人站点与学术信息,通过站内链接 
+42,Web3 企业家,Sergey Nazarov,https://chain.link,Chainlink 联合创始人官方品牌主页,info@chain.link 
+43,Web3 早期者,Balaji Srinivasan,https://balajis.com,前 Coinbase CTO / Web3 独立思想者,通过站内链接 
+44,Web3.0 基础设施与扩展方案 (Layer 2),Optimism,optimism.io,基于乐观回滚技术的以太坊二层网络，注重低廉费用,AI提供 
+45,Web3.0 基础设施与扩展方案 (Layer 2),Polygon,https://polygon.technology,以太坊多链扩展网络，提供多样化的侧链与扩容工具,AI提供 
+46,去中心化金融 (DeFi) 与资产管理,Aave,https://aave.com,全球最大的开源去中心化借贷协议，支持多种资产质押,AI提供 
+47,去中心化金融 (DeFi) 与资产管理,Zapper,https://zapper.fi,Web3 资产看板，一站式追踪 DeFi 收益、NFT 及链上钱包地址,AI提供 
+48,元宇宙、链游与创作者平台,Axie Infinity,https://axieinfinity.com,全球知名的 Play-to-Earn 区块链游戏代表作,AI提供 
+49,元宇宙、链游与创作者平台,LooksRare,https://looksrare.org,社区驱动的 NFT 市场，为交易者和创作者提供奖励,AI提供 
+50,元宇宙、链游与创作者平台,Mirror,https://mirror.xyz,去中心化内容发布平台，支持将文章铸造为 NFT 永久保存,AI提供 
+51,.eth 后缀与去中心化域名资源,Bankless,bankless.eth,著名的加密货币媒体，倡导“无银行”生活方式与金融教育,AI提供 
+52,.eth 后缀与去中心化域名资源,1inch,1inch.eth,分散式交易所聚合器，自动寻找链上交易的最优价格,AI提供 
+53,.eth 后缀与去中心化域名资源,Gitcoin,gitcoin.eth,Web3 公共物品资助平台，通过平方捐赠法支持开源项目,AI提供 
+54,数据研究与安全,Dune Analytics,https://dune.com,强大的链上数据分析平台，用户可自定义可视化仪表盘,AI提供 
+55,数据研究与安全,Revoke.cash,https://revoke.cash,关键的安全工具，用于检查并撤销已授权的代币访问权限,AI提供 
+56,基础设施、Layer 2 与 侧链 (网络底座),Arbitrum,https://arbitrum.io,领先的以太坊 Layer 2 扩容方案，降低交易成本并提升速度,AI提供 
+57,基础设施、Layer 2 与 侧链 (网络底座),Avalanche,avax.network,高性能公链，支持自定义子网，兼容 EVM,AI提供 
+58,基础设施、Layer 2 与 侧链 (网络底座),Solana,https://solana.com,高吞吐量、低延迟的全球性公链，生态极其丰富,AI提供 
+59,基础设施、Layer 2 与 侧链 (网络底座),Cosmos,https://cosmos.network,跨链枢纽，旨在实现“区块链的互联网”,AI提供 
+60,基础设施、Layer 2 与 侧链 (网络底座),Polkadot,https://polkadot.network,异构多链协议，通过插槽连接实现各链互通,AI提供 
+61,去中心化金融 (DeFi) 深度补充,Curve Finance,https://curve.fi,专注于稳定币交易的去中心化交易所，低滑点交易核心,AI提供 
+62,去中心化金融 (DeFi) 深度补充,Lido Finance,https://lido.fi,以太坊流动性质押协议，质押 ETH 即可获得 stETH 奖励,AI提供 
+63,去中心化金融 (DeFi) 深度补充,GMX,https://gmx.io,去中心化永续合约交易所，支持低费率现货和杠杆交易,AI提供 
+64,去中心化金融 (DeFi) 深度补充,MakerDAO,https://makerdao.com,去中心化超额抵押借贷，稳定币 DAI 的发行方,AI提供 
+65,去中心化金融 (DeFi) 深度补充,Compound,https://compound.finance,算法驱动的利率协议，Web3 借贷领域的基石之一,AI提供 
+66,去中心化金融 (DeFi) 深度补充,Yearn Finance,https://yearn.fi,DeFi 收益聚合器，自动切换协议以获取最高年化收益,AI提供 
+67,Web3 社交、内容与 NFT 进阶,CyberConnect,https://cyberconnect.me,去中心化社交图谱协议，助力开发者构建社交 DApp,AI提供 
+68,Web3 社交、内容与 NFT 进阶,Debank,https://debank.com,领先的 Web3 社交钱包与资产追踪器，支持多链分析,AI提供 
+69,Web3 社交、内容与 NFT 进阶,Farcaster,farcaster.xyz,足够去中心化的社交网络协议，强调身份自主权,AI提供 
+70,Web3 社交、内容与 NFT 进阶,Snapshot,https://snapshot.org,链上治理投票平台，DAO 组织进行决策的主流工具,AI提供 
+71,Web3 社交、内容与 NFT 进阶,POAP,https://poap.xyz,出勤证明协议，用于记录用户参与活动或贡献的 NFT 勋章,AI提供 
+72,Web3 社交、内容与 NFT 进阶,Foundation,https://foundation.app,高品质数字艺术 NFT 策展与交易平台,AI提供 
+73,NFT 数据,NFTScan,https://nftscan.com,专业的多链 NFT 浏览器与数据分析平台,AI提供 
+74,代币看板,DexScreener,https://dexscreener.com,实时追踪去中心化交易所(DEX)币价行情,AI提供 
+75,链上任务,Galxe,https://galxe.com,领先的 Web3 凭证数据网络，营销活动聚集地,AI提供 
+76,链上任务,Layer3,https://layer3.xyz,通过交互任务带用户探索 Web3 生态的平台,AI提供 
+77,加密资产,Coingecko,coingecko.com,独立且客观的加密货币数据排名与分析网站,AI提供 
+78,隐私网络,Aleo,https://aleo.org,基于零知识证明(ZK)的去中心化应用平台,AI提供 
+79,开发者托管,GitHub,https://github.com,全球最大的开源代码托管与协作平台,AI提供 
+80,设计工具,Figma,figma.com,全球领先的协作式 UI/UX 设计工具,AI提供 
+81,生产力工具,Notion,notion.so,一站式笔记、文档与团队协作知识库,AI提供 
+82,人工智能,OpenAI,openai.com,ChatGPT 开发商，人工智能领域领军企业,AI提供 
+83,人工智能,Anthropic,anthropic.com,领先的 AI 安全研究及 Claude 大模型开发商,AI提供 
+84,商业媒体,彭博社,bloomberg.com,全球商业、金融信息和新闻资讯平台,AI提供 
+85,求职招聘,LinkedIn,linkedin.com,全球最大的职业社交及招聘网络,AI提供 
+86,长租住宿,Airbnb,airbnb.com,全球知名的民宿预订与旅行体验平台,AI提供 
+87,在线学习,Coursera,coursera.org,全球领先的在线公开课平台，合作顶尖大学,AI提供 
+88,技术问答,Stack Overflow,https://stackoverflow.com,全球最大的程序开发技术问答社区,AI提供 
+89,远程办公,Slack,https://slack.com,全球主流的企业团队协作与即时通讯软件,AI提供 
+90,流媒体,Netflix,netflix.com,全球最大的订阅式付费视频流媒体平台,AI提供 
+91,设计社区,Dribbble,https://dribbble.com,全球顶尖设计师展示作品与找灵感的平台,AI提供 
+92,投资研究,TradingView,tradingview.com,全球最受欢迎的金融行情图表与分析社区,AI提供 
+93,百科全书,Wikipedia,wikipedia.org,全球最大的多语言在线百科全书,AI提供 
+94,综合搜索,百度,baidu.com,中国最大的中文搜索引擎,AI提供 
+95,综合电商,淘宝,taobao.com,亚太地区较大的网络零售、商圈,AI提供 
+96,综合电商,京东,jd.com,中国领先的自营式电商平台,AI提供 
+97,短视频,抖音,douyin.com,国内最受欢迎的短视频社交平台,AI提供 
+98,视频社区,哔哩哔哩,bilibili.com,年轻人高度聚集的综合性视频社区,AI提供 
+99,职场社交,脉脉,https://maimai.cn,中国领先的实名职场社交平台,AI提供 
+100,知识问答,知乎,zhihu.com,中文互联网高质量问答社区和内容平台,AI提供 
+101,生活服务,美团,meituan.com,领先的生活服务电子商务平台,AI提供 
+102,科技资讯,36氪,https://36kr.com,关注互联网创业及科技前沿的媒体平台,AI提供 
+103,开发者社区,CSDN,csdn.net,中国专业的 IT 开发者技术社区,AI提供 
+104,设计资源,站酷,zcool.com.cn,中国极具影响力的设计师互动平台,AI提供 
+105,房产服务,贝壳找房,ke.com,领先的线上线下房产交易和服务平台,AI提供 
+106,L2 扩容,Base,https://base.org,Coinbase 推出的 L2 网络，深度集成加密用户,AI提供 
+107,DeFi 聚合,1inch,https://1inch.io,自动寻找全网最低交易滑点的 DEX 聚合器,AI提供 
+108,Web3 域名,ENS,https://ens.domains,以太坊域名服务，Web3 世界的去中心化身份,AI提供 
+109,数据分析,Messari,https://messari.io,提供专业的加密行业研究、指标与透明度数据,AI提供 
+110,元宇宙,Voxels,cryptovoxels.com,基于以太坊的虚拟世界，支持用户自由建造与展示,AI提供 
+111,基础设施,Infura,infura.io,领先的 Web3 API 节点服务商，连接以太坊生态,AI提供 
+112,基础设施,Chainlink,https://chain.link,去中心化预言机网络，为智能合约提供现实数据,AI提供 
+113,.eth 门户,bankless.eth,https://bankless.com,全球最具影响力的 Web3 教育与媒体门户,AI提供 
+114,.eth 门户,gitcoin.eth,https://gitcoin.co,著名的 Web3 开源项目融资与公共物品建设平台,AI提供 
+115,社交互动,腾讯·QQ空间,qq.com,腾讯旗下的个性展示与社交分享社区,AI提供 
+116,电子邮件,网易邮箱,163.com,中国主流的电子邮箱服务商，含163/126等后缀,AI提供 
+117,新闻门户,搜狐新闻,sohu.com,综合性新闻资讯平台，涵盖国内外实时热点,AI提供 
+118,社交媒体,新浪微博,https://weibo.com,中国领先的社交媒体平台，实时热点发现与传播中心,AI提供 
+119,军事资讯,凤凰军事,ifeng.com,凤凰网旗下专业的全球军事动态与评论平台,AI提供 
+120,流媒体视频,央视频,yangshipin.cn,中央广播电视总台推出的综合性视听新媒体平台,AI提供 
+121,B2B电商,阿里巴巴1688,1688.com,全球领先的 B2B 采购批发平台，源头货源聚集地,AI提供 
+122,传奇游戏,抖音超超超变,douyin.com,抖音生态内的“超变”系列传奇手游相关资讯与入口,AI提供 
+123,传奇游戏,超变传奇·高爆,9377.com,经典的超高爆率版本传奇，主打快速升级与神装体验,AI提供 
+124,传奇游戏,0氪传奇·打金,tanwan.com,针对散人玩家设计的自由交易、零门槛打金传奇版本,AI提供 
+125,游戏专区,37游戏传奇专区,37.com,37网游旗下的传奇系列游戏聚合频道与礼包发放中心,AI提供 
+126,游戏工具,新传奇·开服榜,kaifu.com,实时更新的全网传奇类游戏新服开启时间与资讯表,AI提供 
+127,流媒体视频,爱奇艺,iqiyi.com,中国领先的综合性影视视频平台，主打正版高清内容,AI提供 
+128,综合电商,天猫,tmall.com,阿里巴巴旗下主打品牌正品的综合性购物商城,AI提供 
+129,在线视频,爱奇艺,https://www.iqiyi.com,领先的综合视频服务平台，提供海量正版高清影视及原创综艺, 
+130,在线视频,腾讯视频,https://v.qq.com,腾讯旗下的综合视频平台，以热门影视剧和王牌自制综艺著称, 
+131,音乐平台,QQ音乐,https://y.qq.com,腾讯音乐旗下的主流数字音乐服务，支持海量正版歌曲及数字专辑, 
+132,短视频/影视,西瓜视频,https://www.ixigua.com,字节跳动旗下的中短视频聚合平台，涵盖纪录片、影视及生活Vlog, 
+133,专业电影,1905电影网,1905.com,国家级电影门户网站，由电影频道（CCTV-6）官方运营, 
+134,游戏直播,虎牙直播,https://www.huya.com,领先的弹幕式互动直播平台，专注于电子竞技、网游及娱乐直播, 
+135,电视指南,电视猫,tvmao.com,专业的电视节目指南网站，提供实时节目单、影视导视及追剧提示, 
+136,视频频道,新浪视频,https://video.sina.com.cn,新浪网旗下的视频资讯平台，涵盖新闻热点、娱乐、体育等短视频, 
+137,社区/书影音,豆瓣,https://www.douban.com,提供关于书籍、电影、音乐等内容的评分、评论及社区互动平台, 
+138,弹幕视频,哔哩哔哩,https://www.bilibili.com,年轻人高度聚集的文化社区，主打二次元周边、ACG及长尾UGC视频, 
+139,在线视频,优酷,https://www.youku.com,阿里巴巴旗下核心视频平台，支持影视点播、体育直播及少儿教育, 
+140,音乐平台,网易云音乐,https://music.163.com,以“乐评”社区氛围著称的音乐平台，强调发现与分享个性化歌单, 
+141,综艺娱乐,芒果TV,https://www.mgtv.com,湖南广电旗下官方视频平台，拥有《浪姐》等湖南卫视核心综艺独播权, 
+142,主流媒体,央视网,https://www.cctv.com,中央广播电视总台主办的国家级门户网站，提供权威新闻直播与点播, 
+143,游戏直播,斗鱼,douyu.com,以游戏直播为主的综合性直播平台，涵盖电竞赛事、二次元与户外直播, 
+144,下载/云盘,迅雷,xunlei.com,全球领先的多媒体下载与云存储服务商，提供高速传输及离线下载服务, 
+145,资讯视频,网易视频,https://v.163.com,网易旗下的视频资讯板块，涵盖公开课、新闻、游戏视频及娱乐资讯, 
+146,AI 搜索/助手,腾讯元宝,tencent.com,腾讯推出的 AI 助手，深度集成微信搜索与腾讯生态内容, 
+147,AI 设计,稿定AI,gaoding.com,提供 AI 文生图、智能设计、AI 一键抠图等商业设计工具, 
+148,大语言模型,通义千问,aliyun.com,阿里巴巴打造的超大规模语言模型，支持多轮对话与文档理解, 
+149,大语言模型,讯飞星火,xfyun.cn,科大讯飞推出的认知大模型，长项在于语音识别与垂直行业应用, 
+150,大语言模型,智谱清言,https://chatglm.cn,基于 GLM 大模型的 AI 助手，由智谱 AI 推出的国产顶尖模型, 
+151,大语言模型,DeepSeek,deepseek.com,深度求索推出的开源高性能大模型，在编程和数理逻辑表现卓越, 
+152,AI 搜索,天工AI助手,tiangong.cn,昆仑万维出品的 AI 搜索助手，主打实时联网精准搜索, 
+153,AI 研发,智谱AI,zhipuai.cn,源自清华系的 AI 领先企业，提供企业级大模型 API 服务, 
+154,AI 写作,秘塔写作猫,https://xiezuocat.com,专业的 AI 写作与校对工具，支持论文润色及公文创作, 
+155,AI 绘画/视频,即梦,douyin.com,抖音旗下的一站式 AI 创作平台，支持高质量生图与动态视频, 
+156,AI 音乐,未音AI作歌,https://vocaloid.com,专注于 AI 词曲创作与人声合成的音乐创作平台, 
+157,开服资讯,新传奇·刚开一秒,9k9k.com,专业的手游/页游开服表，实时更新每日新开传奇服信息, 
+158,怀旧专区,176传奇·精品,176cq.com,专注于 1.76 复古版本的传奇合集，还原经典点卡制体验, 
+159,官方正版,热血传奇官网,sdo.com,盛趣游戏（原盛大）官方正版传奇，二十年经典动作网游, 
+160,游戏排行,17173热门游戏榜,17173.com,中国权威的游戏媒体排行榜，涵盖传奇类及全品类热度数据, 
+161,变态版本,超超变传奇·合集,8864.com,汇聚上线满级、满切割、神装全靠爆的超高倍率变态服, 
+162,合成玩法,装备二合一专服,5pk.com,独特合成机制版本，支持低级装备两两合成极品神装, 
+163,召唤版本,月灵召唤版,3977.com,强化道士职业及月灵宝宝的特殊版本，适合单刷 BOSS, 
+164,攻沙专区,沙城高爆版,shacheng.com,强化沙巴克攻城玩法的版本，提升团战爆率与爆装体验, 
+165,打宝专区,零氪打宝·全爆版,chuanqi.com,强调地图全开放、元宝全靠捡的纯净打宝复古版本, 
+166,资源整合,传奇大合集,cq8.com,综合性传奇资源站，涵盖单机版、联机版及各种Mod资源, 
+167,复古经典,复古 1.76 圣域,mir2.com,坚持原汁原味的 1.76 版本，无干扰、无会员的怀旧服, 
+168,冰雪版本,冰雪高爆版,bingxue.com,传奇中最火爆的单职业分支，主打冰雪地图与极致爆率, 
+169,免费小说,番茄小说,https://fanqienovel.com,字节跳动旗下领先的免费阅读平台，海量正版网文, 
+170,网文门户,小说阅读网,readnovel.com,阅文集团旗下综合性原创文学网站，涵盖全品类网文, 
+171,数字资源,中国国家图书馆,nlc.cn,国家级数字图书馆，提供权威的古籍、论文及图书检索, 
+172,女性文学,红袖添香,hongxiu.com,领先的女性言情小说原创基地，阅文旗下的核心女频平台, 
+173,历史百科,全历史,allhistory.com,以时空地图和关系图谱呈现全球历史的创新百科平台, 
+174,女性文学,起点女生网,qdmm.com,阅文旗下知名女频网文站，主打精品女性原创内容, 
+175,免费小说,七猫免费小说,qimao.com,百度投资的免费正版阅读平台，主打看书不花钱的阅读体验, 
+176,原创文学,起点中文网,qidian.com,全球最大的原创文学平台，网文商业化模式的开创者, 
+177,原创文学,纵横中文网,zongheng.com,百度文学旗下核心站点，汇聚多位网文顶级大神作家, 
+178,女性文学,晋江文学城,jjwxc.net,全球最大的女性向文学社区，IP 影视化改编的高产地, 
+179,女性文学,潇湘书院,xxsy.net,阅文集团旗下资深的女性原创文学网站，侧重穿越、言情, 
+180,原创文学,17k小说网,17k.com,中文在线旗下核心文学站，历史悠久的原创小说门户, 
+181,音频电台,喜马拉雅,ximalaya.com,全球知名的音频分享平台，涵盖有声书、电台与播客, 
+182,有声阅读,懒人听书,lrts.me,专业的移动有声阅读平台，提供高品质有声小说与评书, 
+183,自营电商,苏宁易购,suning.com,领先的 O2O 智慧零售商，涵盖家电、3C及超市品类, 
+184,房产服务,安居客,anjuke.com,国内领先的房产信息服务平台，涵盖二手房、租房、新房, 
+185,房产服务,链家,lianjia.com,提供二手房、新房、租房等真实房产交易服务的平台, 
+186,房产服务,搜房网 (房天下),fang.com,全球最大的房地产家居网络平台，提供房源搜索与装修资讯, 
+187,生活服务,赶集网,ganji.com,专业的同城生活服务平台，主打招聘、房产及本地服务, 
+188,美食菜谱,下厨房,xiachufang.com,专注于美食文化和菜谱分享的垂直社交平台, 
+189,美食菜谱,豆果美食,douguo.com,领先的美食互动社区，提供海量精品菜谱及美食课程, 
+190,健康管理,薄荷健身,boohee.com,专注于食物热量查询、减肥减脂与身材管理的健康平台, 
+191,气象资讯,天气网,tianqi.com,提供全球城市天气预报、空气质量及生活指数查询, 
+192,办公协作,钉钉,dingtalk.com,阿里巴巴旗下的企业级协同办公与应用开发平台, 
+193,文档协同,飞书文档,feishu.cn,字节跳动旗下先进的企业协作与文档处理工作台, 
+194,文档协同,石墨文档,https://shimo.im,中国首款在线协同办公实验室，主打纯净的办公体验, 
+195,搜索门户,必应 (Bing),bing.com,微软推出的全球搜索引擎，集成 AI 搜索增强功能, 
+196,百科全书,搜狗百科,sogou.com,搜狗旗下的百科知识库，由用户共同维护的百科平台, 
+197,设计工具,即时设计,https://js.design,专业级云端 UI 设计工具，支持团队协作与原型交互, 
+198,设计资源,千图网,58pic.com,国内主流的设计素材库，提供矢量图、PSD、背景图等, 
+199,设计资源,PPT之家,pptzj.com,专业的 PPT 模板下载与幻灯片设计素材分享平台, 
+200,AI 创作,AI思维导图,gitmind.cn,融合 AI 技术的在线思维导图工具，一键生成结构化内容, 
+201,翻译工具,谷歌翻译,google.com,全球使用最广泛的翻译服务，支持多种语言即时互译, 
+202,翻译工具,有道翻译,youdao.com,网易旗下专业的在线翻译平台，支持文档翻译与精传, 
+203,企业查询,企查查,qcc.com,专业的企业信用信息查询平台，提供工商、法律等背景查询, 
+204,权威媒体,中国新闻网,chinanews.com.cn,全球最大的中文新闻平台之一，提供权威的国内外动态, 
+205,权威媒体,环球网,huanqiu.com,聚焦国际新闻、军事、科技的权威媒体平台, 
+206,综合媒体,观察者网,guancha.cn,关注中国及全球政治、经济、社会的深度新闻平台, 
+207,综合媒体,澎湃新闻,thepaper.cn,以深度报道和时政分析著称的原创互联网新闻媒体, 
+208,地方/全国,新京报,bjnews.com.cn,具有全球影响力的主流媒体，提供全方位的深度报道, 
+209,军事资讯,参考消息,cankaoxiaoxi.com,中国最权威的译丛式报纸，汇总全球重要军情与动态, 
+210,军事资讯,光明军事,gmw.cn,光明日报旗下的军事频道，聚焦国防教育与战略分析, 
+211,军事资讯,米尔军情,miercn.com,国内知名的军事爱好者社区，提供武器库与军事情报, 
+212,网络广播,央广网,cnr.cn,中央广播电视总台旗下的核心新闻门户与广播平台, 
+213,财经门户,东方财富网,eastmoney.com,中国流量最大的财经信息平台，提供行情、资讯及开户, 
+214,财经门户,新浪财经,sina.com.cn,全球华人首选的财经资讯平台，实时行情与大 V 观点, 
+215,投资社区,雪球,https://xueqiu.com,领先的投资者社交平台，提供股票、基金、私募等理财交流, 
+216,金融数据,同花顺,10jqka.com.cn,国内主流的金融服务平台，提供软件下载及股市行情分析, 
+217,投研平台,萝卜投研,robofund.com,AI 驱动的智能投研平台，提供深度研报与数据分析, 
+218,金融资讯,证券之星,stockstar.com,资深的证券资讯网站，提供精准的股市动态与个股诊断, 
+219,银行官网,工商银行,icbc.com.cn,全球资产规模领先的银行，提供全方位的在线金融服务, 
+220,银行官网,建设银行,ccb.com,国内主要的综合性商业银行，提供个人与企业网银服务, 
+221,银行官网,中国银行,boc.cn,中国国际化程度最高的银行，擅长跨境金融与外汇服务, 
+222,银行官网,农业银行,abchina.com,深耕城乡金融服务的国有商业银行官方平台, 
+223,在线地图,高德地图,amap.com,领先的数字地图内容与位置服务提供商，主打导航精准度, 
+224,官方出行,12306,12306.cn,中国铁路唯一官方车票预订平台，权威可靠, 
+225,旅游预订,携程,ctrip.com,全球领先的一站式旅行服务商，涵盖机票酒店度假全品类, 
+226,旅游预订,去哪儿,qunar.com,领先的在线旅游搜索平台，主打比价优势与低价策略, 
+227,旅游预订,飞猪,fliggy.com,阿里巴巴旗下旅游平台，深受年轻用户喜爱的旅行工具, 
+228,海外预订,Booking (缤客),booking.com,全球最大的酒店预订平台，涵盖全球数百万家住宿, 
+229,比价搜索,天巡网,skyscanner.com.cn,全球知名的特价机票与租车比价平台, 
+230,自由行,蚂蜂窝,mafengwo.cn,中国知名的旅行社交网站，主打旅游攻略与游记分享, 
+231,旅游社区,穷游,qyer.com,专注于出境游的社区平台，提供专业的攻略与电子地图, 
+232,学术资源,中国知网 (CNKI),cnki.net,全球最大的中文学术资源库，查重及论文下载核心平台, 
+233,学术资源,万方数据,wanfangdata.com.cn,权威的科技、经济、文化领域数字资源检索库, 
+234,在线公开课,学堂在线,xuetangx.com,清华大学发起的精品慕课平台，合作全球顶级大学, 
+235,语言学习,Duolingo (多邻国),duolingo.com,全球流行的游戏化语言学习平台，免费学习几十种语言, 
+236,语言学习,扇贝单词,shanbay.com,专注于高效记单词与阅读的在线英语学习平台, 
+237,求职社区,牛客网,nowcoder.com,专注于 IT 领求职的技术交流平台，提供真题与面试经, 
+238,体育社区,虎扑体育,hupu.com,以 NBA、足球为主的专业体育社区，球迷互动中心, 
+239,体育直播,直播吧,zhibo8.com,全球知名的体育赛事直播导航，涵盖足球、篮球、F1, 
+240,专业汽车,懂车帝,dongchedi.com,字节跳动旗下专业的汽车资讯平台，提供实拍视频与底价查询, 
+241,专业汽车,易车网,yiche.com,提供专业的汽车报价、测评、降价动态与车友社区, 
+242,专业汽车,太平洋汽车,pcauto.com.cn,资深的汽车门户，提供详尽的参数对比与购车参考, 
+243,潮流社交,小红书,xiaohongshu.com,年轻人的生活方式分享平台，涵盖美妆、穿搭及旅行, 
+244,大众社交,LOFTER,lofter.com,网易旗下的原创图片社交社区，摄影师与画师的聚集地, 
+245,高端招聘,猎聘,liepin.com,领先的中高端人才招聘平台，主打猎头服务与名企直招, 
+246,学生招聘,实习僧,shixiseng.com,中国领先的大学生实习校招平台，提供海量名企实习机会, 
+247,彩票资讯,中国福利彩票,cwl.gov.cn,福彩官方网站，提供双色球等开奖结果查询与公益资讯, 
+248,社交,面向 Web3 的抗审查聊天,https://spritz.chat/,面向 Web3 的抗审查聊天, 
+249,ENS游戏,ENS扫雷,https://ens-minesweeper-quest.lovable.app/,避开 ENS 地雷！右键点击标记可疑单元格。,

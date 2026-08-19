@@ -6,8 +6,12 @@ param(
     [switch]$SkipDnsCheck
 )
 
-$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
-[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+# Windows PowerShell 5.1 + chcp 65001 会把中文打成「服服务务器器」。
+if ($PSVersionTable.PSVersion.Major -ge 6) {
+    $utf8 = [Text.UTF8Encoding]::new($false)
+    [Console]::OutputEncoding = $utf8
+    $OutputEncoding = $utf8
+}
 $ErrorActionPreference = 'Continue'
 
 $Root = Split-Path $PSScriptRoot -Parent
@@ -79,14 +83,12 @@ function Show-Banner {
     param($Cfg)
     Write-Host ''
     Write-Host ' ============================================================' -ForegroundColor Cyan
-    Write-Host '   OAO 服务器 — 一键启动远程本机 AI' -ForegroundColor Cyan
+    Write-Host '  OAO 服务器 · 远程本机 AI' -ForegroundColor Cyan
     Write-Host ' ============================================================' -ForegroundColor Cyan
-    Write-Host ''
-    Write-Host '  外网打开:' $Cfg.github_pages_url
-    Write-Host '  统一链路: 浏览器 -> Worker -> Tunnel(:3001 网关) -> AnythingLLM(:3002)/Ollama/SearXNG'
-    Write-Host '  本脚本自动: AI 网关 + AnythingLLM + Ollama + Tunnel；SearXNG 后台启动不阻塞'
-    Write-Host '  只需保持本窗口打开，关闭 = 外网无法访问本机 AI'
-    Write-Host '  高级菜单: OAO服务器.bat menu' -ForegroundColor DarkGray
+    Write-Host "  页面  $($Cfg.github_pages_url)"
+    Write-Host '  链路  浏览器 → Worker → Tunnel → 本机 AnythingLLM :3001'
+    Write-Host '  本机  AnythingLLM :3001 · Ollama :11434 · SearXNG :8080'
+    Write-Host '  关闭本窗口 = 外网无法使用本机 AI'
     Write-Host ''
 }
 
@@ -102,7 +104,7 @@ function Ensure-BackgroundServices {
         Write-Host '  (跳过) 未找到 oao-services.ps1' -ForegroundColor Yellow
         return
     }
-    Write-Host '  (启动) OAO 后台服务（Ollama / 主页 8777 / 翻译）…' -ForegroundColor Yellow
+    Write-Host '  (启动) OAO 后台服务（Ollama / 翻译）…' -ForegroundColor Yellow
     Start-Process -FilePath 'powershell.exe' -ArgumentList @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$ServicesScript`""
     ) -WindowStyle Minimized
@@ -112,7 +114,7 @@ function Ensure-BackgroundServices {
 
 function Start-SearXngBackground {
     Write-Host ''
-    Write-Host ' [1/6] SearXNG 联网搜索 (8080，后台启动，不阻塞 Tunnel)' -ForegroundColor Cyan
+    Write-Host ' [3/4] SearXNG 联网搜索 (:8080，后台)' -ForegroundColor Cyan
     $searxScript = Join-Path $PSScriptRoot 'searxng-start.ps1'
     if (-not (Test-Path $searxScript)) {
         Write-Host '  (跳过) 未找到 searxng-start.ps1' -ForegroundColor Yellow
@@ -130,7 +132,7 @@ function Start-SearXngBackground {
 
 function Ensure-SearXNGService {
     Write-Host ''
-    Write-Host ' [1/6] Docker + SearXNG 联网搜索 (8080)' -ForegroundColor Cyan
+    Write-Host ' [3/4] Docker + SearXNG 联网搜索 (:8080)' -ForegroundColor Cyan
     $searxScript = Join-Path $PSScriptRoot 'searxng-start.ps1'
     if (-not (Test-Path $searxScript)) {
         Write-Host '  (跳过) 未找到 searxng-start.ps1' -ForegroundColor Yellow
@@ -155,37 +157,25 @@ function Ensure-SearXNGService {
 
 function Ensure-Ollama {
     Write-Host ''
-    Write-Host ' [2/6] Ollama (11434)' -ForegroundColor Cyan
-    $check = Join-Path $Root 'scripts\check-ollama.ps1'
-    if (Test-Path $check) {
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $check -NoPause
-        if ($LASTEXITCODE -eq 0) { return $true }
-        Write-Host '  (警告) Ollama 检查未完全通过，继续尝试 Tunnel…' -ForegroundColor Yellow
-        return $false
-    }
-    if (Test-LocalPort -Port 11434 -Path '/api/tags') {
-        $llama = Join-Path $env:LOCALAPPDATA 'Programs\Ollama\lib\ollama\llama-server.exe'
-        if (-not (Test-Path $llama)) {
-            Write-Host '  (警告) 缺少 lib\ollama\llama-server.exe，嵌入模型无法加载' -ForegroundColor Yellow
-        } else {
-            Write-Host '  (正常) Ollama 已运行' -ForegroundColor Green
-        }
+    Write-Host ' [1/4] Ollama (:11434)' -ForegroundColor Cyan
+    if (Test-HttpJsonService -Uri 'http://127.0.0.1:11434/api/tags' -TimeoutSec 1) {
+        Write-Host '  (正常) 已运行' -ForegroundColor Green
         return $true
     }
     if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
         Write-Host '  (提示) 未安装 Ollama — https://ollama.com' -ForegroundColor Yellow
         return $false
     }
-    Write-Host '  (启动) 正在启动 Ollama…' -ForegroundColor Yellow
+    Write-Host '  (启动) ollama serve…' -ForegroundColor Yellow
     Start-Process -FilePath 'ollama' -ArgumentList 'serve' -WindowStyle Hidden
-    for ($i = 1; $i -le 15; $i++) {
-        Start-Sleep -Seconds 2
-        if (Test-LocalPort -Port 11434 -Path '/api/tags') {
-            Write-Host '  (正常) Ollama 已启动' -ForegroundColor Green
+    for ($i = 1; $i -le 20; $i++) {
+        Start-Sleep -Milliseconds 500
+        if (Test-HttpJsonService -Uri 'http://127.0.0.1:11434/api/tags' -TimeoutSec 1) {
+            Write-Host '  (正常) 已启动' -ForegroundColor Green
             return $true
         }
     }
-    Write-Host '  (警告) Ollama 启动超时，继续尝试 Tunnel…' -ForegroundColor Yellow
+    Write-Host '  (警告) 启动超时，Tunnel 仍继续' -ForegroundColor Yellow
     return $false
 }
 
@@ -202,42 +192,58 @@ function Find-AnythingLLMExe {
     return $null
 }
 
-function Test-AnythingLLMReady {
-    return (Test-LocalPort -Port 3001 -Path '/api/ping') -or (Test-LocalPort -Port 3002 -Path '/api/ping')
+function Wait-AnythingLLMReady {
+    param([int]$Seconds = 15)
+    $deadline = [datetime]::UtcNow.AddSeconds($Seconds)
+    $n = 0
+    while ([datetime]::UtcNow -lt $deadline) {
+        $port = Get-AnythingLLMReadyPort
+        if ($port) {
+            Write-Host "  (正常) 已就绪 :$port" -ForegroundColor Green
+            return $true
+        }
+        $n++
+        if ($n -eq 1 -or ($n % 6 -eq 0)) {
+            Write-Host '  (等待) 桌面版启动中…' -ForegroundColor DarkGray
+        }
+        Start-Sleep -Milliseconds 500
+    }
+    return $false
 }
 
 function Ensure-AnythingLLM {
     Write-Host ''
-    Write-Host ' [3/6] AnythingLLM 桌面版' -ForegroundColor Cyan
-    if (Test-LocalPort -Port 3001 -Path '/api/ping') {
-        Write-Host '  (正常) AnythingLLM 已运行 (:3001)' -ForegroundColor Green
+    Write-Host ' [2/4] AnythingLLM 桌面版' -ForegroundColor Cyan
+    $port = Get-AnythingLLMReadyPort
+    if ($port) {
+        Write-Host "  (正常) 已运行 :$port" -ForegroundColor Green
         return $true
     }
-    if (Test-LocalPort -Port 3002 -Path '/api/ping') {
-        Write-Host '  (正常) AnythingLLM 已运行 (:3002)' -ForegroundColor Green
-        return $true
+
+    $running = @(Get-Process -Name 'AnythingLLM' -ErrorAction SilentlyContinue)
+    if ($running.Count -gt 0) {
+        Write-Host '  (等待) 进程已在，探测 API…' -ForegroundColor DarkGray
+        if (Wait-AnythingLLMReady -Seconds 12) { return $true }
+        Write-Host '  (提示) 桌面版已打开但 :3001/:3002 未响应，跳过重复启动' -ForegroundColor Yellow
+        return $false
     }
+
+    if (Test-OaoAiGateway) {
+        Write-Host '  (整理) 释放 :3001 上的本地网关，供桌面版使用' -ForegroundColor Yellow
+        Stop-OaoAiGatewayProcess | Out-Null
+    }
+
     $exe = Find-AnythingLLMExe
-    if ($exe) {
-        Write-Host "  (启动) 正在打开 AnythingLLM…" -ForegroundColor Yellow
-        Start-Process -FilePath $exe
-        for ($i = 1; $i -le 18; $i++) {
-            Start-Sleep -Seconds 2
-            if (Test-AnythingLLMReady) {
-                $port = if (Test-LocalPort -Port 3001 -Path '/api/ping') { 3001 } else { 3002 }
-                Write-Host "  (正常) AnythingLLM 已就绪 (:$port)" -ForegroundColor Green
-                return $true
-            }
-            if ($i % 4 -eq 0) {
-                Write-Host "  (等待) AnythingLLM 启动中… ${i}/18" -ForegroundColor DarkGray
-            }
-        }
-    } else {
-        Write-Host '  (提示) 未找到 AnythingLLM 安装路径，请手动打开桌面版' -ForegroundColor Yellow
+    if (-not $exe) {
+        Write-Host '  (提示) 未找到 AnythingLLM，请先安装桌面版' -ForegroundColor Yellow
+        return $false
     }
-    Write-Host ''
-    Write-Host '  (提示) AnythingLLM 需工作区 oaoeth、模式 Query' -ForegroundColor Yellow
-    Write-Host '  (继续) Tunnel 仍会启动；AnythingLLM 就绪后外网知识库 AI 自动可用' -ForegroundColor Yellow
+
+    Write-Host '  (启动) 打开桌面版…' -ForegroundColor Yellow
+    Start-Process -FilePath $exe
+    if (Wait-AnythingLLMReady -Seconds 20) { return $true }
+
+    Write-Host '  (提示) API 尚未就绪；工作区请用 oaoeth / Query。Tunnel 照常启动。' -ForegroundColor Yellow
     return $false
 }
 
@@ -268,7 +274,7 @@ function Ensure-TunnelToken {
 function Ensure-FirstTimeWorker {
     if (Test-Path $ReadyMarker) { return }
     Write-Host ''
-    Write-Host ' [4/6] 首次运行 — 配置 Cloudflare Worker（仅需一次）' -ForegroundColor Cyan
+    Write-Host ' [配置] 首次运行 — Cloudflare Worker（仅一次）' -ForegroundColor Cyan
     $setup = Join-Path $CfDir 'setup-remote-access.ps1'
     if (-not (Test-Path $setup)) {
         Write-Host '  (跳过) 未找到 setup-remote-access.ps1' -ForegroundColor Yellow
@@ -289,21 +295,10 @@ function Ensure-FirstTimeWorker {
 
 function Test-NetworkForTunnel {
     if ($SkipDnsCheck) { return $true }
-    Write-Host ''
-    Write-Host ' [5/6] Tunnel 网络 / DNS' -ForegroundColor Cyan
     $xray = Get-DnsClientServerAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
         Where-Object { $_.InterfaceAlias -match 'xray|v2ray|clash|sing-box' }
     if ($xray) {
-        Write-Host '  (警告) 检测到 V2Ray/Xray — 可能导致 Tunnel 失败' -ForegroundColor Yellow
-        Write-Host '         可运行 OAO服务器.bat v2ray，或暂时关闭 V2Ray'
-    }
-    $dnsScript = Join-Path $CfDir 'check-dns.ps1'
-    if (-not (Test-Path $dnsScript)) { return $true }
-    & powershell -NoProfile -ExecutionPolicy Bypass -File $dnsScript
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host ''
-        Write-Host '  (警告) DNS 检测未通过，仍尝试启动 Tunnel…' -ForegroundColor Yellow
-        Write-Host '         若失败：WiFi DNS 改为 1.1.1.1 / 8.8.8.8，运行 ipconfig /flushdns'
+        Write-Host '  (提示) 检测到代理适配器，若 Tunnel 失败可暂时关闭 V2Ray' -ForegroundColor DarkGray
     }
     return $true
 }
@@ -400,7 +395,7 @@ function Start-TunnelCore {
     }
 
     Write-Host ''
-    Write-Host ' [6/6] 启动 Cloudflare Tunnel' -ForegroundColor Cyan
+    Write-Host ' [4/4] 启动 Cloudflare Tunnel' -ForegroundColor Cyan
     Show-RunningBanner -Cfg $Cfg -Mode 'tunnel'
 
     $global:OAO_XRAY_WAS_DISABLED = $false
@@ -426,10 +421,10 @@ function Start-TunnelCore {
 
 function Invoke-CheckOnly {
     param($Cfg)
-    Ensure-OaoAiGateway | Out-Null
-    Ensure-SearXNGService | Out-Null
     Ensure-Ollama | Out-Null
     Ensure-AnythingLLM | Out-Null
+    Ensure-OaoAiGateway | Out-Null
+    Ensure-SearXNGService | Out-Null
     Test-NetworkForTunnel | Out-Null
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $CfDir 'check-remote-ai.ps1')
     Wait-BeforeExit 0
@@ -450,11 +445,11 @@ try {
         Invoke-CheckOnly -Cfg $cfg
     }
 
+    Ensure-Ollama | Out-Null
+    Ensure-AnythingLLM | Out-Null
     Ensure-OaoAiGateway | Out-Null
     Ensure-BackgroundServices
     Start-SearXngBackground
-    Ensure-Ollama | Out-Null
-    Ensure-AnythingLLM | Out-Null
     Ensure-FirstTimeWorker
     Test-NetworkForTunnel | Out-Null
 

@@ -1,8 +1,7 @@
 @echo off
-chcp 65001 >nul 2>&1
 cd /d "%~dp0"
-title OAO Server - Remote AI
-rem Start Docker + SearXNG + Ollama + AnythingLLM + Tunnel
+title OAO Server
+rem Start Ollama + AnythingLLM + SearXNG + Tunnel
 rem Args: menu  check  v2ray
 fltmc >nul 2>&1
 if errorlevel 1 (
