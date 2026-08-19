@@ -62,5 +62,5 @@ powershell -NoProfile -Command "try{(Invoke-WebRequest -Uri 'http://127.0.0.1:11
 exit /b %ERRORLEVEL%
 
 :CheckAnythingLLMPort
-powershell -NoProfile -Command "try{(Invoke-WebRequest -Uri 'http://127.0.0.1:3001/api/ping' -UseBasicParsing -TimeoutSec 3).StatusCode; exit 0}catch{exit 1}" >nul 2>&1
+powershell -NoProfile -Command "try{(Invoke-WebRequest -Uri 'http://127.0.0.1:3002/api/ping' -UseBasicParsing -TimeoutSec 3).StatusCode; exit 0}catch{try{(Invoke-WebRequest -Uri 'http://127.0.0.1:3001/api/ping' -UseBasicParsing -TimeoutSec 3).StatusCode; exit 0}catch{exit 1}}" >nul 2>&1
 exit /b %ERRORLEVEL%

@@ -156,8 +156,20 @@ function Ensure-SearXNGService {
 function Ensure-Ollama {
     Write-Host ''
     Write-Host ' [2/6] Ollama (11434)' -ForegroundColor Cyan
+    $check = Join-Path $Root 'scripts\check-ollama.ps1'
+    if (Test-Path $check) {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $check -NoPause
+        if ($LASTEXITCODE -eq 0) { return $true }
+        Write-Host '  (警告) Ollama 检查未完全通过，继续尝试 Tunnel…' -ForegroundColor Yellow
+        return $false
+    }
     if (Test-LocalPort -Port 11434 -Path '/api/tags') {
-        Write-Host '  (正常) Ollama 已运行' -ForegroundColor Green
+        $llama = Join-Path $env:LOCALAPPDATA 'Programs\Ollama\lib\ollama\llama-server.exe'
+        if (-not (Test-Path $llama)) {
+            Write-Host '  (警告) 缺少 lib\ollama\llama-server.exe，嵌入模型无法加载' -ForegroundColor Yellow
+        } else {
+            Write-Host '  (正常) Ollama 已运行' -ForegroundColor Green
+        }
         return $true
     }
     if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
@@ -190,9 +202,17 @@ function Find-AnythingLLMExe {
     return $null
 }
 
+function Test-AnythingLLMReady {
+    return (Test-LocalPort -Port 3001 -Path '/api/ping') -or (Test-LocalPort -Port 3002 -Path '/api/ping')
+}
+
 function Ensure-AnythingLLM {
     Write-Host ''
-    Write-Host ' [3/6] AnythingLLM (3002，经网关 3001 对外)' -ForegroundColor Cyan
+    Write-Host ' [3/6] AnythingLLM 桌面版' -ForegroundColor Cyan
+    if (Test-LocalPort -Port 3001 -Path '/api/ping') {
+        Write-Host '  (正常) AnythingLLM 已运行 (:3001)' -ForegroundColor Green
+        return $true
+    }
     if (Test-LocalPort -Port 3002 -Path '/api/ping') {
         Write-Host '  (正常) AnythingLLM 已运行 (:3002)' -ForegroundColor Green
         return $true
@@ -201,21 +221,22 @@ function Ensure-AnythingLLM {
     if ($exe) {
         Write-Host "  (启动) 正在打开 AnythingLLM…" -ForegroundColor Yellow
         Start-Process -FilePath $exe
-        for ($i = 1; $i -le 12; $i++) {
+        for ($i = 1; $i -le 18; $i++) {
             Start-Sleep -Seconds 2
-            if (Test-LocalPort -Port 3002 -Path '/api/ping') {
-                Write-Host '  (正常) AnythingLLM 已就绪 (:3002)' -ForegroundColor Green
+            if (Test-AnythingLLMReady) {
+                $port = if (Test-LocalPort -Port 3001 -Path '/api/ping') { 3001 } else { 3002 }
+                Write-Host "  (正常) AnythingLLM 已就绪 (:$port)" -ForegroundColor Green
                 return $true
             }
             if ($i % 4 -eq 0) {
-                Write-Host "  (等待) AnythingLLM 启动中… ${i}/12" -ForegroundColor DarkGray
+                Write-Host "  (等待) AnythingLLM 启动中… ${i}/18" -ForegroundColor DarkGray
             }
         }
     } else {
         Write-Host '  (提示) 未找到 AnythingLLM 安装路径，请手动打开桌面版' -ForegroundColor Yellow
     }
     Write-Host ''
-    Write-Host '  (提示) AnythingLLM 需工作区 oaoeth、模式 Query、端口 3002' -ForegroundColor Yellow
+    Write-Host '  (提示) AnythingLLM 需工作区 oaoeth、模式 Query' -ForegroundColor Yellow
     Write-Host '  (继续) Tunnel 仍会启动；AnythingLLM 就绪后外网知识库 AI 自动可用' -ForegroundColor Yellow
     return $false
 }

@@ -27,6 +27,31 @@ function Find-AnythingLLMStorageEnv {
     return $null
 }
 
+function Test-HttpJsonService {
+    param(
+        [string]$Uri,
+        [string]$MustMatch = '',
+        [int]$TimeoutSec = 3
+    )
+    try {
+        $r = Invoke-WebRequest -Uri $Uri -UseBasicParsing -TimeoutSec $TimeoutSec
+        if ($r.StatusCode -lt 200 -or $r.StatusCode -ge 300) { return $false }
+        if ($MustMatch -and $r.Content -notmatch $MustMatch) { return $false }
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Test-OaoAiGateway {
+    return Test-HttpJsonService -Uri "http://127.0.0.1:${GatewayPort}/health" -MustMatch 'oao-ai-gateway'
+}
+
+function Test-AnythingLLMOnPort {
+    param([int]$Port)
+    return Test-HttpJsonService -Uri "http://127.0.0.1:${Port}/api/ping" -MustMatch 'online'
+}
+
 function Test-HttpPort {
     param(
         [int]$Port,
@@ -67,31 +92,18 @@ function Stop-AnythingLLMProcesses {
 }
 
 function Migrate-AnythingLLMPort {
-    $envFile = Find-AnythingLLMStorageEnv
-    if (-not $envFile) {
-        Write-Host '  (提示) 未找到 AnythingLLM storage/.env，跳过端口迁移' -ForegroundColor Yellow
+    # AnythingLLM 桌面版会占用 3001，且忽略 .env 里的 SERVER_PORT=3002。
+    # 不要根据 .env 误报 3002，更不要每次启动都杀进程。
+    if (Test-AnythingLLMOnPort -Port $GatewayPort) {
+        Write-Host '  (正常) AnythingLLM 桌面版运行在 :3001' -ForegroundColor Green
+        return $false
+    }
+    if (Test-AnythingLLMOnPort -Port $AnythingLLMPort) {
+        Write-Host '  (正常) AnythingLLM 运行在 :3002' -ForegroundColor Green
         return $true
     }
-
-    $content = Get-Content -LiteralPath $envFile -Raw -Encoding UTF8
-    if ($content -notmatch '(?m)^SERVER_PORT\s*=') {
-        Write-Host '  (提示) AnythingLLM .env 无 SERVER_PORT，无需迁移' -ForegroundColor DarkGray
-        return $true
-    }
-
-    if ($content -match '(?m)^SERVER_PORT\s*=\s*["'']?3002["'']?\s*$') {
-        Write-Host '  (正常) AnythingLLM 已运行在端口 3002' -ForegroundColor Green
-        return $true
-    }
-
-    $backup = "$envFile.oaobak-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-    Copy-Item -LiteralPath $envFile -Destination $backup -Force
-    $updated = [regex]::Replace($content, '(?m)^SERVER_PORT\s*=\s*["'']?3001["'']?\s*$', "SERVER_PORT='$AnythingLLMPort'")
-    [IO.File]::WriteAllText($envFile, $updated, [Text.UTF8Encoding]::new($false))
-    Write-Host '  (迁移) 已将 AnythingLLM SERVER_PORT 从 3001 改为 3002' -ForegroundColor Yellow
-    Write-Host "  (备份) $backup" -ForegroundColor DarkGray
-    Stop-AnythingLLMProcesses
-    return $true
+    Write-Host '  (提示) 未检测到 AnythingLLM API，请打开桌面版' -ForegroundColor Yellow
+    return $false
 }
 
 function Start-OaoAiGateway {
@@ -105,16 +117,26 @@ function Start-OaoAiGateway {
         return $false
     }
 
-    if (Test-HttpPort -Port $GatewayPort -Path '/health') {
+    if (Test-OaoAiGateway) {
         Write-Host '  (正常) OAO 本地 AI 网关已运行 (:3001)' -ForegroundColor Green
         return $true
     }
 
+    if (Test-AnythingLLMOnPort -Port $GatewayPort) {
+        Write-Host '  (提示) AnythingLLM 桌面版占用 3001，本地不抢该端口' -ForegroundColor Yellow
+        Write-Host '         前端将直连 Ollama :11434 与 AnythingLLM :3001' -ForegroundColor DarkGray
+        return $false
+    }
+
     $owner = Get-PortOwner -Port $GatewayPort
+    if ($owner -and $owner.Name -match 'AnythingLLM') {
+        Write-Host '  (提示) 端口 3001 仍由 AnythingLLM 占用，跳过网关启动' -ForegroundColor Yellow
+        return $false
+    }
+
     if ($owner -and $owner.CommandLine -notmatch 'oao-ai-gateway\.js') {
-        Write-Host '  (提示) 端口 3001 被旧 AnythingLLM 占用，正在迁移…' -ForegroundColor Yellow
-        Migrate-AnythingLLMPort | Out-Null
-        Stop-AnythingLLMProcesses
+        Write-Host "  (警告) 端口 3001 被 $($owner.Name) 占用，无法启动网关" -ForegroundColor Yellow
+        return $false
     }
 
     Write-Host '  (启动) 正在启动 OAO 本地 AI 网关…' -ForegroundColor Yellow
@@ -125,7 +147,7 @@ function Start-OaoAiGateway {
 
     for ($i = 1; $i -le 10; $i++) {
         Start-Sleep -Milliseconds 600
-        if (Test-HttpPort -Port $GatewayPort -Path '/health') {
+        if (Test-OaoAiGateway) {
             Write-Host '  (正常) OAO 本地 AI 网关已启动 (:3001)' -ForegroundColor Green
             return $true
         }
@@ -136,7 +158,14 @@ function Start-OaoAiGateway {
 }
 
 function Ensure-OaoAiGateway {
-    Migrate-AnythingLLMPort | Out-Null
+    if (Test-AnythingLLMOnPort -Port $GatewayPort) {
+        Write-Host '  (正常) AnythingLLM 桌面版 :3001；Ollama 直连 :11434' -ForegroundColor Green
+        return $true
+    }
+    if (Test-OaoAiGateway) {
+        Write-Host '  (正常) OAO 本地 AI 网关已运行 (:3001)' -ForegroundColor Green
+        return $true
+    }
     return Start-OaoAiGateway
 }
 
@@ -148,8 +177,8 @@ function Show-OaoAiGatewayStatus {
     Write-Host ' Ollama     http://127.0.0.1:11434/api/tags'
     Write-Host ' SearXNG    http://127.0.0.1:8080/search?q=test&format=json'
     Write-Host ''
-    Write-Host ('  网关: ' + $(if (Test-HttpPort -Port $GatewayPort -Path '/health') { 'OK' } else { '未运行' }))
-    Write-Host ('  AnythingLLM: ' + $(if (Test-HttpPort -Port $AnythingLLMPort -Path '/api/ping') { 'OK' } else { '未运行' }))
+    Write-Host ('  网关: ' + $(if (Test-OaoAiGateway) { 'OK' } else { '未运行' }))
+    Write-Host ('  AnythingLLM: ' + $(if ((Test-AnythingLLMOnPort -Port $AnythingLLMPort) -or (Test-AnythingLLMOnPort -Port $GatewayPort)) { 'OK' } else { '未运行' }))
     Write-Host ('  Ollama: ' + $(if (Test-HttpPort -Port 11434 -Path '/api/tags') { 'OK' } else { '未运行' }))
     Write-Host ('  SearXNG: ' + $(if (Test-HttpPort -Port 8080 -Path '/search?q=test&format=json') { 'OK' } else { '未运行' }))
 }

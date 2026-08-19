@@ -175,6 +175,34 @@ export default {
       return withCors(await handleAdminApi(request, env, url, CORS));
     }
 
+    if (path === '/nav-sites' && request.method === 'GET') {
+      const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1uVxG3qUwmeb5PznGovM2I8GlfYdESGdwEB_TaYqn7jTT8-syGlhHHrVnNxct94GVv-60Y1m7B-Ro/pub?gid=0&single=true&output=csv';
+      try {
+        const upstream = await fetch(sheetUrl, {
+          headers: {
+            Accept: 'text/csv,text/plain,*/*',
+            'User-Agent': 'OAO-NavSites/1.0',
+          },
+        });
+        const text = await upstream.text();
+        return withCors(new Response(text, {
+          status: upstream.ok ? 200 : upstream.status,
+          headers: {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Cache-Control': 'no-store',
+          },
+        }));
+      } catch (error) {
+        return withCors(new Response(JSON.stringify({
+          error: 'nav_sheet_unreachable',
+          message: error?.message || 'Google Sheets fetch failed',
+        }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        }));
+      }
+    }
+
     if (path === '/web-search' || path.startsWith('/web-search/')) {
       return withCors(await handleWebSearch(request, env, CORS));
     }
@@ -207,7 +235,7 @@ export default {
           '/glm/health', '/glm/chat',
           '/api/user/sync', '/api/user/me', '/api/user/meetings', '/api/user/translate',
           '/admin/login', '/admin/api/stats', '/admin/api/users',
-          '/web-search', '/ollama/*', '/api/*', '/meeting', '/auth/wechat/config',
+          '/web-search', '/nav-sites', '/ollama/*', '/api/*', '/meeting', '/auth/wechat/config',
         ],
       }), {
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
@@ -249,7 +277,7 @@ export default {
         '/glm/health', '/glm/chat',
         '/api/user/sync', '/api/user/me', '/api/user/meetings', '/api/user/translate',
         '/admin/login', '/admin/api/stats', '/admin/api/users',
-        '/web-search', '/ollama/*', '/api/*', '/meeting', '/auth/wechat/config',
+        '/web-search', '/nav-sites', '/ollama/*', '/api/*', '/meeting', '/auth/wechat/config',
       ],
     }), {
       headers: { 'Content-Type': 'application/json; charset=utf-8' },

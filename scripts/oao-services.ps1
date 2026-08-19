@@ -22,7 +22,7 @@ Write-Host ' 关闭本窗口将停止全部服务'
 Write-Host '========================================'
 Write-Host ''
 Write-Host ' 主页  http://127.0.0.1:8777/OAO.html'
-Write-Host ' AI    网关 3001 -> AnythingLLM 3002 + Ollama 11434 + SearXNG 8080'
+Write-Host ' AI    AnythingLLM 3001 + Ollama 11434（可选 SearXNG 8080）'
 Write-Host ' 翻译  可选中继 3011'
 Write-Host ''
 

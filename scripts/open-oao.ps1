@@ -46,6 +46,10 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host ' [提示] Ollama 未运行 — AI 对话将尝试 AnythingLLM' -ForegroundColor Yellow
 } else {
     Write-Host ' [正常] Ollama 已就绪' -ForegroundColor Green
+    $ollamaCheck = Join-Path $Root 'scripts\check-ollama.ps1'
+    if (Test-Path $ollamaCheck) {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $ollamaCheck -NoPause
+    }
 }
 & cmd /c "call `"$Lib`" CheckAnythingLLMPort"
 if ($LASTEXITCODE -ne 0) {
