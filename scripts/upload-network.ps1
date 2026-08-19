@@ -84,23 +84,27 @@ function Test-GithubHttps {
     )
     if ($ProxyUrl) { $curlArgs = @('-x', $ProxyUrl) + $curlArgs }
     $curlArgs += 'https://github.com'
-    $outFile = Join-Path $env:TEMP 'oao-upload-curl-out.txt'
-    $errFile = Join-Path $env:TEMP 'oao-upload-curl-err.txt'
-    $proc = Start-Process -FilePath 'curl.exe' -ArgumentList $curlArgs -Wait -PassThru -NoNewWindow -RedirectStandardOutput $outFile -RedirectStandardError $errFile
-    $exit = $proc.ExitCode
-    $outText = ''
-    $errText = ''
-    if (Test-Path $outFile) { $outText = (Get-Content $outFile -Raw -ErrorAction SilentlyContinue) }
-    if (Test-Path $errFile) { $errText = (Get-Content $errFile -Raw -ErrorAction SilentlyContinue) }
-    $http = 0
-    [void][int]::TryParse([string]$outText.Trim(), [ref]$http)
-    $ok = ($exit -eq 0 -and $http -ge 200 -and $http -lt 500)
-    $err = ''
-    if (-not $ok) {
-        $err = (($errText + ' ' + $outText) -replace '\s+', ' ').Trim()
-        if (-not $err) { $err = "curl exit $exit" }
+    $outFile = Join-Path $env:TEMP ("oao-upload-curl-out-{0}.txt" -f [guid]::NewGuid().ToString('N'))
+    $errFile = Join-Path $env:TEMP ("oao-upload-curl-err-{0}.txt" -f [guid]::NewGuid().ToString('N'))
+    try {
+        $proc = Start-Process -FilePath 'curl.exe' -ArgumentList $curlArgs -Wait -PassThru -NoNewWindow -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+        $exit = $proc.ExitCode
+        $outText = ''
+        $errText = ''
+        if (Test-Path $outFile) { $outText = [string](Get-Content $outFile -Raw -ErrorAction SilentlyContinue) }
+        if (Test-Path $errFile) { $errText = [string](Get-Content $errFile -Raw -ErrorAction SilentlyContinue) }
+        $http = 0
+        [void][int]::TryParse($outText.Trim(), [ref]$http)
+        $ok = ($exit -eq 0 -and $http -ge 200 -and $http -lt 500)
+        $err = ''
+        if (-not $ok) {
+            $err = (($errText + ' ' + $outText) -replace '\s+', ' ').Trim()
+            if (-not $err) { $err = "curl exit $exit" }
+        }
+        return @{ ok = $ok; status = $http; proxy = $ProxyUrl; error = $err }
+    } finally {
+        Remove-Item -LiteralPath $outFile, $errFile -Force -ErrorAction SilentlyContinue
     }
-    return @{ ok = $ok; status = $http; proxy = $ProxyUrl; error = $err }
 }
 
 function Find-WorkingGithubProxy {
