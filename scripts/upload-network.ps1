@@ -53,28 +53,54 @@ function Get-CandidateProxyUrls {
     return @($urls | Select-Object -Unique)
 }
 
+function Test-LocalProxyPort {
+    param([int]$Port)
+    if ($Port -le 0) { return $false }
+    $client = $null
+    try {
+        $client = New-Object System.Net.Sockets.TcpClient
+        $iar = $client.BeginConnect('127.0.0.1', $Port, $null, $null)
+        if (-not $iar.AsyncWaitHandle.WaitOne(400, $false)) { return $false }
+        $client.EndConnect($iar)
+        return $true
+    } catch {
+        return $false
+    } finally {
+        if ($client) { $client.Close() }
+    }
+}
+
 function Test-GithubHttps {
     param(
         [string]$ProxyUrl = '',
         [int]$TimeoutSec = 10
     )
-    try {
-        $req = [System.Net.HttpWebRequest]::Create('https://github.com')
-        $req.Method = 'HEAD'
-        $req.Timeout = $TimeoutSec * 1000
-        $req.UserAgent = 'OAO-Upload/1.0'
-        if ($ProxyUrl) {
-            $req.Proxy = New-Object System.Net.WebProxy($ProxyUrl, $true)
-        }
-        $resp = $req.GetResponse()
-        $code = [int]$resp.StatusCode
-        $resp.Close()
-        return @{ ok = ($code -ge 200 -and $code -lt 500); status = $code; proxy = $ProxyUrl }
-    } catch {
-        $msg = $_.Exception.Message
-        if ($_.Exception.InnerException) { $msg = $_.Exception.InnerException.Message }
-        return @{ ok = $false; proxy = $ProxyUrl; error = $msg }
+    # 必须用 curl.exe 探测：与 git 同一套网络栈。
+    # .NET HttpWebRequest 会偷偷走系统代理，造成“直连正常”但 git fetch 超时。
+    $curlArgs = @(
+        '-sS', '-I', '-L', '--max-time', "$TimeoutSec",
+        '-A', 'OAO-Upload/1.0',
+        '-o', 'NUL', '-w', '%{http_code}'
+    )
+    if ($ProxyUrl) { $curlArgs = @('-x', $ProxyUrl) + $curlArgs }
+    $curlArgs += 'https://github.com'
+    $outFile = Join-Path $env:TEMP 'oao-upload-curl-out.txt'
+    $errFile = Join-Path $env:TEMP 'oao-upload-curl-err.txt'
+    $proc = Start-Process -FilePath 'curl.exe' -ArgumentList $curlArgs -Wait -PassThru -NoNewWindow -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+    $exit = $proc.ExitCode
+    $outText = ''
+    $errText = ''
+    if (Test-Path $outFile) { $outText = (Get-Content $outFile -Raw -ErrorAction SilentlyContinue) }
+    if (Test-Path $errFile) { $errText = (Get-Content $errFile -Raw -ErrorAction SilentlyContinue) }
+    $http = 0
+    [void][int]::TryParse([string]$outText.Trim(), [ref]$http)
+    $ok = ($exit -eq 0 -and $http -ge 200 -and $http -lt 500)
+    $err = ''
+    if (-not $ok) {
+        $err = (($errText + ' ' + $outText) -replace '\s+', ' ').Trim()
+        if (-not $err) { $err = "curl exit $exit" }
     }
+    return @{ ok = $ok; status = $http; proxy = $ProxyUrl; error = $err }
 }
 
 function Find-WorkingGithubProxy {
@@ -88,12 +114,9 @@ function Find-WorkingGithubProxy {
     & $OnLog ("直连失败: {0}" -f ($direct.error -replace '\s+', ' '))
 
     foreach ($proxy in (Get-CandidateProxyUrls)) {
-        $port = ($proxy -replace '^https?://', '' -replace '^127\.0\.0\.1:', '')
-        try {
-            $tcp = Test-NetConnection -ComputerName 127.0.0.1 -Port ([int]$port) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-            if (-not $tcp.TcpTestSucceeded) { continue }
-        } catch { continue }
-
+        if ($proxy -match '127\.0\.0\.1:(\d+)$' -or $proxy -match 'localhost:(\d+)$') {
+            if (-not (Test-LocalProxyPort -Port ([int]$matches[1]))) { continue }
+        }
         & $OnLog ("尝试代理: $proxy")
         $r = Test-GithubHttps -ProxyUrl $proxy -TimeoutSec 10
         if ($r.ok) {

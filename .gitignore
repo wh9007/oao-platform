@@ -1,5 +1,6 @@
 ﻿# Cloudflare 敏感信息（切勿提交）
 git-token.txt
+upload-proxy.txt
 cloudflare/tunnel-token.txt
 cloudflare/.remote-ai-ready
 cloudflare/*.json
@@ -23,6 +24,8 @@ git-inv-output.txt
 !**/.env.example
 local-config.js
 local-ai.json
+assets/data/nav-sites.cache.csv
+cloudflare/nav-sites-fallback.js
 
 # Cursor / 临时目录
 oao-association-platform/
